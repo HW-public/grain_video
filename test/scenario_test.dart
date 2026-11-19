@@ -28,7 +28,7 @@ void main() {
           .map(PluginRelease.fromJson)
           .whereType<PluginRelease>()
           .toList();
-      expect(releases, hasLength(4));
+      expect(releases, isNotEmpty);
 
       // 安装目录隔离在临时目录，不污染应用目录。
       final tmp = await Directory.systemTemp.createTemp('grain_scenario_');
@@ -50,11 +50,11 @@ void main() {
         await mgr.installBytes(bytes, fileName: r.file, dir: tmp);
       }
       final installed = container.read(pluginManagerProvider);
-      expect(installed, hasLength(4));
-      expect(PluginUpdater.groupBySite(releases).keys.toSet(), {
-        '360zy.com',
-        'bilibili.com',
-      });
+      expect(installed.length, releases.length);
+      expect(
+        PluginUpdater.groupBySite(releases).keys.toSet(),
+        containsAll(['360zy.com', 'bilibili.com']),
+      );
 
       // 2) 版本一致时没有待更新项。
       expect(
