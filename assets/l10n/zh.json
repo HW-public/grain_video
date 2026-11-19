@@ -1,0 +1,14 @@
+{
+  "appTitle": "禾禾影视",
+  "nav": {
+    "home": "首页",
+    "search": "搜索",
+    "me": "我的"
+  },
+  "common": {
+    "confirm": "确认",
+    "cancel": "取消",
+    "loading": "加载中…",
+    "retry": "重试"
+  }
+}

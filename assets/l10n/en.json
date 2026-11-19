@@ -1,0 +1,14 @@
+{
+  "appTitle": "Grain Video",
+  "nav": {
+    "home": "Home",
+    "search": "Search",
+    "me": "Me"
+  },
+  "common": {
+    "confirm": "OK",
+    "cancel": "Cancel",
+    "loading": "Loading…",
+    "retry": "Retry"
+  }
+}
