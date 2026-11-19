@@ -35,6 +35,8 @@ dependencies:
   # 联调期用 path 依赖；grain_video 发布前 grain_engine 需先发 pub.dev。
   grain_engine:
     path: ../grain_engine
+  crypto: ^3.0.8
+  cryptography: ^2.9.0
 
 # wasm_run 0.1.0+2 经 flutter_rust_bridge → puppeteer 依赖 petitparser ^5/^6，
 # 与 flutter_i18n → toml 0.17 的 petitparser ^7 冲突。puppeteer 仅被 frb 的

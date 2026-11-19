@@ -22,6 +22,9 @@
 默认 `getApplicationSupportDirectory()/plugins/`；`PluginManager.load(dir:)`
 可指向任意目录（调试用）。非 `.wasm` 文件忽略，单个坏插件不影响其余。
 
+导入即更新（同名覆盖），当前有"先覆盖后验证"的已知缺陷；
+安全替换与在线更新设计见 [docs/plugin-update.md](../../docs/plugin-update.md)。
+
 ## UI 层用法
 
 ```dart
