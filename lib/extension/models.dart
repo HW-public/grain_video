@@ -106,3 +106,100 @@ class BangumiItem {
   @override
   String toString() => 'BangumiItem($title)';
 }
+
+/// 剧集：detail 返回的 episodes 元素 `{"title","url"}`。
+/// url 为插件私有串（360zy 是直链，bili 是 `bvid|cid|page`），
+/// 原样传给 [PluginManager.callWatch]。
+class Episode {
+  const Episode({required this.title, required this.url});
+
+  static Episode? fromJson(Object? json) {
+    if (json is! Map) return null;
+    final url = json['url'];
+    if (url is! String || url.isEmpty) return null;
+    return Episode(
+      title: json['title'] is String ? json['title'] as String : '',
+      url: url,
+    );
+  }
+
+  final String title;
+  final String url;
+
+  @override
+  String toString() => 'Episode($title)';
+}
+
+/// 条目详情：detail 结果 `{"title","cover","description","episodes":[...]}`。
+class BangumiDetail {
+  const BangumiDetail({
+    required this.title,
+    required this.cover,
+    required this.description,
+    required this.episodes,
+  });
+
+  /// 解析失败（非对象）返回 null，由调用方决定错误呈现。
+  static BangumiDetail? parse(String raw) {
+    Object? json;
+    try {
+      json = jsonDecode(raw);
+    } catch (_) {
+      return null;
+    }
+    if (json is! Map) return null;
+    final list = json['episodes'];
+    return BangumiDetail(
+      title: json['title'] is String ? json['title'] as String : '',
+      cover: json['cover'] is String ? json['cover'] as String : '',
+      description: json['description'] is String
+          ? json['description'] as String
+          : '',
+      episodes: list is List
+          ? list.map(Episode.fromJson).whereType<Episode>().toList()
+          : const [],
+    );
+  }
+
+  final String title;
+  final String cover;
+  final String description;
+  final List<Episode> episodes;
+
+  @override
+  String toString() => 'BangumiDetail($title, ${episodes.length} 集)';
+}
+
+/// 播放流：watch 结果 `{"url","headers"?}`。
+class StreamInfo {
+  const StreamInfo({required this.url, this.headers = const {}});
+
+  static StreamInfo? parse(String raw) {
+    Object? json;
+    try {
+      json = jsonDecode(raw);
+    } catch (_) {
+      return null;
+    }
+    if (json is! Map) return null;
+    final url = json['url'];
+    if (url is! String || url.isEmpty) return null;
+    final headers = <String, String>{};
+    final rawHeaders = json['headers'];
+    if (rawHeaders is Map) {
+      rawHeaders.forEach((k, v) {
+        if (k is String && v is String) headers[k] = v;
+      });
+    }
+    return StreamInfo(url: url, headers: headers);
+  }
+
+  /// 播放直链（m3u8/mp4/dash）。
+  final String url;
+
+  /// 播放所需请求头（UA/Referer 等），注入 media_kit Player。
+  final Map<String, String> headers;
+
+  @override
+  String toString() => 'StreamInfo($url)';
+}

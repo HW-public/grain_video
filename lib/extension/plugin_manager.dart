@@ -16,10 +16,26 @@ final pluginManagerProvider =
     NotifierProvider<PluginManager, List<PluginEntry>>(PluginManager.new);
 
 class PluginManager extends Notifier<List<PluginEntry>> {
+  /// 已装载实例镜像。riverpod 3 禁止在 dispose 生命周期内读写 [state]，
+  /// 故实例释放走本列表，状态同步由 [_sync] 维护。
+  final List<PluginEntry> _live = [];
+
   @override
   List<PluginEntry> build() {
-    ref.onDispose(disposeAll);
+    ref.onDispose(() {
+      for (final e in _live) {
+        e.plugin.dispose();
+      }
+      _live.clear();
+    });
     return const [];
+  }
+
+  void _sync(List<PluginEntry> next) {
+    state = next;
+    _live
+      ..clear()
+      ..addAll(next);
   }
 
   /// 单次调用燃料预算：真实插件（2 次 HTTP 往返 + 签名计算）经实测
@@ -32,7 +48,7 @@ class PluginManager extends Notifier<List<PluginEntry>> {
   Future<void> load({Directory? dir}) async {
     final d = dir ?? await _defaultDir();
     if (!await d.exists()) {
-      state = const [];
+      _sync(const []);
       return;
     }
     disposeAll();
@@ -50,7 +66,7 @@ class PluginManager extends Notifier<List<PluginEntry>> {
         // 坏插件跳过：装载期不因单个文件拖垮全部。
       }
     }
-    state = entries;
+    _sync(entries);
   }
 
   Future<Directory> _defaultDir() async {
@@ -58,12 +74,61 @@ class PluginManager extends Notifier<List<PluginEntry>> {
     return Directory('${support.path}${Platform.pathSeparator}plugins');
   }
 
+  /// 插件安装目录（不存在则创建）。
+  Future<Directory> ensurePluginDir() async {
+    final d = await _defaultDir();
+    await d.create(recursive: true);
+    return d;
+  }
+
+  /// 导入插件：`.wasm` 拷入安装目录并立即装载，成功后加入 [state]。
+  ///
+  /// 同名文件将被覆盖（视为升级）；拷贝失败或装载失败（AbiError 等）
+  /// 抛出异常且不改变 [state]，由调用方呈现。
+  Future<PluginEntry> importPlugin(File wasmFile, {Directory? dir}) async {
+    final d = dir ?? await ensurePluginDir();
+    await d.create(recursive: true);
+    final name = wasmFile.uri.pathSegments.last;
+    final dest = File('${d.path}${Platform.pathSeparator}$name');
+    if (!await wasmFile.absolute.exists()) {
+      throw ArgumentError('插件文件不存在: ${wasmFile.path}');
+    }
+    await wasmFile.copy(dest.path);
+
+    final entry = await PluginEntry.load(dest.path);
+    // 覆盖场景：先释放旧实例再替换。
+    final oldIndex = state.indexWhere(
+      (e) => e.info.sourcePath == entry.info.sourcePath,
+    );
+    if (oldIndex >= 0) {
+      state[oldIndex].plugin.dispose();
+      _sync([
+        for (var i = 0; i < state.length; i++)
+          if (i == oldIndex) entry else state[i],
+      ]);
+    } else {
+      _sync([...state, entry]);
+    }
+    return entry;
+  }
+
+  /// 卸载插件：释放实例并从安装目录删除文件。
+  Future<void> removePlugin(PluginEntry entry) async {
+    entry.plugin.dispose();
+    _sync(state.where((e) => e != entry).toList());
+    final f = File(entry.info.sourcePath);
+    if (await f.exists()) await f.delete();
+  }
+
+  /// 重新扫描安装目录（等价于 [load] 无参默认行为）。
+  Future<void> reload() => load();
+
   /// 卸载并释放全部插件实例。
   void disposeAll() {
     for (final e in state) {
       e.plugin.dispose();
     }
-    state = const [];
+    _sync(const []);
   }
 
   /// 指定插件的日志环（guest + 宿主事件统一时间线）。
@@ -81,6 +146,18 @@ class PluginManager extends Notifier<List<PluginEntry>> {
   ) async {
     final raw = await entry.plugin.callSearch(keyword);
     return BangumiItem.parseList(raw);
+  }
+
+  /// 条目详情（插件未实现 detail 时抛 AbiError）。
+  Future<BangumiDetail?> callDetail(PluginEntry entry, String url) async {
+    final raw = await entry.plugin.callDetail(url);
+    return BangumiDetail.parse(raw);
+  }
+
+  /// 解析播放直链（插件未实现 watch 时抛 AbiError）。
+  Future<StreamInfo?> callWatch(PluginEntry entry, String url) async {
+    final raw = await entry.plugin.callWatch(url);
+    return StreamInfo.parse(raw);
   }
 }
 

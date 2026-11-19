@@ -8,8 +8,8 @@
 
 | 文件 | 职责 |
 |---|---|
-| `models.dart` | `PluginInfo`（grain.metadata 解析视图）、`BangumiItem`（latest/search 条目解析） |
-| `plugin_manager.dart` | `PluginManager`（riverpod）：装载/卸载 `.wasm`、调用 latest/search、日志环访问 |
+| `models.dart` | `PluginInfo`、`BangumiItem`（latest/search）、`BangumiDetail`/`Episode`（detail）、`StreamInfo`（watch 直链+请求头） |
+| `plugin_manager.dart` | `PluginManager`（riverpod）：装载/卸载/导入 `.wasm`、调用 latest/search/detail/watch、日志环访问 |
 
 ## 宿主沙箱默认配置
 
@@ -27,9 +27,12 @@
 ```dart
 final plugins = ref.watch(pluginManagerProvider);
 await ref.read(pluginManagerProvider.notifier).load();
-final items = await ref
-    .read(pluginManagerProvider.notifier)
-    .callLatest(plugins.first, 1);
+final mgr = ref.read(pluginManagerProvider.notifier);
+
+final items = await mgr.callLatest(plugins.first, 1);      // 列表
+final detail = await mgr.callDetail(plugins.first, items.first.url); // 详情+剧集
+final stream = await mgr.callWatch(plugins.first, detail!.episodes.first.url);
+// stream.url / stream.headers → media_kit Player.open(Media(url), httpHeaders: ...)
 ```
 
 错误处理：插件逻辑/超时/沙箱错误以 `GrainException` 子类抛出

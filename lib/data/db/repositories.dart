@@ -1,0 +1,209 @@
+import 'package:drift/drift.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'database.dart';
+
+/// 数据库单例（随 ProviderContainer 生命周期关闭）。
+final databaseProvider = Provider<AppDatabase>((ref) {
+  final db = AppDatabase();
+  ref.onDispose(db.close);
+  return db;
+});
+
+/// 观看历史仓库。
+class WatchHistoryRepository {
+  WatchHistoryRepository(this._db);
+
+  final AppDatabase _db;
+
+  /// 记录/更新一集的播放进度（同 (sourcePackage, episodeUrl) 覆盖）。
+  Future<void> saveProgress({
+    required String sourcePackage,
+    required String bangumiUrl,
+    required String title,
+    required String episodeUrl,
+    String cover = '',
+    String episodeTitle = '',
+    int positionMs = 0,
+    int durationMs = 0,
+  }) async {
+    await _db.transaction(() async {
+      await (_db.delete(_db.watchHistories)..where(
+            (t) =>
+                t.sourcePackage.equals(sourcePackage) &
+                t.episodeUrl.equals(episodeUrl),
+          ))
+          .go();
+      await _db
+          .into(_db.watchHistories)
+          .insert(
+            WatchHistoriesCompanion.insert(
+              sourcePackage: sourcePackage,
+              bangumiUrl: bangumiUrl,
+              title: title,
+              episodeUrl: episodeUrl,
+              updatedAt: DateTime.now(),
+              cover: Value(cover),
+              episodeTitle: Value(episodeTitle),
+              positionMs: Value(positionMs),
+              durationMs: Value(durationMs),
+            ),
+          );
+    });
+  }
+
+  /// 最近观看（按更新时间倒序）。
+  Future<List<WatchHistory>> recent({int limit = 50}) {
+    return (_db.select(_db.watchHistories)
+          ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)])
+          ..limit(limit))
+        .get();
+  }
+
+  /// 某条目的全部观看记录（续播/选集用）。
+  Future<List<WatchHistory>> forBangumi(
+    String sourcePackage,
+    String bangumiUrl,
+  ) {
+    return (_db.select(_db.watchHistories)
+          ..where(
+            (t) =>
+                t.sourcePackage.equals(sourcePackage) &
+                t.bangumiUrl.equals(bangumiUrl),
+          )
+          ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)]))
+        .get();
+  }
+
+  Future<void> clear() => _db.delete(_db.watchHistories).go();
+}
+
+/// 收藏仓库。
+class FavoritesRepository {
+  FavoritesRepository(this._db);
+
+  final AppDatabase _db;
+
+  Future<bool> isFavorite(String sourcePackage, String bangumiUrl) async {
+    final row =
+        await (_db.select(_db.favorites)..where(
+              (t) =>
+                  t.sourcePackage.equals(sourcePackage) &
+                  t.bangumiUrl.equals(bangumiUrl),
+            ))
+            .getSingleOrNull();
+    return row != null;
+  }
+
+  /// 切换收藏状态，返回切换后的状态（true=已收藏）。
+  Future<bool> toggle({
+    required String sourcePackage,
+    required String bangumiUrl,
+    required String title,
+    String cover = '',
+  }) async {
+    final fav = await isFavorite(sourcePackage, bangumiUrl);
+    if (fav) {
+      await (_db.delete(_db.favorites)..where(
+            (t) =>
+                t.sourcePackage.equals(sourcePackage) &
+                t.bangumiUrl.equals(bangumiUrl),
+          ))
+          .go();
+      return false;
+    }
+    await _db
+        .into(_db.favorites)
+        .insert(
+          FavoritesCompanion.insert(
+            sourcePackage: sourcePackage,
+            bangumiUrl: bangumiUrl,
+            title: title,
+            createdAt: DateTime.now(),
+            cover: Value(cover),
+          ),
+        );
+    return true;
+  }
+
+  Future<List<Favorite>> list() {
+    return (_db.select(
+      _db.favorites,
+    )..orderBy([(t) => OrderingTerm.desc(t.createdAt)])).get();
+  }
+}
+
+/// 追番进度仓库。
+class FollowsRepository {
+  FollowsRepository(this._db);
+
+  final AppDatabase _db;
+
+  /// 写入/更新追番进度。
+  Future<void> setProgress({
+    required String sourcePackage,
+    required String bangumiUrl,
+    required String title,
+    String cover = '',
+    int currentEpisode = 0,
+    int totalEpisode = 0,
+  }) async {
+    await _db.transaction(() async {
+      await (_db.delete(_db.follows)..where(
+            (t) =>
+                t.sourcePackage.equals(sourcePackage) &
+                t.bangumiUrl.equals(bangumiUrl),
+          ))
+          .go();
+      await _db
+          .into(_db.follows)
+          .insert(
+            FollowsCompanion.insert(
+              sourcePackage: sourcePackage,
+              bangumiUrl: bangumiUrl,
+              title: title,
+              updatedAt: DateTime.now(),
+              cover: Value(cover),
+              currentEpisode: Value(currentEpisode),
+              totalEpisode: Value(totalEpisode),
+            ),
+          );
+    });
+  }
+
+  Future<Follow?> find(String sourcePackage, String bangumiUrl) {
+    return (_db.select(_db.follows)..where(
+          (t) =>
+              t.sourcePackage.equals(sourcePackage) &
+              t.bangumiUrl.equals(bangumiUrl),
+        ))
+        .getSingleOrNull();
+  }
+
+  Future<List<Follow>> list() {
+    return (_db.select(
+      _db.follows,
+    )..orderBy([(t) => OrderingTerm.desc(t.updatedAt)])).get();
+  }
+
+  Future<void> remove(String sourcePackage, String bangumiUrl) async {
+    await (_db.delete(_db.follows)..where(
+          (t) =>
+              t.sourcePackage.equals(sourcePackage) &
+              t.bangumiUrl.equals(bangumiUrl),
+        ))
+        .go();
+  }
+}
+
+final watchHistoryRepositoryProvider = Provider<WatchHistoryRepository>(
+  (ref) => WatchHistoryRepository(ref.watch(databaseProvider)),
+);
+
+final favoritesRepositoryProvider = Provider<FavoritesRepository>(
+  (ref) => FavoritesRepository(ref.watch(databaseProvider)),
+);
+
+final followsRepositoryProvider = Provider<FollowsRepository>(
+  (ref) => FollowsRepository(ref.watch(databaseProvider)),
+);
