@@ -3,12 +3,34 @@
   "nav": {
     "home": "Home",
     "search": "Search",
-    "me": "Me"
+    "me": "Me",
+    "extensions": "Extensions"
   },
   "common": {
     "confirm": "OK",
     "cancel": "Cancel",
     "loading": "Loading…",
     "retry": "Retry"
+  },
+  "extensions": {
+    "empty": "No plugins installed. Use + to import a .wasm file.",
+    "import": "Import plugin",
+    "importHint": "Absolute path to a .wasm file",
+    "imported": "Imported",
+    "importFailed": "Import failed",
+    "reload": "Rescan",
+    "reloaded": "Rescanned",
+    "checkUpdates": "Check updates",
+    "checkUpdatesFailed": "Update check failed",
+    "upToDate": "Already up to date",
+    "updatesTitle": "Updates available",
+    "install": "Install",
+    "installed": "Installed",
+    "updateFailed": "Update failed",
+    "delete": "Delete",
+    "deleteHint": "You can re-import it later.",
+    "removed": "Deleted",
+    "logs": "Logs",
+    "noLogs": "No logs yet"
   }
 }

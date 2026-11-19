@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-import 'core/router/app_router.dart';
+import 'router.dart';
 import 'core/theme/app_theme.dart';
 
 /// 应用根组件。

@@ -8,10 +8,10 @@
 ```
 lib/
 ├── main.dart            # 入口：ProviderScope + runApp + 桌面窗口初始化
-├── app.dart             # 应用根：MaterialApp.router + 主题 + i18n + 路由
+├── app.dart             # 应用根：MaterialApp.router + 主题 + i18n
+├── router.dart          # 路由汇总（app 层聚合各 feature 的 GoRoute 列表）
 ├── core/                # 零业务依赖的基础设施
 │   ├── theme/           #   设计 token（颜色/圆角/间距的唯一来源）
-│   ├── router/          #   路由汇总（聚合各 feature 的 GoRoute 列表）
 │   ├── widgets/         #   通用组件（AsyncView / EmptyState 等）
 │   └── utils/           #   纯函数工具
 ├── data/                # 持久化与仓库（drift 表、repositories）
@@ -56,8 +56,9 @@ lib/
 | `providers/` | riverpod 状态与用例编排（`xxxProvider`）；调用 extension/data 层 |
 | `widgets/` | 模块私有组件（`XxxCard`/`XxxView`），可被本模块 pages 复用 |
 
-- 路由：每个 feature 导出 `List<RouteBase> xxxRoutes`，由
-  `core/router/app_router.dart` 聚合；路径常量放同文件 `abstract final class XxxRoutes`。
+- 路由：每个 feature 导出 `List<RouteBase> xxxRoutes` 与
+  `abstract final class XxxRoutes`（路径常量），由 `lib/router.dart`（app 层）
+  聚合——core 不 import features。
 - 跨模块共享的模型/工具放到 `core`（纯 UI 模型）或 `extension`（插件相关）。
 
 ## 状态与异步三态

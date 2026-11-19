@@ -3,12 +3,34 @@
   "nav": {
     "home": "首页",
     "search": "搜索",
-    "me": "我的"
+    "me": "我的",
+    "extensions": "扩展"
   },
   "common": {
     "confirm": "确认",
     "cancel": "取消",
     "loading": "加载中…",
     "retry": "重试"
+  },
+  "extensions": {
+    "empty": "还没有安装插件，点右上角 + 导入 .wasm",
+    "import": "导入插件",
+    "importHint": "输入 .wasm 文件的绝对路径",
+    "imported": "已导入",
+    "importFailed": "导入失败",
+    "reload": "重新扫描",
+    "reloaded": "已重新扫描",
+    "checkUpdates": "检查更新",
+    "checkUpdatesFailed": "检查更新失败",
+    "upToDate": "已是最新版本",
+    "updatesTitle": "发现可用更新",
+    "install": "安装",
+    "installed": "已安装",
+    "updateFailed": "更新失败",
+    "delete": "删除",
+    "deleteHint": "删除后需要重新导入才能使用。",
+    "removed": "已删除",
+    "logs": "日志",
+    "noLogs": "暂无日志"
   }
 }

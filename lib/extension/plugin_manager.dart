@@ -7,6 +7,8 @@ import 'package:path_provider/path_provider.dart';
 
 import 'models.dart';
 
+export 'package:grain_engine/grain_engine.dart' show LogEntry;
+
 /// 插件管理器：装载沙箱默认全开（fuel 单次调用上限），
 /// UI 层只读 [state] 与调用 [callLatest]/[callSearch]，不直接接触 wasm 文件。
 ///
