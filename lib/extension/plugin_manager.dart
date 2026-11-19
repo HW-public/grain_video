@@ -81,22 +81,56 @@ class PluginManager extends Notifier<List<PluginEntry>> {
     return d;
   }
 
-  /// 导入插件：`.wasm` 拷入安装目录并立即装载，成功后加入 [state]。
-  ///
-  /// 同名文件将被覆盖（视为升级）；拷贝失败或装载失败（AbiError 等）
-  /// 抛出异常且不改变 [state]，由调用方呈现。
+  /// 导入插件：读取文件字节后走 [installBytes]（安全替换语义）。
   Future<PluginEntry> importPlugin(File wasmFile, {Directory? dir}) async {
-    final d = dir ?? await ensurePluginDir();
-    await d.create(recursive: true);
-    final name = wasmFile.uri.pathSegments.last;
-    final dest = File('${d.path}${Platform.pathSeparator}$name');
     if (!await wasmFile.absolute.exists()) {
       throw ArgumentError('插件文件不存在: ${wasmFile.path}');
     }
-    await wasmFile.copy(dest.path);
+    final bytes = await wasmFile.readAsBytes();
+    return installBytes(
+      bytes,
+      fileName: wasmFile.uri.pathSegments.last,
+      dir: dir,
+    );
+  }
 
-    final entry = await PluginEntry.load(dest.path);
-    // 覆盖场景：先释放旧实例再替换。
+  /// 以字节安装/更新插件（导入与在线更新共用）。
+  ///
+  /// 安全替换：写 `.tmp` → 换入正式文件（旧文件先改 `.bak`）→ 装载验证
+  /// 正式文件 → 成功删 `.bak`；装载失败则删新文件、`.bak` 还原旧文件，
+  /// **旧文件与旧实例保持可用**。文件名决定安装位置（同名即更新）。
+  Future<PluginEntry> installBytes(
+    List<int> bytes, {
+    required String fileName,
+    Directory? dir,
+  }) async {
+    final d = dir ?? await ensurePluginDir();
+    await d.create(recursive: true);
+    final sep = Platform.pathSeparator;
+    final finalFile = File('${d.path}$sep$fileName');
+    final tmp = File('${finalFile.path}.tmp');
+    final bak = File('${finalFile.path}.bak');
+
+    await tmp.writeAsBytes(bytes, flush: true);
+
+    // 旧文件移开（保留回滚源）。
+    if (await finalFile.exists()) {
+      if (await bak.exists()) await bak.delete();
+      await finalFile.rename(bak.path);
+    }
+    await tmp.rename(finalFile.path);
+
+    late PluginEntry entry;
+    try {
+      entry = await PluginEntry.load(finalFile.path);
+    } catch (_) {
+      // 回滚：新文件作废，旧文件还原。
+      if (await finalFile.exists()) await finalFile.delete();
+      if (await bak.exists()) await bak.rename(finalFile.path);
+      rethrow;
+    }
+    if (await bak.exists()) await bak.delete();
+
     final oldIndex = state.indexWhere(
       (e) => e.info.sourcePath == entry.info.sourcePath,
     );
