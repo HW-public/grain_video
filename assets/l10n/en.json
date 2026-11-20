@@ -38,10 +38,13 @@
   },
   "search": {
     "hint": "Search anime, manga, novels…",
+    "search": "Search",
+    "clear": "Clear",
+    "filterAll": "All",
+    "resultCount": "Results · {{count}}",
+    "sortBy": "Relevance",
     "history": "History",
     "clearHistory": "Clear all history?",
-    "hot": "Trending",
-    "tagHot": "Hot",
     "tagNew": "New",
     "failed": "Search failed, please retry later",
     "noPlugins": "No plugins installed. Import one from Extensions.",
@@ -49,17 +52,14 @@
     "emptyHint": "Try another keyword"
   },
   "home": {
-    "title": "Home",
-    "searchHint": "Search anime, manga, novels",
     "continueWatching": "Continue watching",
-    "continueEmpty": "No watch history yet. Pick one and start!",
+    "lastSeen": "Last seen {{position}} / {{duration}}",
     "followAlertTitle": "Update alerts",
-    "followUpdate": "{{title}} updated to ep. {{episode}}",
+    "followUpdate": "{{title}} updated to ep. {{episode}} on {{source}}",
     "followGo": "Check it out ›",
     "recentUpdates": "Latest updates",
     "more": "More ›",
     "noPlugins": "No plugins installed",
-    "noPluginsHint": "Install plugins and latest content from each source appears here",
     "goExtensions": "Go to Extensions"
   },
   "detail": {

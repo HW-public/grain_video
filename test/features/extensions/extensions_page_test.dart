@@ -37,6 +37,13 @@ void main() {
       ),
     );
     expect(scaffold.backgroundColor, AppTokens.defaultPalette.pageBg);
-    expect(find.byType(EmptyState), findsOneWidget);
+    // 首页无插件时也用 EmptyState（go_router 叠放仍在树中），锚定到 ExtensionsPage。
+    expect(
+      find.descendant(
+        of: find.byType(ExtensionsPage),
+        matching: find.byType(EmptyState),
+      ),
+      findsOneWidget,
+    );
   });
 }

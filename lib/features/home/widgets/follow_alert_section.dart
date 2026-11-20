@@ -5,17 +5,19 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/routes.dart';
 import '../../../core/theme/tokens.dart';
+import '../../../extension/plugin_manager.dart';
 import '../providers/home_providers.dart';
 
-/// 「追更提醒」提示条：追番列表中存在「总集数 > 已看到集数」的条目时显示。
-///
-/// 初版从简：最多展示 3 条；点击进入搜索页。
+/// 「追更提醒」条（设计稿 4:31 / 节点 5:45）：
+/// 圆角16、高56、浅薄荷底(变量 3:19)，左橙点(8,变量 3:21) + 更新文案 +
+/// 右侧主色「去围观 ›」；存在「总集数 > 已看到集数」的追番时显示，最多 3 条。
 class FollowAlertSection extends ConsumerWidget {
   const FollowAlertSection({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final value = ref.watch(followsProvider);
+    final entries = ref.watch(pluginManagerProvider);
     return value.when(
       data: (follows) {
         final updated = follows
@@ -40,6 +42,7 @@ class FollowAlertSection extends ConsumerWidget {
                   child: _AlertCard(
                     title: follow.title,
                     episode: follow.totalEpisode,
+                    source: _sourceName(entries, follow.sourcePackage),
                   ),
                 ),
             ],
@@ -50,77 +53,69 @@ class FollowAlertSection extends ConsumerWidget {
       error: (_, _) => const SizedBox.shrink(),
     );
   }
+
+  static String _sourceName(List<PluginEntry> entries, String package) {
+    for (final e in entries) {
+      if (e.info.package == package) return e.info.name;
+    }
+    return package;
+  }
 }
 
 class _AlertCard extends StatelessWidget {
-  const _AlertCard({required this.title, required this.episode});
+  const _AlertCard({
+    required this.title,
+    required this.episode,
+    required this.source,
+  });
 
   final String title;
   final int episode;
+  final String source;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppTokens.space3 + 2,
-        vertical: AppTokens.space3,
-      ),
+      height: 56,
+      padding: const EdgeInsets.only(left: 14, right: 40),
       decoration: BoxDecoration(
-        color: AppTokens.mint.primaryContainer,
-        border: Border.all(color: AppTokens.mint.primarySoft),
-        borderRadius: BorderRadius.circular(AppTokens.radiusCard),
+        // 帧 5:45 底色 = Figma 变量 3:19（AppTokens.mintTint）。
+        color: AppTokens.mintTint,
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         children: [
+          // 橙点 8×8（变量 3:21），垂直居中，无光晕。
           Container(
             width: 8,
             height: 8,
             decoration: BoxDecoration(
               color: AppTokens.mint.secondary,
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: AppTokens.mint.secondary.withValues(alpha: 0.18),
-                  blurRadius: 4,
-                  spreadRadius: 4,
-                ),
-              ],
             ),
           ),
-          const SizedBox(width: AppTokens.space2 + 2),
+          const SizedBox(width: 8),
+          // 文案 (30,20)：12/400 textPrimary。
           Expanded(
-            child: Text.rich(
-              TextSpan(
-                children: [
-                  TextSpan(
-                    text: FlutterI18n.translate(
-                      context,
-                      'home.followAlertTitle',
-                    ),
-                    style: const TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                  const TextSpan(text: ' · '),
-                  TextSpan(
-                    text: FlutterI18n.translate(
-                      context,
-                      'home.followUpdate',
-                      translationParams: {
-                        'title': title,
-                        'episode': '$episode',
-                      },
-                    ),
-                  ),
-                ],
+            child: Text(
+              FlutterI18n.translate(
+                context,
+                'home.followUpdate',
+                translationParams: {
+                  'title': title,
+                  'source': source,
+                  'episode': '$episode',
+                },
               ),
-              maxLines: 2,
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                fontSize: 12.5,
+                fontSize: 12,
                 color: AppTokens.textPrimary,
               ),
             ),
           ),
-          const SizedBox(width: AppTokens.space2),
+          const SizedBox(width: 8),
           GestureDetector(
             onTap: () => context.go(AppRoutes.search),
             child: Text(

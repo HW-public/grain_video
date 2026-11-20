@@ -8,15 +8,17 @@ import 'package:go_router/go_router.dart';
 import '../../../core/routes.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/widgets/app_bottom_nav.dart';
+import '../../../core/widgets/async_view.dart';
 import '../../../core/widgets/bangumi_card.dart';
 import '../../../extension/plugin_manager.dart';
 import '../providers/search_providers.dart';
 import '../widgets/search_input_bar.dart';
+import '../widgets/source_filter_bar.dart';
 
-/// 搜索页（一级页，底部导航 index=1）。
+/// 搜索页（一级页，底部导航 index=1，Figma 21:19）。
 ///
 /// 顶部搜索栏自动聚焦；输入 500ms 防抖或键盘提交后跨全部已安装插件
-/// 聚合搜索。未输入时展示设计稿初始态（历史搜索 chips + 大家都在搜榜）。
+/// 聚合搜索。未输入时展示初始态「历史搜索」chips。
 class SearchPage extends ConsumerStatefulWidget {
   const SearchPage({super.key});
 
@@ -50,23 +52,14 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 
   void _onChanged(String value) {
     ref.read(searchQueryProvider.notifier).update(value);
-    // 清空按钮显隐随文本变化。
-    setState(() {});
     _debounceTimer?.cancel();
     if (value.trim().isEmpty) return;
     _debounceTimer = Timer(_debounce, () => _submit(value));
   }
 
-  void _onClear() {
-    // 取消未触发的防抖，避免清空后搜索又自动提交。
-    _debounceTimer?.cancel();
-    ref.read(searchQueryProvider.notifier).update('');
-    ref.read(searchKeywordProvider.notifier).update('');
-  }
-
   @override
   Widget build(BuildContext context) {
-    // 历史 chip / 热门词点击会写入 searchQueryProvider，回灌输入框。
+    // 历史 chip 点击会写入 searchQueryProvider，回灌输入框。
     ref.listen(searchQueryProvider, (_, next) {
       if (_controller.text != next) _controller.text = next;
     });
@@ -80,10 +73,11 @@ class _SearchPageState extends ConsumerState<SearchPage> {
               controller: _controller,
               focusNode: _focusNode,
               hint: _t(context, 'search.hint'),
+              submitLabel: _t(context, 'search.search'),
               onChanged: _onChanged,
               onSubmitted: _submit,
-              onClear: _onClear,
             ),
+            const SourceFilterBar(),
             Expanded(
               child: keyword.isEmpty
                   ? const _InitialView()
@@ -100,53 +94,53 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 String _t(BuildContext context, String key) =>
     FlutterI18n.translate(context, key);
 
-/// 初始态：历史搜索 chips（灰底，规格 04）+ 大家都在搜榜。
+/// 初始态（21:19）：「历史搜索」标题行（右侧薄荷「清空」）+ 灰 pill chips。
 class _InitialView extends ConsumerWidget {
   const _InitialView();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final history = ref.watch(searchHistoryProvider);
+    if (history.isEmpty) return const SizedBox.shrink();
 
     return ListView(
-      padding: const EdgeInsets.symmetric(vertical: AppTokens.space3),
+      padding: EdgeInsets.zero,
       children: [
-        if (history.isNotEmpty) ...[
-          _SectionHeader(
-            title: _t(context, 'search.history'),
-            trailing: IconButton(
-              tooltip: _t(context, 'search.clearHistory'),
-              icon: const Icon(
-                Icons.delete_outline,
-                size: 18,
-                color: AppTokens.textTertiary,
-              ),
+        _SectionHeader(
+          title: _t(context, 'search.history'),
+          trailing: Padding(
+            // 帧右距 28（头部已有水平 16）。
+            padding: const EdgeInsets.only(right: 12),
+            child: TextButton(
+              style: TextButton.styleFrom(padding: EdgeInsets.zero),
               onPressed: () => _confirmClearHistory(context, ref),
+              child: Text(
+                _t(context, 'search.clear'),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppTokens.mint.primary,
+                ),
+              ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppTokens.space4),
-            child: Wrap(
-              spacing: AppTokens.space2,
-              runSpacing: 10,
-              children: [
-                for (final word in history)
-                  _HistoryChip(
-                    label: word,
-                    onTap: () => _applyKeyword(ref, word),
-                  ),
-              ],
-            ),
+        ),
+        // 帧：标题→pills 9。
+        const SizedBox(height: 9),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppTokens.space4),
+          child: Wrap(
+            spacing: AppTokens.space2,
+            runSpacing: AppTokens.space2,
+            children: [
+              for (final word in history)
+                _HistoryChip(
+                  label: word,
+                  onTap: () => _applyKeyword(ref, word),
+                ),
+            ],
           ),
-          const SizedBox(height: AppTokens.space5),
-        ],
-        _SectionHeader(title: _t(context, 'search.hot')),
-        const SizedBox(height: AppTokens.space2),
-        for (final entry in hotSearchSeed)
-          _HotRankTile(
-            entry: entry,
-            onTap: () => _applyKeyword(ref, entry.word),
-          ),
+        ),
       ],
     );
   }
@@ -192,14 +186,19 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppTokens.space4),
+      padding: const EdgeInsets.fromLTRB(
+        AppTokens.space4,
+        AppTokens.space3,
+        AppTokens.space4,
+        0,
+      ),
       child: Row(
         children: [
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(
-                fontSize: 15,
+              style: TextStyle(
+                fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: AppTokens.textPrimary,
               ),
@@ -212,6 +211,7 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
+/// 历史 pill（21:19）：高 26、圆角 13、surfaceAlt 底、11/400 弱色灰字。
 class _HistoryChip extends StatelessWidget {
   const _HistoryChip({required this.label, required this.onTap});
 
@@ -222,21 +222,20 @@ class _HistoryChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: AppTokens.surfaceAlt,
-      borderRadius: BorderRadius.circular(AppTokens.radiusChip),
+      borderRadius: BorderRadius.circular(13),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppTokens.radiusChip),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 14,
-            vertical: AppTokens.space2,
-          ),
+        borderRadius: BorderRadius.circular(13),
+        child: Container(
+          height: 26,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          alignment: Alignment.center,
           child: Text(
             label,
-            style: const TextStyle(
-              fontSize: 12.5,
-              fontWeight: FontWeight.w500,
-              color: AppTokens.textSecondary,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w400,
+              color: AppTokens.textTertiary,
             ),
           ),
         ),
@@ -245,99 +244,7 @@ class _HistoryChip extends StatelessWidget {
   }
 }
 
-typedef HotEntry = ({int rank, String word, bool hot, bool fresh});
-
-class _HotRankTile extends StatelessWidget {
-  const _HotRankTile({required this.entry, required this.onTap});
-
-  final HotEntry entry;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-
-    return InkWell(
-      onTap: onTap,
-      child: SizedBox(
-        height: 48,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppTokens.space4),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 20,
-                child: Text(
-                  '${entry.rank}',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: entry.rank <= 3
-                        ? scheme.primary
-                        : AppTokens.textTertiary,
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppTokens.space3),
-              Expanded(
-                child: Text(
-                  entry.word,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: AppTokens.textPrimary,
-                  ),
-                ),
-              ),
-              if (entry.hot)
-                _RankTag(
-                  label: _t(context, 'search.tagHot'),
-                  kind: _TagKind.hot,
-                ),
-              if (entry.fresh)
-                _RankTag(
-                  label: _t(context, 'search.tagNew'),
-                  kind: _TagKind.fresh,
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-enum _TagKind { hot, fresh }
-
-class _RankTag extends StatelessWidget {
-  const _RankTag({required this.label, required this.kind});
-
-  final String label;
-  final _TagKind kind;
-
-  @override
-  Widget build(BuildContext context) {
-    final bg = kind == _TagKind.hot
-        ? AppTokens.danger
-        : AppTokens.defaultPalette.primarySoft;
-    final fg = kind == _TagKind.hot ? Colors.white : AppTokens.darkBg;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: fg),
-      ),
-    );
-  }
-}
-
-/// 结果态：聚合网格（BangumiCard 两列，来源插件名走 subtitle 标注）。
+/// 结果态：AsyncView 三态 + 聚合网格（BangumiCard 两列，来源走 subtitle）。
 class _ResultView extends ConsumerWidget {
   const _ResultView({required this.keyword});
 
@@ -347,111 +254,116 @@ class _ResultView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final results = ref.watch(searchResultsProvider(keyword));
 
-    return results.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => _SearchFailure(
-        message: _t(context, 'search.failed'),
-        onRetry: () => ref.invalidate(searchResultsProvider(keyword)),
-      ),
-      data: (hits) {
+    return AsyncView<List<SearchHit>>(
+      value: results,
+      onRetry: () => ref.invalidate(searchResultsProvider(keyword)),
+      builder: (context, hits) {
         final pluginCount = ref.watch(pluginManagerProvider).length;
         if (pluginCount == 0) {
-          return _SearchFailure(message: _t(context, 'search.noPlugins'));
+          return EmptyState(message: _t(context, 'search.noPlugins'));
         }
-        if (hits.isEmpty) {
-          return _SearchFailure(
-            message: _t(context, 'search.empty'),
-            hint: _t(context, 'search.emptyHint'),
-          );
-        }
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            // 与 GridView 的 padding/spacing 保持一致，反推单元格宽高比。
-            const padding = AppTokens.space4;
-            const spacing = AppTokens.space3;
-            final cellWidth =
-                (constraints.maxWidth - padding * 2 - spacing) / 2;
-            // 卡高 = 16:9 封面 + 标题行 + 间距（与 BangumiCard 内部结构对齐）。
-            final cellHeight =
-                cellWidth / AppTokens.coverRatioVideo + 6 + 18 + 2;
-            return GridView.count(
-              padding: const EdgeInsets.all(padding),
-              crossAxisCount: 2,
-              crossAxisSpacing: spacing,
-              mainAxisSpacing: spacing,
-              childAspectRatio: cellWidth / cellHeight,
-              children: [
-                for (final hit in hits)
-                  BangumiCard(
-                    coverUrl: hit.item.cover,
-                    title: hit.item.title,
-                    update: hit.item.update,
-                    subtitle: hit.source.name,
-                    onTap: () => context.push(
-                      '${AppRoutes.detail}?url=${Uri.encodeComponent(hit.item.url)}'
-                      '&src=${Uri.encodeComponent(hit.source.package)}',
+        // 源筛选：null=全部，否则只保留该插件的命中。
+        final filter = ref.watch(searchSourceFilterProvider);
+        final visible = filter == null
+            ? hits
+            : hits.where((h) => h.source.package == filter).toList();
+        return Column(
+          children: [
+            _ResultHeader(count: visible.length),
+            Expanded(
+              child: visible.isEmpty
+                  ? EmptyState(message: _t(context, 'search.empty'))
+                  : LayoutBuilder(
+                      builder: (context, constraints) {
+                        // 帧：左右边距 16、列间距 8、行距 15。
+                        const padding = AppTokens.space4;
+                        const columnGap = AppTokens.space2;
+                        const rowGap = 15.0;
+                        final cellWidth =
+                            (constraints.maxWidth - padding * 2 - columnGap) /
+                            2;
+                        // 卡高 = 16:9 封面 + 卡→标题4 + 标题行18 + 标题→副标2
+                        //       + 副标行15（与 BangumiCard 内部结构对齐）。
+                        final cellHeight =
+                            cellWidth / AppTokens.coverRatioVideo +
+                            4 +
+                            18 +
+                            2 +
+                            15;
+                        return GridView.count(
+                          padding: const EdgeInsets.fromLTRB(
+                            padding,
+                            9,
+                            padding,
+                            padding,
+                          ),
+                          crossAxisCount: 2,
+                          crossAxisSpacing: columnGap,
+                          mainAxisSpacing: rowGap,
+                          childAspectRatio: cellWidth / cellHeight,
+                          children: [
+                            for (final hit in visible)
+                              BangumiCard(
+                                coverUrl: hit.item.cover,
+                                title: hit.item.title,
+                                update: hit.item.update,
+                                subtitle: hit.source.name,
+                                onTap: () => context.push(
+                                  '${AppRoutes.detail}?url=${Uri.encodeComponent(hit.item.url)}'
+                                  '&src=${Uri.encodeComponent(hit.source.package)}',
+                                ),
+                              ),
+                          ],
+                        );
+                      },
                     ),
-                  ),
-              ],
-            );
-          },
+            ),
+          ],
         );
       },
     );
   }
 }
 
-/// 失败/空态：按设计稿状态-加载失败帧风格（图标 + 文案 + 可选重试）。
-class _SearchFailure extends StatelessWidget {
-  const _SearchFailure({required this.message, this.hint, this.onRetry});
+/// 结果区标题行（21:19）：「搜索结果 · N」16/700 + 右侧「按相关度 ▾」12/600
+/// 主色（纯展示，排序能力后续接入）。
+class _ResultHeader extends StatelessWidget {
+  const _ResultHeader({required this.count});
 
-  final String message;
-  final String? hint;
-  final VoidCallback? onRetry;
+  final int count;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppTokens.space6),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.wifi_tethering_error_outlined,
-              size: 48,
-              color: AppTokens.textTertiary,
-            ),
-            const SizedBox(height: AppTokens.space3),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
+    return Padding(
+      // 帧：chips 底→结果标题 24；右距 34（已有水平 16）。
+      padding: const EdgeInsets.fromLTRB(16, 24, 18, 0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          Expanded(
+            child: Text(
+              FlutterI18n.translate(
+                context,
+                'search.resultCount',
+                translationParams: {'count': '$count'},
+              ),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
                 color: AppTokens.textPrimary,
               ),
             ),
-            if (hint != null) ...[
-              const SizedBox(height: AppTokens.space1),
-              Text(
-                hint!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppTokens.textTertiary,
-                ),
-              ),
-            ],
-            if (onRetry != null) ...[
-              const SizedBox(height: AppTokens.space3),
-              FilledButton.tonal(
-                onPressed: onRetry,
-                child: Text(_t(context, 'common.retry')),
-              ),
-            ],
-          ],
-        ),
+          ),
+          Text(
+            '${_t(context, 'search.sortBy')} ▾',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppTokens.mint.primary,
+            ),
+          ),
+        ],
       ),
     );
   }

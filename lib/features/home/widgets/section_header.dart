@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/tokens.dart';
 
-/// 分区标题行（设计稿范式）：左 15/700 主文字标题，右侧可选操作。
+/// 分区标题行（设计稿 4:31）：左 16/700 主文字标题，右侧可选操作。
 class SectionHeader extends StatelessWidget {
   const SectionHeader({super.key, required this.title, this.trailing});
 
@@ -16,14 +16,14 @@ class SectionHeader extends StatelessWidget {
         AppTokens.space4,
         AppTokens.space4,
         AppTokens.space4,
-        AppTokens.space2,
+        11, // 帧规格：标题 → 卡间距 11。
       ),
       child: Row(
         children: [
           Text(
             title,
             style: const TextStyle(
-              fontSize: 15,
+              fontSize: 16,
               fontWeight: FontWeight.w700,
               color: AppTokens.textPrimary,
             ),

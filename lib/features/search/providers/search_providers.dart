@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../extension/models.dart';
@@ -33,6 +35,34 @@ class _KeywordHolder extends Notifier<String> {
 
   /// 外部写入（riverpod 3 中 [state] setter 为受保护成员）。
   void update(String value) => state = value;
+}
+
+/// 源筛选：选中的插件 package；null=全部源。仅作用于结果区。
+final searchSourceFilterProvider = NotifierProvider<_SourceFilter, String?>(
+  _SourceFilter.new,
+);
+
+class _SourceFilter extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  /// 再次点选同一源即复位为「全部」。
+  void select(String? package) => state = package;
+}
+
+/// 源 chips 上的 emoji：取插件 metadata 的 `emoji` 字段，缺省 🧩。
+String emojiOf(PluginInfo info) {
+  try {
+    final json = jsonDecode(info.raw);
+    if (json is Map &&
+        json['emoji'] is String &&
+        (json['emoji'] as String).isNotEmpty) {
+      return json['emoji'] as String;
+    }
+  } on Object {
+    // 元数据非法时用兜底图标。
+  }
+  return '🧩';
 }
 
 /// 一条聚合结果：番剧条目 + 来源插件（元数据）。
@@ -98,14 +128,3 @@ class SearchHistory extends Notifier<List<String>> {
 
   void clear() => state = const [];
 }
-
-/// 热门搜索占位：设计稿「大家都在搜」示例榜。
-///
-/// 插件协议暂无 hotSearch 能力，先静态呈现设计稿榜单。
-const hotSearchSeed = [
-  (rank: 1, word: '葬送的芙莉莲 第二季', hot: true, fresh: false),
-  (rank: 2, word: '孤独摇滚 剧场版', hot: true, fresh: false),
-  (rank: 3, word: '蓝色监狱 第二季', hot: false, fresh: false),
-  (rank: 4, word: '迷宫饭 第二季', hot: false, fresh: true),
-  (rank: 5, word: '狩龙人拉格纳', hot: false, fresh: false),
-];

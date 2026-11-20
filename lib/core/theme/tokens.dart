@@ -67,6 +67,9 @@ abstract final class AppTokens {
   /// 次级表面：菜单组底、浅灰紫块。
   static const Color surfaceAlt = Color(0xFFF6F1FA);
 
+  /// 浅薄荷底（Figma 变量 3:19 #D5F5E7）：选中 chip、追更提醒 pill 底。
+  static const Color mintTint = Color(0xFFD5F5E7);
+
   // ---- 暗夜（规格 07/09 播放器暗夜稿，各主题共用） ----
 
   /// 暗夜页面/视频留黑底。

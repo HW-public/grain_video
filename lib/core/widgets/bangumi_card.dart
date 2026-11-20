@@ -77,7 +77,8 @@ class BangumiCard extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontSize: 11.5,
+                  // 帧 21:19/4:31 副标规格 11/400。
+                  fontSize: 11,
                   color: AppTokens.textTertiary,
                 ),
               ),

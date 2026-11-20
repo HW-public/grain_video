@@ -38,10 +38,13 @@
   },
   "search": {
     "hint": "搜索番剧、漫画、小说…",
+    "search": "搜索",
+    "clear": "清空",
+    "filterAll": "全部",
+    "resultCount": "搜索结果 · {{count}}",
+    "sortBy": "按相关度",
     "history": "历史搜索",
     "clearHistory": "清空全部历史？",
-    "hot": "大家都在搜",
-    "tagHot": "热",
     "tagNew": "新",
     "failed": "搜索失败，请稍后重试",
     "noPlugins": "还没有安装插件，先去扩展页导入吧",
@@ -49,17 +52,14 @@
     "emptyHint": "换个关键词试试"
   },
   "home": {
-    "title": "首页",
-    "searchHint": "搜番剧、漫画、小说",
     "continueWatching": "继续观看",
-    "continueEmpty": "还没有观看记录，快去挑一部开始吧",
+    "lastSeen": "上次看到 {{position}} / {{duration}}",
     "followAlertTitle": "追更提醒",
-    "followUpdate": "《{{title}}》更新至第 {{episode}} 集",
+    "followUpdate": "《{{title}}》在「{{source}}」更新至第 {{episode}} 集",
     "followGo": "去围观 ›",
     "recentUpdates": "最近更新",
     "more": "更多 ›",
     "noPlugins": "还没有安装插件",
-    "noPluginsHint": "安装插件后，各源的最新内容会出现在这里",
     "goExtensions": "去扩展页安装"
   },
   "detail": {
