@@ -25,9 +25,8 @@ class PluginSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, ref) {
     final value = ref.watch(pluginLatestProvider(entry.info.package));
-    final title =
-        '${entry.info.name} · '
-        '${FlutterI18n.translate(context, 'home.recentUpdates')}';
+    // 用户拍板（2026-11-20）：标题不带源名——后续会把多插件数据合并为一个分区。
+    final title = FlutterI18n.translate(context, 'home.recentUpdates');
     return value.when(
       data: (items) {
         final gridItems = items.take(_maxItems).toList();
