@@ -22,7 +22,10 @@ void main() {
     expect(find.byType(AppBar), findsNothing);
     expect(find.byType(HomePage), findsOneWidget);
     expect(find.byType(AppBottomNav), findsOneWidget);
-    expect(find.byType(NavigationDestination), findsNWidgets(3));
+    // 三项：首页 / 搜索 / 我的（自绘导航项，非 Material NavigationDestination）。
+    expect(find.text('首页'), findsOneWidget);
+    expect(find.text('搜索'), findsOneWidget);
+    expect(find.text('我的'), findsOneWidget);
 
     // 测试环境无已装载插件：显示无插件空态引导。
     expect(find.byType(FilledButton), findsOneWidget);
