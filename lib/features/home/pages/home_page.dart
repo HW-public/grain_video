@@ -63,7 +63,7 @@ class _NoPlugins extends StatelessWidget {
           ),
           const SizedBox(height: AppTokens.space4),
           FilledButton.tonal(
-            onPressed: () => context.go(AppRoutes.extensions),
+            onPressed: () => context.push(AppRoutes.extensions),
             child: Text(FlutterI18n.translate(context, 'home.goExtensions')),
           ),
         ],

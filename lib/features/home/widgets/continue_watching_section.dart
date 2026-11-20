@@ -90,7 +90,7 @@ class _HeroCard extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => context.go(
+        onTap: () => context.push(
           '${AppRoutes.detail}'
           '?url=${Uri.encodeComponent(item.bangumiUrl)}'
           '&src=${Uri.encodeComponent(item.sourcePackage)}',

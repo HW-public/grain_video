@@ -39,7 +39,7 @@ class PluginSection extends ConsumerWidget {
             SectionHeader(
               title: title,
               trailing: GestureDetector(
-                onTap: () => context.go(AppRoutes.search),
+                onTap: () => context.push(AppRoutes.search),
                 child: Text(
                   FlutterI18n.translate(context, 'home.more'),
                   style: TextStyle(
@@ -99,7 +99,7 @@ class PluginSection extends ConsumerWidget {
   }
 
   void _openDetail(BuildContext context, BangumiItem item) {
-    context.go(
+    context.push(
       '${AppRoutes.detail}'
       '?url=${Uri.encodeComponent(item.url)}'
       '&src=${Uri.encodeComponent(entry.info.package)}',

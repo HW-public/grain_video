@@ -117,7 +117,7 @@ class _AlertCard extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           GestureDetector(
-            onTap: () => context.go(AppRoutes.search),
+            onTap: () => context.push(AppRoutes.search),
             child: Text(
               FlutterI18n.translate(context, 'home.followGo'),
               style: TextStyle(
