@@ -132,8 +132,15 @@ class _HeroCard extends StatelessWidget {
                   left: 18,
                   top: 86,
                   child: Text(
-                    '${FlutterI18n.translate(context, 'home.lastSeen')} '
-                    '${_formatMs(item.positionMs)} / ${_formatMs(durationMs)}',
+                    // i18n 模板插值：{{position}} / {{duration}}。
+                    FlutterI18n.translate(
+                      context,
+                      'home.lastSeen',
+                      translationParams: {
+                        'position': _formatMs(item.positionMs),
+                        'duration': _formatMs(durationMs),
+                      },
+                    ),
                     style: const TextStyle(fontSize: 11, color: _white92),
                   ),
                 ),

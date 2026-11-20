@@ -52,6 +52,8 @@ class PluginSection extends ConsumerWidget {
             ),
             // 分区之间间距 25（上一区标题底 → 下一区标题）：
             // SectionHeader 上 16 + 本区底部 9。
+            // 两列网格：卡宽 = (可用宽-列距10)/2，窄屏也保持两列
+            // （帧 390 宽下为 168；写死 168 在 360 级窄屏会退化成单列）。
             Padding(
               padding: const EdgeInsets.fromLTRB(
                 AppTokens.space4,
@@ -59,19 +61,25 @@ class PluginSection extends ConsumerWidget {
                 AppTokens.space4,
                 9,
               ),
-              child: Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  for (final item in gridItems)
-                    BangumiCard(
-                      coverUrl: item.cover,
-                      title: item.title,
-                      update: item.update,
-                      width: 168,
-                      onTap: () => _openDetail(context, item),
-                    ),
-                ],
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  const gap = 10.0;
+                  final cardWidth = (constraints.maxWidth - gap) / 2;
+                  return Wrap(
+                    spacing: gap,
+                    runSpacing: gap,
+                    children: [
+                      for (final item in gridItems)
+                        BangumiCard(
+                          coverUrl: item.cover,
+                          title: item.title,
+                          update: item.update,
+                          width: cardWidth,
+                          onTap: () => _openDetail(context, item),
+                        ),
+                    ],
+                  );
+                },
               ),
             ),
           ],
