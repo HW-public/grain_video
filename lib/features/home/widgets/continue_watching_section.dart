@@ -110,16 +110,18 @@ class _HeroCard extends StatelessWidget {
           ),
           child: Stack(
             children: [
-              // 标签 (18,42)：10/600 白95%，纯文字无底。
+              // 标签 (18,94)：10/600 白95%，纯文字无底。
+              // 纵向位置为用户拍板（2026-11-20）：内容靠下底留20，
+              // 帧原值在中偏上（顶42），下方留白72。
               Positioned(
                 left: 18,
-                top: 42,
+                top: 94,
                 child: _ContinueChip(episodeTitle: item.episodeTitle),
               ),
-              // 标题 (18,60)：19/700 白。
+              // 标题 (18,112)：19/700 白。
               Positioned(
                 left: 18,
-                top: 60,
+                top: 112,
                 right: 96,
                 child: Text(
                   item.title,
@@ -132,11 +134,11 @@ class _HeroCard extends StatelessWidget {
                   ),
                 ),
               ),
-              // 进度文字 (18,86)：11/400 白92%。
+              // 进度文字 (18,138)：11/400 白92%。
               if (hasProgress)
                 Positioned(
                   left: 18,
-                  top: 86,
+                  top: 138,
                   child: Text(
                     // i18n 模板插值：{{position}} / {{duration}}。
                     FlutterI18n.translate(
@@ -150,11 +152,11 @@ class _HeroCard extends StatelessWidget {
                     style: const TextStyle(fontSize: 11, color: _white92),
                   ),
                 ),
-              // 进度条 y=108：轨道宽120 高4 白30%，填充白100%。
+              // 进度条 y=160：轨道宽120 高4 白30%，填充白100%。
               if (progress != null)
                 Positioned(
                   left: 18,
-                  top: 108,
+                  top: 160,
                   child: Container(
                     width: 120,
                     height: 4,
@@ -168,10 +170,10 @@ class _HeroCard extends StatelessWidget {
                     ),
                   ),
                 ),
-              // 播放钮：52 白圆，圆心相对卡左上 (286,74)（右留46），▶ 18 主色。
+              // 播放钮：52 白圆，右46；垂直中心对内容块中心（103）。
               Positioned(
                 right: 46,
-                top: 48,
+                top: 103,
                 child: Container(
                   width: 52,
                   height: 52,
