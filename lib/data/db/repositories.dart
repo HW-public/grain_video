@@ -60,6 +60,11 @@ class WatchHistoryRepository {
         .get();
   }
 
+  /// 删除单条观看历史（左滑删除）。
+  Future<void> remove(int id) async {
+    await (_db.delete(_db.watchHistories)..where((t) => t.id.equals(id))).go();
+  }
+
   /// 某条目的全部观看记录（续播/选集用）。
   Future<List<WatchHistory>> forBangumi(
     String sourcePackage,

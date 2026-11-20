@@ -75,9 +75,7 @@ void main() {
       ProviderScope(
         // 空历史：避免 widget 测试触真实数据库，且验证空态渲染。
         overrides: [
-          watchHistoryListProvider.overrideWith(
-            (ref) async => <WatchHistory>[],
-          ),
+          watchHistoryListProvider.overrideWith(_EmptyHistoryNotifier.new),
         ],
         child: MaterialApp.router(
           theme: AppTheme.light(),
@@ -123,4 +121,10 @@ void main() {
     expect(selectedCards, hasLength(1));
     expect(selectedCards.single.palette.name, AppTokens.defaultPalette.name);
   });
+}
+
+/// 空历史 notifier：替代真实数据库读取（AsyncNotifier override 形态）。
+class _EmptyHistoryNotifier extends WatchHistoryListNotifier {
+  @override
+  Future<List<WatchHistory>> build() async => const [];
 }

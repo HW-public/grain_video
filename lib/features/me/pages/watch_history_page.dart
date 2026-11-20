@@ -27,6 +27,7 @@ class WatchHistoryPage extends ConsumerWidget {
       ),
       body: AsyncView(
         value: history,
+        onRetry: () => ref.read(watchHistoryListProvider.notifier).refresh(),
         builder: (context, items) {
           if (items.isEmpty) {
             return MeEmptyState(
@@ -42,10 +43,21 @@ class WatchHistoryPage extends ConsumerWidget {
             itemCount: items.length,
             separatorBuilder: (_, _) =>
                 const SizedBox(height: AppTokens.space3),
-            itemBuilder: (context, index) => _HistoryItem(
-              item: items[index],
-              onTap: () => _play(context, items[index]),
-            ),
+            itemBuilder: (context, index) {
+              final item = items[index];
+              // 左滑删除：滑掉即从数据库移除并刷新列表。
+              return Dismissible(
+                key: ValueKey('history-${item.id}'),
+                direction: DismissDirection.endToStart,
+                background: const _DeleteBackground(),
+                onDismissed: (_) =>
+                    ref.read(watchHistoryListProvider.notifier).remove(item.id),
+                child: _HistoryItem(
+                  item: item,
+                  onTap: () => _play(context, item),
+                ),
+              );
+            },
           );
         },
       ),
@@ -111,6 +123,38 @@ class _HistoryItem extends StatelessWidget {
             Icons.chevron_right,
             size: 18,
             color: AppTokens.textTertiary,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 左滑删除露出的背景：危险色底 + 删除图标/文字，靠右对齐。
+class _DeleteBackground extends StatelessWidget {
+  const _DeleteBackground();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTokens.danger,
+        borderRadius: BorderRadius.circular(AppTokens.radiusCard),
+      ),
+      alignment: Alignment.centerRight,
+      padding: const EdgeInsets.only(right: AppTokens.space4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          const Icon(Icons.delete_outline, color: Colors.white, size: 20),
+          const SizedBox(width: AppTokens.space1),
+          Text(
+            FlutterI18n.translate(context, 'me.delete'),
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
           ),
         ],
       ),
