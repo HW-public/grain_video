@@ -53,6 +53,8 @@
   },
   "home": {
     "continueWatching": "Continue watching",
+    "continueEmpty": "No watch history yet",
+    "continueEmptyHint": "Browse and start watching ›",
     "lastSeen": "Last seen {{position}} / {{duration}}",
     "followAlertTitle": "Update alerts",
     "followUpdate": "{{title}} updated to ep. {{episode}} on {{source}}",

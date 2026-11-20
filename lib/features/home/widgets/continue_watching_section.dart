@@ -11,7 +11,8 @@ import 'section_header.dart';
 
 /// 「继续观看」hero 大卡（设计稿 4:31 / 节点 5:34，帧 390×844 坐标系）：
 /// 纯色主色圆角大卡（高184/圆角24），左上标签+标题+上次看到+进度条，
-/// 右侧 52 白圆播放钮；多条历史轮播，卡下居中指示点；无历史整卡隐藏。
+/// 右侧 52 白圆播放钮；多条历史轮播，卡下居中指示点；
+/// 无历史显示占位提醒卡（用户拍板：帧未画空态，占位保留 hero 位）。
 class ContinueWatchingSection extends ConsumerStatefulWidget {
   const ContinueWatchingSection({super.key});
 
@@ -40,7 +41,12 @@ class _ContinueWatchingSectionState
     return value.when(
       data: (items) {
         final heroItems = items.take(_maxPages).toList();
-        if (heroItems.isEmpty) return const SizedBox.shrink();
+        if (heroItems.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(horizontal: AppTokens.space4),
+            child: _EmptyHeroCard(),
+          );
+        }
         return Column(
           children: [
             SizedBox(
@@ -193,6 +199,52 @@ class _HeroCard extends StatelessWidget {
     final seconds = totalSeconds % 60;
     return '${minutes.toString().padLeft(2, '0')}:'
         '${seconds.toString().padLeft(2, '0')}';
+  }
+}
+
+/// 无观看历史的占位 hero（用户拍板 2026-11-20）：同款薄荷大卡，
+/// 居中白色提醒文案，点按去搜索页挑内容。
+class _EmptyHeroCard extends StatelessWidget {
+  const _EmptyHeroCard();
+
+  static const _white80 = Color(0xCCFFFFFF);
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => context.push(AppRoutes.search),
+        borderRadius: BorderRadius.circular(24),
+        child: Ink(
+          height: _ContinueWatchingSectionState._cardHeight,
+          decoration: BoxDecoration(
+            color: AppTokens.mint.primary,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  FlutterI18n.translate(context, 'home.continueEmpty'),
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  FlutterI18n.translate(context, 'home.continueEmptyHint'),
+                  style: const TextStyle(fontSize: 12, color: _white80),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

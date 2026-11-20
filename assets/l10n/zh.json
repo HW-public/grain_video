@@ -53,6 +53,8 @@
   },
   "home": {
     "continueWatching": "继续观看",
+    "continueEmpty": "还没有观看记录",
+    "continueEmptyHint": "去挑一部开始吧 ›",
     "lastSeen": "上次看到 {{position}} / {{duration}}",
     "followAlertTitle": "追更提醒",
     "followUpdate": "《{{title}}》在「{{source}}」更新至第 {{episode}} 集",
