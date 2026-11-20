@@ -9,7 +9,7 @@ import '../providers/search_providers.dart';
 /// 源筛选 chips 行（Figma 21:19 `.src-chips`）：横向滚动，
 /// 首项「全部」+ 每个已安装插件一项（emoji + 源名）。
 ///
-/// 选中=底 mintTint(3:19 #D5F5E7)+12/600 主色字；
+/// 选中=底 mint.primaryContainer(3:19 #D5F5E7)+12/600 主色字；
 /// 未选=白底无描边+12/400 次文字色。chips 高 32 圆角 16、间距 8。
 /// 选中经 [searchSourceFilterProvider] 过滤结果区；空插件时整行隐藏。
 class SourceFilterBar extends ConsumerWidget {
@@ -66,8 +66,8 @@ class _FilterChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Material(
-      // 帧 3:19 #D5F5E7（AppTokens.mintTint），非 primaryContainer。
-      color: selected ? AppTokens.mintTint : AppTokens.surface,
+      // 帧 3:19 #D5F5E7 = mint.primaryContainer。
+      color: selected ? AppTokens.mint.primaryContainer : AppTokens.surface,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,

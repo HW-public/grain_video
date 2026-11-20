@@ -79,8 +79,8 @@ class _AlertCard extends StatelessWidget {
       height: 56,
       padding: const EdgeInsets.only(left: 14, right: 40),
       decoration: BoxDecoration(
-        // 帧 5:45 底色 = Figma 变量 3:19（AppTokens.mintTint）。
-        color: AppTokens.mintTint,
+        // 帧 5:45 底色 = Figma 变量 3:19 = mint.primaryContainer。
+        color: AppTokens.mint.primaryContainer,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(

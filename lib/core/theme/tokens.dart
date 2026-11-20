@@ -9,34 +9,34 @@ import 'package:flutter/widgets.dart';
 abstract final class AppTokens {
   // ---- 主题色板（设置-外观页三主题，薄荷绿为默认） ----
 
-  /// 粉橘 Sakura：暖春粉橘，柔和治愈（预览顶条 #F2A56B）。
+  /// 粉橘 Sakura：暖春粉橘，柔和治愈（预览顶条 #FDAFA6）。
   static const AppPalette sakura = AppPalette(
     name: '粉橘',
-    primary: Color(0xFFF2A56B),
+    primary: Color(0xFFFDAFA6),
     primarySoft: Color(0xFFF6CFC4),
     primaryContainer: Color(0xFFFBE0D8),
     secondary: Color(0xFF7CB342),
     pageBg: Color(0xFFFFF9F7),
   );
 
-  /// 珊瑚橙 Coral：活力珊瑚，暖阳氛围（预览顶条 #E8865A）。
+  /// 珊瑚橙 Coral：活力珊瑚，暖阳氛围（预览顶条 #FA8469）。
   static const AppPalette coral = AppPalette(
     name: '珊瑚橙',
-    primary: Color(0xFFE8865A),
+    primary: Color(0xFFFA8469),
     primarySoft: Color(0xFFF5C4B2),
     primaryContainer: Color(0xFFFBD9CC),
     secondary: Color(0xFF7CB342),
     pageBg: Color(0xFFFFF8F5),
   );
 
-  /// 薄荷绿 Mint：清新薄荷，默认主题（预览顶条 #1F9E6E）。
+  /// 薄荷绿 Mint：清新薄荷，默认主题（预览顶条 #6DE4B4）。
   static const AppPalette mint = AppPalette(
     name: '薄荷绿',
-    primary: Color(0xFF1F9E6E),
+    primary: Color(0xFF6DE4B4),
     primarySoft: Color(0xFF6CE5B0),
-    primaryContainer: Color(0xFFE4F3EC),
+    primaryContainer: Color(0xFFD5F5E7),
     secondary: Color(0xFFE8A33D),
-    pageBg: Color(0xFFF4FAF7),
+    pageBg: Color(0xFFF4FCF8),
   );
 
   /// 默认色板。
@@ -44,8 +44,8 @@ abstract final class AppTokens {
 
   // ---- 中性色（所有主题共享，Figma 变量 3:24~3:29） ----
 
-  /// 主文字。
-  static const Color textPrimary = Color(0xFF201A25);
+  /// 主文字（Figma 变量 3:24 text）。
+  static const Color textPrimary = Color(0xFF202725);
 
   /// 次文字：图标、副文案。
   static const Color textSecondary = Color(0xFF6E6373);
@@ -66,9 +66,6 @@ abstract final class AppTokens {
 
   /// 次级表面：菜单组底、浅灰紫块。
   static const Color surfaceAlt = Color(0xFFF6F1FA);
-
-  /// 浅薄荷底（Figma 变量 3:19 #D5F5E7）：选中 chip、追更提醒 pill 底。
-  static const Color mintTint = Color(0xFFD5F5E7);
 
   // ---- 暗夜（规格 07/09 播放器暗夜稿，各主题共用） ----
 
