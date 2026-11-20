@@ -65,7 +65,7 @@ class ContinueWatchingSection extends ConsumerWidget {
                             ? item.positionMs / durationMs
                             : null,
                         width: 168,
-                        onTap: () => context.go(
+                        onTap: () => context.push(
                           '${AppRoutes.detail}'
                           '?url=${Uri.encodeComponent(item.bangumiUrl)}'
                           '&src=${Uri.encodeComponent(item.sourcePackage)}',

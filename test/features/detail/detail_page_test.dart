@@ -101,7 +101,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('PLAYER'), findsOneWidget);
-    final loc = router.routerDelegate.currentConfiguration.uri;
+    // push 后顶 match 在 matches.last（currentConfiguration.uri 反映的是栈底页）。
+    final top = router.routerDelegate.currentConfiguration.matches.last;
+    final loc = Uri.parse(
+      top is ImperativeRouteMatch
+          ? top.matches.uri.toString()
+          : top.matchedLocation,
+    );
     expect(loc.path, AppRoutes.player);
     expect(loc.queryParameters['ep'], 'ep-2');
     expect(loc.queryParameters['src'], _args.src);

@@ -114,7 +114,7 @@ void _playEpisode(
   String title,
   Episode ep,
 ) {
-  context.go(
+  context.push(
     '${AppRoutes.player}'
     '?ep=${Uri.encodeComponent(ep.url)}'
     '&src=${Uri.encodeComponent(args.src)}'

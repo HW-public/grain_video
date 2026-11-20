@@ -387,7 +387,7 @@ class _ResultView extends ConsumerWidget {
                     title: hit.item.title,
                     update: hit.item.update,
                     subtitle: hit.source.name,
-                    onTap: () => context.go(
+                    onTap: () => context.push(
                       '${AppRoutes.detail}?url=${Uri.encodeComponent(hit.item.url)}'
                       '&src=${Uri.encodeComponent(hit.source.package)}',
                     ),

@@ -61,7 +61,7 @@ class PluginSection extends ConsumerWidget {
                         title: item.title,
                         update: item.update,
                         width: 152,
-                        onTap: () => context.go(
+                        onTap: () => context.push(
                           '${AppRoutes.detail}'
                           '?url=${Uri.encodeComponent(item.url)}'
                           '&src=${Uri.encodeComponent(entry.info.package)}',
