@@ -30,6 +30,15 @@ class PluginManager extends Notifier<List<PluginEntry>> {
       }
       _live.clear();
     });
+    // 启动即扫描安装目录：应用重启后插件直接生效，
+    // 无需先进扩展页点刷新（装载失败不致命，如测试环境无 path_provider 实现）。
+    Future<void>.microtask(() async {
+      try {
+        await load();
+      } on Object {
+        // 保持空表，扩展页手动刷新可重试。
+      }
+    });
     return const [];
   }
 
