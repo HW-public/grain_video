@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:grain_video/core/widgets/app_bottom_nav.dart';
+import 'package:grain_video/data/db/database.dart';
 import 'package:grain_video/features/home/pages/home_page.dart';
 import 'package:grain_video/features/home/providers/home_providers.dart';
 
@@ -85,5 +86,49 @@ void main() {
       findsOneWidget,
     );
     expect(find.byType(PageView), findsNothing);
+  });
+
+  testWidgets('hero 进度文字按 i18n 模板插值渲染，不露 {{}} 原文', (tester) async {
+    final i18nDelegate = FlutterI18nDelegate(
+      translationLoader: FileTranslationLoader(
+        basePath: 'assets/l10n',
+        fallbackFile: 'zh',
+        useCountryCode: false,
+      ),
+    );
+    final history = WatchHistory(
+      id: 1,
+      sourcePackage: 'com.example.fake',
+      bangumiUrl: 'https://example.com/1',
+      title: '测试番剧',
+      cover: '',
+      episodeUrl: 'ep-1',
+      episodeTitle: '第1集',
+      positionMs: 90000, // 01:30
+      durationMs: 600000, // 10:00
+      updatedAt: DateTime(2026, 11, 20),
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          recentWatchProvider.overrideWith((ref) async => [history]),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: [
+            i18nDelegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('zh')],
+          home: const HomePage(),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    // 模板 {{position}} / {{duration}} 被替换为 mm:ss。
+    expect(find.text('上次看到 01:30 / 10:00'), findsOneWidget);
   });
 }
