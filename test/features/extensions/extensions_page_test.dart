@@ -2,24 +2,41 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:grain_video/app.dart';
+import 'package:grain_video/core/routes.dart';
 import 'package:grain_video/core/theme/tokens.dart';
 import 'package:grain_video/core/widgets/async_view.dart';
+import 'package:grain_video/features/extensions/pages/extensions_page.dart';
+import 'package:grain_video/features/home/pages/home_page.dart';
+import 'package:grain_video/router.dart';
 
 void main() {
-  testWidgets('extensions page is the entry and matches design tokens', (
+  testWidgets('entry is home page; extensions page keeps design tokens', (
     tester,
   ) async {
     await tester.pumpWidget(const ProviderScope(child: HeHeApp()));
-    await tester.pumpAndSettle();
+    // 首页有常驻加载态（DB/插件异步），不能用 pumpAndSettle。
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
 
-    // 空状态 + 底部主按钮（设计稿「＋ 安装扩展 / 浏览仓库」）。
-    expect(find.byType(EmptyState), findsOneWidget);
-    expect(find.byType(FilledButton), findsOneWidget);
+    // 启动直达首页（调试入口已撤销）。
+    expect(find.byType(HomePage), findsOneWidget);
 
+    // 跳到扩展管理页验证设计 token。
+    appRouter.go(AppRoutes.extensions);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.byType(ExtensionsPage), findsOneWidget);
+    // 底部主按钮（go_router 叠放，首页的按钮仍在树中，断言至少一个）。
+    expect(find.byType(FilledButton), findsWidgets);
+    // Scaffold 是 ExtensionsPage 的子节点（页面自建 Scaffold）。
     final scaffold = tester.widget<Scaffold>(
-      find.ancestor(of: find.byType(AppBar), matching: find.byType(Scaffold)),
+      find.descendant(
+        of: find.byType(ExtensionsPage),
+        matching: find.byType(Scaffold),
+      ),
     );
-    // 设计稿：薄荷页面底 + 白色表面。
     expect(scaffold.backgroundColor, AppTokens.defaultPalette.pageBg);
+    expect(find.byType(EmptyState), findsOneWidget);
   });
 }
