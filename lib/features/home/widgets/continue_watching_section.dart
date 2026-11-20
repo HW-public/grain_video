@@ -170,20 +170,21 @@ class _HeroCard extends StatelessWidget {
                     ),
                   ),
                 ),
-              // 播放钮：52 白圆，右46；垂直中心对内容块中心（103）。
+              // 播放钮：白圆 44 + 主色三角 24（用户拍板 2026-11-20，
+              // 帧为 52/18）；右46，垂直中心对内容块中心（107）。
               Positioned(
                 right: 46,
-                top: 103,
+                top: 107,
                 child: Container(
-                  width: 52,
-                  height: 52,
+                  width: 44,
+                  height: 44,
                   decoration: const BoxDecoration(
                     color: Colors.white,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.play_arrow,
-                    size: 18,
+                    size: 24,
                     color: AppTokens.mint.primary,
                   ),
                 ),
