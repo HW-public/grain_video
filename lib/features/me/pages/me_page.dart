@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/routes.dart';
 import '../../../core/theme/tokens.dart';
-import '../../../core/widgets/app_bottom_nav.dart';
 import '../widgets/me_list_card.dart';
 import '../widgets/me_list_row.dart';
 import '../routes.dart' show MeRoutes;
@@ -87,7 +86,6 @@ class MePage extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: const AppBottomNav(currentIndex: 2),
     );
   }
 

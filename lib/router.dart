@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 
+import 'app_shell.dart';
 import 'features/detail/routes.dart';
 import 'features/extensions/routes.dart';
 import 'features/home/routes.dart';
@@ -7,15 +8,28 @@ import 'features/me/routes.dart';
 import 'features/player/routes.dart';
 import 'features/search/routes.dart';
 
-/// 路由汇总（app 层）：聚合各 feature 导出的路由列表。
-/// core 不得 import features，故聚合点放在 lib 根（app 层）。
-final appRouter = GoRouter(
+/// 应用级路由（app 层聚合各 feature 路由）。
+///
+/// home / search / me 三个一级页包在 [StatefulShellRoute] 里共用
+/// [HeHeAppShell]（单个 Scaffold + 底部导航，切换不跳动）；
+/// 详情 / 播放器 / 扩展管理 为压栈二级页。
+GoRouter buildAppRouter({String? initialLocation}) => GoRouter(
+  initialLocation: initialLocation,
   routes: [
-    ...homeRoutes,
-    ...searchRoutes,
-    ...meRoutes,
+    StatefulShellRoute.indexedStack(
+      builder: (context, state, navigationShell) =>
+          HeHeAppShell(shell: navigationShell),
+      branches: [
+        StatefulShellBranch(routes: homeRoutes),
+        StatefulShellBranch(routes: searchRoutes),
+        StatefulShellBranch(routes: meRoutes),
+      ],
+    ),
     ...detailRoutes,
     ...playerRoutes,
     ...extensionsRoutes,
   ],
 );
+
+/// 应用默认路由实例。
+final appRouter = buildAppRouter();

@@ -3,7 +3,7 @@ import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:grain_video/core/widgets/app_bottom_nav.dart';
+import 'package:grain_video/core/widgets/app_tab_scope.dart';
 import 'package:grain_video/features/search/pages/search_page.dart';
 import 'package:grain_video/features/search/providers/search_providers.dart';
 
@@ -25,7 +25,9 @@ void main() {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: const [Locale('zh'), Locale('en')],
-      home: const SearchPage(),
+      // 底部导航现由 HeHeAppShell 统一挂载；直出页面时由 scope 告知
+      // 搜索 tab 可见（触发输入框聚焦）。
+      home: const AppTabScope(index: 1, child: SearchPage()),
     );
     if (container != null) {
       return UncontrolledProviderScope(container: container, child: app);
@@ -36,15 +38,12 @@ void main() {
   String tr(WidgetTester tester, String key) =>
       FlutterI18n.translate(tester.element(find.byType(SearchPage)), key);
 
-  testWidgets('初始态：搜索栏自动聚焦、底部导航 index=1、空历史/空插件', (tester) async {
+  testWidgets('初始态：搜索栏自动聚焦、空历史/空插件', (tester) async {
     await tester.pumpWidget(buildSubject());
     await tester.pumpAndSettle();
 
     final textField = tester.widget<TextField>(find.byType(TextField));
     expect(textField.focusNode?.hasFocus, isTrue);
-
-    final nav = tester.widget<AppBottomNav>(find.byType(AppBottomNav));
-    expect(nav.currentIndex, 1);
 
     // 空历史：历史区隐藏；空插件：源筛选行隐藏。
     expect(find.textContaining(tr(tester, 'search.history')), findsNothing);

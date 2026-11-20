@@ -55,10 +55,11 @@ class SearchInputBar extends StatelessWidget {
               ),
             ),
             Expanded(
+              // 焦点由 SearchPage 在 tab 可见时请求（见 AppTabScope），
+              // 分支常驻树后 autofocus 会抢启动焦点。
               child: TextField(
                 controller: controller,
                 focusNode: focusNode,
-                autofocus: true,
                 textInputAction: TextInputAction.search,
                 onChanged: onChanged,
                 onSubmitted: onSubmitted,

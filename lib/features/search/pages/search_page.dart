@@ -7,7 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/routes.dart';
 import '../../../core/theme/tokens.dart';
-import '../../../core/widgets/app_bottom_nav.dart';
+import '../../../core/widgets/app_tab_scope.dart';
 import '../../../core/widgets/async_view.dart';
 import '../../../core/widgets/bangumi_card.dart';
 import '../../../extension/plugin_manager.dart';
@@ -32,6 +32,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   Timer? _debounceTimer;
+  int _tab = -1;
 
   @override
   void dispose() {
@@ -39,6 +40,20 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
+  }
+
+  /// 分支常驻树（IndexedStack），仅在搜索 tab 可见时请求输入框焦点，
+  /// 避免 App 启动时焦点/键盘被离屏搜索页抢走。
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final tab = AppTabScope.of(context);
+    if (tab == 1 && _tab != 1) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && !_focusNode.hasFocus) _focusNode.requestFocus();
+      });
+    }
+    _tab = tab;
   }
 
   void _submit(String keyword) {
@@ -86,7 +101,6 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           ],
         ),
       ),
-      bottomNavigationBar: const AppBottomNav(currentIndex: 1),
     );
   }
 }

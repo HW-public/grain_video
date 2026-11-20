@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/routes.dart';
 import '../../../core/theme/tokens.dart';
-import '../../../core/widgets/app_bottom_nav.dart';
 import '../../../core/widgets/async_view.dart';
 import '../../../extension/plugin_manager.dart';
 import '../providers/home_providers.dart';
@@ -56,7 +55,6 @@ class HomePage extends ConsumerWidget {
           ],
         ),
       ),
-      bottomNavigationBar: const AppBottomNav(currentIndex: 0),
     );
   }
 }
