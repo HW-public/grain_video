@@ -34,6 +34,6 @@
     "noLogs": "No logs yet",
     "settings": "Settings",
     "installButton": "＋ Install / Browse",
-    "summary": "%count extensions installed · from %sites repos"
+    "summary": "{{count}} extensions installed · from {{sites}} repos"
   }
 }
