@@ -26,7 +26,6 @@ class PluginSection extends ConsumerWidget {
   Widget build(BuildContext context, ref) {
     final value = ref.watch(pluginLatestProvider(entry.info.package));
     final title =
-        '${_typeEmoji(entry.info.type)} '
         '${entry.info.name} · '
         '${FlutterI18n.translate(context, 'home.recentUpdates')}';
     return value.when(
@@ -112,15 +111,5 @@ class PluginSection extends ConsumerWidget {
       '?url=${Uri.encodeComponent(item.url)}'
       '&src=${Uri.encodeComponent(entry.info.package)}',
     );
-  }
-
-  /// 分区标题 emoji（插件 metadata 无 emoji 字段，按类型映射，偏离已报）。
-  static String _typeEmoji(String type) {
-    return switch (type) {
-      'bangumi' => '📺',
-      'manga' => '📚',
-      'novel' => '📖',
-      _ => '🧩',
-    };
   }
 }
