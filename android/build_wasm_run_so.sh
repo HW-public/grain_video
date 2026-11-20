@@ -18,6 +18,11 @@
 #   直接构建（包根自带 pubspec.yaml + pubspec.lock + lib/src/bridge_generated*.dart，
 #   正好满足 build.rs 的全部相对路径约定）。
 # - 首次构建需下载 wasmtime 14 / frb codegen 等依赖，单 ABI 约 5~15 分钟。
+# - frb 1.82.x 的 build.rs 会调用 Dart 的 ffigen，ffigen 需要 libclang.dll。
+#   ffigen 只从两处默认位置找：C:\Program Files\LLVM\bin 与
+#   %USERPROFILE%\scoop\apps\llvm\current\bin。本机做法是解包官方
+#   LLVM-18.1.8-win64.exe 的 bin/libclang.dll 到后者（无 scoop 也能用，
+#   该目录只是 ffigen 的约定搜索路径），SHA256 已与 winget 官方清单核对。
 
 set -euo pipefail
 
@@ -51,6 +56,10 @@ cp -r "$WASM_RUN_PUB_DIR" "$SRC"
 # 发布包中不存在的兄弟仓库），必须连同 example/ 一起去掉才能 resolve。
 rm -rf "$SRC/example"
 sed -i '/^  wasm_run_example:$/,+1d' "$SRC/pubspec.yaml"
+# frb 1.82.6 的 RawOpts 默认 dart_format_line_length=0，新版 dart format
+# 拒绝 0（"Page width must be a positive number"）。旧版 frb 时代 0 被接受，
+# 属环境版本漂移；给临时副本的 build.rs 补上 80（frb CLI 的同款取值）。
+sed -i 's/        inline_rust: true,/        inline_rust: true,\n        dart_format_line_length: 80,/' "$SRC/native/build.rs"
 echo "==> 生成 pubspec.lock（flutter pub get）"
 (
   cd "$SRC"

@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:cryptography/cryptography.dart';
 import 'package:dio/dio.dart';
+import 'package:dio_smart_retry/dio_smart_retry.dart';
 
 import 'plugin_manager.dart';
 
@@ -18,12 +19,33 @@ class PluginUpdater {
     this.manifestUrl = defaultManifestUrl,
     this.publicKeyHex = defaultPublicKeyHex,
     Dio? dio,
-  }) : _dio = dio ?? Dio();
+  }) : _dio =
+           dio ??
+           Dio(
+             BaseOptions(
+               // 弱网重试：连接/接收超时 + 失败自动重试 2 次（指数退避）。
+               connectTimeout: const Duration(seconds: 10),
+               receiveTimeout: const Duration(seconds: 20),
+             ),
+           ) {
+    _dio.interceptors.add(
+      RetryInterceptor(
+        dio: _dio,
+        retries: 2,
+        retryDelays: const [Duration(seconds: 1), Duration(seconds: 2)],
+      ),
+    );
+  }
 
   /// raw 镜像：仓库静态文件经 raw.githubusercontent.com 提供
   /// （raw/ 目录的 wasm 清单与签名；不要求 Release 附件）。
   static const String defaultManifestUrl =
       'https://raw.githubusercontent.com/HW-public/grain_plugins/main/raw/manifest.json';
+
+  /// jsDelivr 国内镜像（同仓库 raw/ 内容，国内可达性更好）。
+  /// [fetchManifest] 先走 jsDelivr、失败/格式错时回退 [defaultManifestUrl]。
+  static const String jsdelivrManifestUrl =
+      'https://cdn.jsdelivr.net/gh/HW-public/grain_plugins@main/raw/manifest.json';
 
   /// grain_plugins 签名公钥（Ed25519, 32 字节 hex）。
   static const String defaultPublicKeyHex =
@@ -34,32 +56,47 @@ class PluginUpdater {
   final Dio _dio;
 
   /// 拉取并解析清单（网络/格式错误抛 [PluginUpdateException]）。
+  ///
+  /// 弱网双源：先走 jsDelivr 镜像（国内可达性好），失败或格式错时
+  /// 回退到 [manifestUrl]（raw 端点）。重试由 RetryInterceptor 兜底。
   Future<List<PluginRelease>> fetchManifest({Duration? timeout}) async {
-    try {
-      final resp = await _dio.get<dynamic>(
-        manifestUrl,
-        options: Options(
-          responseType: ResponseType.plain,
-          followRedirects: true,
-          receiveTimeout: timeout ?? const Duration(seconds: 20),
-        ),
-      );
-      final data = resp.data;
-      final json = data is String ? jsonDecode(data) : data;
-      if (json is! Map || json['plugins'] is! List) {
-        throw const PluginUpdateException('清单格式无效');
+    final sources = <String>[jsdelivrManifestUrl, manifestUrl];
+    Object? lastError;
+    for (final url in sources) {
+      try {
+        return await _fetchManifestFrom(url, timeout: timeout);
+      } on PluginUpdateException catch (e) {
+        lastError = e;
+      } catch (e) {
+        lastError = e;
       }
-      final releases = <PluginRelease>[];
-      for (final e in json['plugins'] as List) {
-        final r = PluginRelease.fromJson(e);
-        if (r != null) releases.add(r);
-      }
-      return releases;
-    } on PluginUpdateException {
-      rethrow;
-    } catch (e) {
-      throw PluginUpdateException('拉取插件清单失败: $e');
     }
+    throw PluginUpdateException('拉取插件清单失败: $lastError');
+  }
+
+  Future<List<PluginRelease>> _fetchManifestFrom(
+    String url, {
+    Duration? timeout,
+  }) async {
+    final resp = await _dio.get<dynamic>(
+      url,
+      options: Options(
+        responseType: ResponseType.plain,
+        followRedirects: true,
+        receiveTimeout: timeout ?? const Duration(seconds: 20),
+      ),
+    );
+    final data = resp.data;
+    final json = data is String ? jsonDecode(data) : data;
+    if (json is! Map || json['plugins'] is! List) {
+      throw const PluginUpdateException('清单格式无效');
+    }
+    final releases = <PluginRelease>[];
+    for (final e in json['plugins'] as List) {
+      final r = PluginRelease.fromJson(e);
+      if (r != null) releases.add(r);
+    }
+    return releases;
   }
 
   /// 校验下载字节：sha256 匹配清单，且签名对
@@ -99,15 +136,7 @@ class PluginUpdater {
   }) async {
     final List<int> bytes;
     try {
-      final resp = await _dio.get<List<int>>(
-        release.url,
-        options: Options(
-          responseType: ResponseType.bytes,
-          followRedirects: true,
-          receiveTimeout: timeout ?? const Duration(seconds: 60),
-        ),
-      );
-      bytes = resp.data ?? const [];
+      bytes = await _downloadWasm(release, timeout: timeout);
     } catch (e) {
       throw PluginUpdateException('下载 ${release.file} 失败: $e');
     }
@@ -165,6 +194,37 @@ class PluginUpdater {
       final local = installedVersions[r.package];
       return local == null || compareVersions(r.version, local) > 0;
     }).toList();
+  }
+
+  /// 下载 wasm：清单 url 是 raw 端点，国内弱网优先换 jsDelivr 镜像下载。
+  Future<List<int>> _downloadWasm(
+    PluginRelease release, {
+    Duration? timeout,
+  }) async {
+    final mirrorUrl = release.url.replaceFirst(
+      'https://raw.githubusercontent.com/HW-public/grain_plugins/main/raw/',
+      'https://cdn.jsdelivr.net/gh/HW-public/grain_plugins@main/raw/',
+    );
+    final urls = <String>[if (mirrorUrl != release.url) mirrorUrl, release.url];
+    Object? lastError;
+    for (final url in urls) {
+      try {
+        final resp = await _dio.get<List<int>>(
+          url,
+          options: Options(
+            responseType: ResponseType.bytes,
+            followRedirects: true,
+            receiveTimeout: timeout ?? const Duration(seconds: 60),
+          ),
+        );
+        final bytes = resp.data ?? const <int>[];
+        if (bytes.isNotEmpty) return bytes;
+        lastError = StateError('空响应');
+      } catch (e) {
+        lastError = e;
+      }
+    }
+    throw PluginUpdateException('所有镜像均失败: $lastError');
   }
 
   /// 版本比较（宽松语义版本）：`v1.2.3` 与 `1.2.3` 等价；

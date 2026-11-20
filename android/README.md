@@ -22,6 +22,13 @@ Android 上 wasm_run 的加载顺序（`lib/src/ffi/io.dart`）：
 NDK `27.0.12077973`（与 `app/build.gradle.kts` 的 ndkVersion 一致，可用
 `NDK_HOME` 环境变量覆盖）、Windows Git Bash。
 
+另需 libclang.dll：frb 的 build.rs 会调用 Dart 的 ffigen 生成 FFI 桥接代码，
+ffigen 只从 `C:\Program Files\LLVM\bin` 或
+`%USERPROFILE%\scoop\apps\llvm\current\bin` 找 libclang.dll（ffigen 的约定
+搜索路径，装了 scoop 的 llvm 天然命中）。本机解包了官方
+LLVM-18.1.8-win64.exe 的 `bin/libclang.dll` 到后者（SHA256 与 winget 官方
+清单一致）；若已装 LLVM 或 scoop llvm 则无需处理。
+
 ```bash
 bash android/build_wasm_run_so.sh
 ```
