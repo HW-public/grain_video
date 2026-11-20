@@ -9,8 +9,9 @@ plugins {
 
 android {
     namespace = "top.wprop.grain_video"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    // media_kit 1.2.6 系要求 compileSdk 36 / NDK 27（本机均已安装）
+    compileSdk = 36
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

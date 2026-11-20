@@ -20,9 +20,10 @@ class PluginUpdater {
     Dio? dio,
   }) : _dio = dio ?? Dio();
 
-  /// `releases/latest/download/` 始终指向最新 release 的清单。
+  /// raw 镜像：仓库静态文件经 raw.githubusercontent.com 提供
+  /// （raw/ 目录的 wasm 清单与签名；不要求 Release 附件）。
   static const String defaultManifestUrl =
-      'https://github.com/HW-public/grain_plugins/releases/latest/download/manifest.json';
+      'https://raw.githubusercontent.com/HW-public/grain_plugins/main/raw/manifest.json';
 
   /// grain_plugins 签名公钥（Ed25519, 32 字节 hex）。
   static const String defaultPublicKeyHex =
