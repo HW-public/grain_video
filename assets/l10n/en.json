@@ -31,6 +31,9 @@
     "deleteHint": "You can re-import it later.",
     "removed": "Deleted",
     "logs": "Logs",
-    "noLogs": "No logs yet"
+    "noLogs": "No logs yet",
+    "settings": "Settings",
+    "installButton": "＋ Install / Browse",
+    "summary": "%count extensions installed · from %sites repos"
   }
 }

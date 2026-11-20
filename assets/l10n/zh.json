@@ -31,6 +31,9 @@
     "deleteHint": "删除后需要重新导入才能使用。",
     "removed": "已删除",
     "logs": "日志",
-    "noLogs": "暂无日志"
+    "noLogs": "暂无日志",
+    "settings": "设置",
+    "installButton": "＋ 安装扩展 / 浏览仓库",
+    "summary": "已安装 %count 个扩展 · 来自 %sites 个仓库"
   }
 }

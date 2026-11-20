@@ -48,3 +48,6 @@ app.*.map.json
 android/key.properties
 *.jks
 *.keystore
+
+# wasm_run Android 原生库（大体积二进制，不入库；用 android/build_wasm_run_so.sh 重建）
+android/app/src/main/jniLibs/
