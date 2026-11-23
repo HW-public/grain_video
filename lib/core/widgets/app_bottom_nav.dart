@@ -55,6 +55,12 @@ class AppBottomNav extends StatelessWidget {
 }
 
 /// 单个导航项：图标 20 在上、标签 11 在下，间距 4；整列可点。
+///
+/// 切换动画（用户拍板 2026-11-23，原瞬时切换太生硬）：
+/// 交接编排——旧激活项 150ms 快速淡出退场（easeIn），
+/// 新激活项 300ms 弹簧入场（easeOutBack 回弹）：
+/// - icon/标签颜色渐变；icon 1.0→1.15 回弹放大（退场侧缩回）；
+/// - 标签字重 400↔600 连续插值。帧约束激活无背景 pill，不加滑块。
 class _NavItem extends StatelessWidget {
   const _NavItem({
     required this.icon,
@@ -70,28 +76,49 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected
-        ? AppTokens.defaultPalette.primary
-        : AppTokens.textSecondary;
-    final labelColor = selected
-        ? AppTokens.textPrimary
-        : AppTokens.textSecondary;
     return InkWell(
       onTap: onTap,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 20, color: color),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-              color: labelColor,
-            ),
-          ),
-        ],
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(end: selected ? 1 : 0),
+        // 方向感知：入场弹簧 300ms，退场快淡 150ms。
+        duration: Duration(milliseconds: selected ? 300 : 150),
+        curve: selected ? Curves.easeOut : Curves.easeIn,
+        builder: (context, t, _) {
+          final iconColor = Color.lerp(
+            AppTokens.textSecondary,
+            AppTokens.defaultPalette.primary,
+            t,
+          )!;
+          final labelColor = Color.lerp(
+            AppTokens.textSecondary,
+            AppTokens.textPrimary,
+            t,
+          )!;
+          // 回弹：选中时 icon 放大 15% 并带回弹曲线。
+          final scale = 1 + 0.15 * Curves.easeOutBack.transform(t);
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Transform.scale(
+                scale: scale,
+                child: Icon(icon, size: 20, color: iconColor),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.lerp(
+                    FontWeight.w400,
+                    FontWeight.w600,
+                    t,
+                  ),
+                  color: labelColor,
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
