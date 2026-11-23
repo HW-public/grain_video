@@ -9,12 +9,14 @@ void main() {
   late WatchHistoryRepository history;
   late FavoritesRepository favorites;
   late FollowsRepository follows;
+  late SearchHistoryRepository searchHistory;
 
   setUp(() {
     db = AppDatabase.forTesting(NativeDatabase.memory());
     history = WatchHistoryRepository(db);
     favorites = FavoritesRepository(db);
     follows = FollowsRepository(db);
+    searchHistory = SearchHistoryRepository(db);
   });
 
   tearDown(() => db.close());
@@ -97,5 +99,23 @@ void main() {
           ),
         );
     expect(await history.recent(), hasLength(1));
+  });
+  test('search history dedupes, re-adds to top, caps and clears', () async {
+    await searchHistory.add('孤独摇滚');
+    await searchHistory.add('迷宫饭');
+    await searchHistory.add('孤独摇滚'); // 重复：更新置顶
+
+    var rows = await searchHistory.recent();
+    expect(rows, ['孤独摇滚', '迷宫饭']);
+
+    for (var i = 0; i < 25; i++) {
+      await searchHistory.add('关键词$i');
+    }
+    rows = await searchHistory.recent();
+    expect(rows, hasLength(20)); // 上限 20
+    expect(rows.first, '关键词24');
+
+    await searchHistory.clear();
+    expect(await searchHistory.recent(), isEmpty);
   });
 }

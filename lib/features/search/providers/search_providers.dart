@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../data/db/repositories.dart';
 import '../../../extension/models.dart';
 import '../../../extension/plugin_manager.dart';
 
@@ -107,9 +108,8 @@ final searchResultsProvider = FutureProvider.autoDispose
       return [for (final g in groups) ...g];
     });
 
-/// 历史搜索：会话内内存态（新增在前、去重、上限 20 条）。
-///
-/// 持久化（shared_preferences）等 pubspec 解锁后再接。
+/// 历史搜索：持久化在 drift `SearchHistories` 表（keyword 去重、上限 20 条），
+/// state 为内存镜像——add/clear 先乐观更新 UI 再落库。
 final searchHistoryProvider = NotifierProvider<SearchHistory, List<String>>(
   SearchHistory.new,
 );
@@ -118,13 +118,38 @@ class SearchHistory extends Notifier<List<String>> {
   static const int maxEntries = 20;
 
   @override
-  List<String> build() => const [];
-
-  void add(String keyword) {
-    final k = keyword.trim();
-    if (k.isEmpty) return;
-    state = [k, ...state.where((e) => e != k)].take(maxEntries).toList();
+  List<String> build() {
+    Future<void>.microtask(() async {
+      try {
+        final rows = await ref
+            .read(searchHistoryRepositoryProvider)
+            .recent(limit: maxEntries);
+        // 竞态防护：add/clear 可能先于读库完成（微任务交错），
+        // 此时 state 非空是用户写入，不能覆盖。
+        if (state.isEmpty) state = rows;
+      } on Object {
+        // 数据库不可用（测试环境）：保持空表。
+      }
+    });
+    return const [];
   }
 
-  void clear() => state = const [];
+  Future<void> add(String keyword) async {
+    final k = keyword.trim();
+    if (k.isEmpty) return;
+    // 乐观置顶。
+    state = [k, ...state.where((e) => e != k)].take(maxEntries).toList();
+    await ref.read(searchHistoryRepositoryProvider).add(k);
+  }
+
+  Future<void> clear() async {
+    state = const [];
+    await ref.read(searchHistoryRepositoryProvider).clear();
+  }
+
+  /// 删除单条（管理模式，用户拍板 2026-11-20）。
+  Future<void> remove(String keyword) async {
+    state = state.where((e) => e != keyword).toList();
+    await ref.read(searchHistoryRepositoryProvider).remove(keyword);
+  }
 }

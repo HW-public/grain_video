@@ -39,6 +39,8 @@
   "search": {
     "hint": "Search anime, manga, novels…",
     "search": "Search",
+    "manage": "Manage",
+    "done": "Done",
     "clear": "Clear",
     "filterAll": "All",
     "resultCount": "Results · {count}",

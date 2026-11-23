@@ -22,30 +22,35 @@ class SourceFilterBar extends ConsumerWidget {
 
     final selected = ref.watch(searchSourceFilterProvider);
 
-    return SizedBox(
-      height: 32,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: AppTokens.space4),
-        children: [
-          _FilterChip(
-            label: FlutterI18n.translate(context, 'search.filterAll'),
-            selected: selected == null,
-            onTap: () =>
-                ref.read(searchSourceFilterProvider.notifier).select(null),
-          ),
-          for (final entry in entries)
-            Padding(
-              padding: const EdgeInsets.only(left: AppTokens.space2),
-              child: _FilterChip(
-                label: '${emojiOf(entry.info)} ${entry.info.name}',
-                selected: selected == entry.info.package,
-                onTap: () => ref
-                    .read(searchSourceFilterProvider.notifier)
-                    .select(entry.info.package),
-              ),
+    // 帧纵向间距：搜索栏底→chips 16（栏底 padding 8 + 这里上 8）；
+    // chips 底→下一区 22（这里下 10 + 历史标题上 12）。
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 8, 0, 10),
+      child: SizedBox(
+        height: 32,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: AppTokens.space4),
+          children: [
+            _FilterChip(
+              label: FlutterI18n.translate(context, 'search.filterAll'),
+              selected: selected == null,
+              onTap: () =>
+                  ref.read(searchSourceFilterProvider.notifier).select(null),
             ),
-        ],
+            for (final entry in entries)
+              Padding(
+                padding: const EdgeInsets.only(left: AppTokens.space2),
+                child: _FilterChip(
+                  label: '${emojiOf(entry.info)} ${entry.info.name}',
+                  selected: selected == entry.info.package,
+                  onTap: () => ref
+                      .read(searchSourceFilterProvider.notifier)
+                      .select(entry.info.package),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

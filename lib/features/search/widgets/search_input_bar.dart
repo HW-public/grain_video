@@ -17,6 +17,7 @@ class SearchInputBar extends StatelessWidget {
     required this.submitLabel,
     this.onChanged,
     this.onSubmitted,
+    this.onClear,
   });
 
   final TextEditingController controller;
@@ -27,6 +28,9 @@ class SearchInputBar extends StatelessWidget {
   final String submitLabel;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
+
+  /// 点按清除 ×：清空输入并复位结果区（回到初始态）。
+  final VoidCallback? onClear;
 
   @override
   Widget build(BuildContext context) {
@@ -84,6 +88,28 @@ class SearchInputBar extends StatelessWidget {
                   border: InputBorder.none,
                 ),
               ),
+            ),
+            // 有内容时显示清除 ×（用户要求；帧未画此 icon）。
+            ValueListenableBuilder<TextEditingValue>(
+              valueListenable: controller,
+              builder: (context, value, _) {
+                if (value.text.isEmpty) return const SizedBox.shrink();
+                return Padding(
+                  padding: const EdgeInsets.only(right: AppTokens.space1),
+                  child: GestureDetector(
+                    onTap: () {
+                      controller.clear();
+                      onChanged?.call('');
+                      onClear?.call();
+                    },
+                    child: const Icon(
+                      Icons.cancel,
+                      size: 16,
+                      color: AppTokens.textTertiary,
+                    ),
+                  ),
+                );
+              },
             ),
             Padding(
               // 帧右内边距 34（容器外已有水平 16）。

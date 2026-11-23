@@ -5,7 +5,7 @@ import '../theme/tokens.dart';
 ///
 /// 由 [HeHeAppShell] 统一挂载（三 tab 共用单个，切换不重建），
 /// 切 tab 回调走 [onSelect]（shell 转 goBranch）。
-/// 帧规格：栏高72 白底 顶部1px divider；图标20 激活主色/未选textSecondary；
+/// 帧规格：栏高56（用户拍板，帧原值72） 白底 顶部1px divider；图标20 激活主色/未选textSecondary；
 /// 标签11 激活textPrimary 600/未选textSecondary 400；激活无背景 pill。
 /// 图标与标签间距为用户拍板（2026-11-20）调近至 4（帧为 10）。
 class AppBottomNav extends StatelessWidget {
@@ -33,7 +33,8 @@ class AppBottomNav extends StatelessWidget {
         // 顶部 1px 分隔线（变量 3:27）。
         const Divider(height: 1, color: AppTokens.divider),
         SizedBox(
-          height: 72,
+          // 栏高为用户拍板（2026-11-20）：56，帧原值 72。
+          height: 56,
           child: Row(
             children: [
               for (var i = 0; i < _icons.length; i++)

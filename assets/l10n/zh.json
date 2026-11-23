@@ -39,6 +39,8 @@
   "search": {
     "hint": "搜索番剧、漫画、小说…",
     "search": "搜索",
+    "manage": "管理",
+    "done": "完成",
     "clear": "清空",
     "filterAll": "全部",
     "resultCount": "搜索结果 · {count}",

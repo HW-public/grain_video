@@ -62,9 +62,26 @@ class Follows extends Table {
   ];
 }
 
+/// 搜索历史：keyword 唯一去重，重复搜索更新时间戳置顶。
+/// searchedAt 用毫秒整型——drift 的 dateTime 默认秒级精度，
+/// 同秒连续搜索会并列导致排序不确定；毫秒并列时再按自增 id 倒序兜底。
+class SearchHistories extends Table {
+  IntColumn get id => integer().autoIncrement()();
+
+  TextColumn get keyword => text()();
+
+  /// 搜索时间（Unix 毫秒）。
+  IntColumn get searchedAt => integer()();
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {keyword},
+  ];
+}
+
 /// 迁移约定：schemaVersion 从 1 开始，每次表结构变更 +1；
 /// 迁移写 onUpgrade，禁止 Destructive。
-@DriftDatabase(tables: [WatchHistories, Favorites, Follows])
+@DriftDatabase(tables: [WatchHistories, Favorites, Follows, SearchHistories])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(driftDatabase(name: 'grain_video'));
 
@@ -72,13 +89,16 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) => m.createAll(),
     onUpgrade: (m, from, to) async {
-      // v1 起无升级分支；后续版本在此追加 if (from < N) 迁移。
+      // v1 → v2：新增搜索历史表。
+      if (from < 2) {
+        await m.createTable(searchHistories);
+      }
     },
   );
 }

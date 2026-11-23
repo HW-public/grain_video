@@ -80,7 +80,54 @@ class WatchHistoryRepository {
         .get();
   }
 
+  /// 清空全部观看历史。
   Future<void> clear() => _db.delete(_db.watchHistories).go();
+}
+
+/// 搜索历史仓库：keyword 去重置顶，最多保留 [recent] 的 limit 条。
+class SearchHistoryRepository {
+  SearchHistoryRepository(this._db);
+
+  final AppDatabase _db;
+
+  /// 最近搜索（按时间倒序；毫秒并列时按插入序倒序兜底）。
+  Future<List<String>> recent({int limit = 20}) async {
+    final rows =
+        await (_db.select(_db.searchHistories)
+              ..orderBy([
+                (t) => OrderingTerm.desc(t.searchedAt),
+                (t) => OrderingTerm.desc(t.id),
+              ])
+              ..limit(limit))
+            .get();
+    return [for (final r in rows) r.keyword];
+  }
+
+  /// 记录一次搜索（已存在则删旧插新：时间戳与自增 id 都刷新，双关键字排序都置顶）。
+  Future<void> add(String keyword) async {
+    final k = keyword.trim();
+    if (k.isEmpty) return;
+    await _db.transaction(() async {
+      await (_db.delete(
+        _db.searchHistories,
+      )..where((t) => t.keyword.equals(k))).go();
+      await _db.into(_db.searchHistories).insert(
+        SearchHistoriesCompanion.insert(
+          keyword: k,
+          searchedAt: DateTime.now().millisecondsSinceEpoch,
+        ),
+      );
+    });
+  }
+
+  /// 删除单条搜索历史。
+  Future<void> remove(String keyword) async {
+    await (_db.delete(
+      _db.searchHistories,
+    )..where((t) => t.keyword.equals(keyword))).go();
+  }
+
+  Future<void> clear() => _db.delete(_db.searchHistories).go();
 }
 
 /// 收藏仓库。
@@ -211,4 +258,8 @@ final favoritesRepositoryProvider = Provider<FavoritesRepository>(
 
 final followsRepositoryProvider = Provider<FollowsRepository>(
   (ref) => FollowsRepository(ref.watch(databaseProvider)),
+);
+
+final searchHistoryRepositoryProvider = Provider<SearchHistoryRepository>(
+  (ref) => SearchHistoryRepository(ref.watch(databaseProvider)),
 );

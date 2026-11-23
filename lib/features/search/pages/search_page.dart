@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,16 +25,12 @@ class SearchPage extends ConsumerStatefulWidget {
 }
 
 class _SearchPageState extends ConsumerState<SearchPage> {
-  static const Duration _debounce = Duration(milliseconds: 500);
-
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  Timer? _debounceTimer;
   int _tab = -1;
 
   @override
   void dispose() {
-    _debounceTimer?.cancel();
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -59,7 +53,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   void _submit(String keyword) {
     final k = keyword.trim();
     if (k.isEmpty) return;
-    _debounceTimer?.cancel();
+    // 用户拍板（2026-11-20）：输入不自动搜索，仅按钮/键盘提交触发。
     _focusNode.unfocus();
     ref.read(searchHistoryProvider.notifier).add(k);
     ref.read(searchKeywordProvider.notifier).update(k);
@@ -67,9 +61,6 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 
   void _onChanged(String value) {
     ref.read(searchQueryProvider.notifier).update(value);
-    _debounceTimer?.cancel();
-    if (value.trim().isEmpty) return;
-    _debounceTimer = Timer(_debounce, () => _submit(value));
   }
 
   @override
@@ -91,12 +82,18 @@ class _SearchPageState extends ConsumerState<SearchPage> {
               submitLabel: _t(context, 'search.search'),
               onChanged: _onChanged,
               onSubmitted: _submit,
+              // 用户拍板（2026-11-20）：点清除 × 后结果区也复位到初始态。
+              onClear: () {
+                ref.read(searchQueryProvider.notifier).update('');
+                ref.read(searchKeywordProvider.notifier).update('');
+              },
             ),
             const SourceFilterBar(),
             Expanded(
+              // 帧 21:19：已输入关键词后「历史搜索」仍显示在结果上方（同屏）。
               child: keyword.isEmpty
-                  ? const _InitialView()
-                  : _ResultView(keyword: keyword),
+                  ? const _HistoryView(scrollable: true)
+                  : _ResultStateView(keyword: keyword),
             ),
           ],
         ),
@@ -108,54 +105,113 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 String _t(BuildContext context, String key) =>
     FlutterI18n.translate(context, key);
 
-/// 初始态（21:19）：「历史搜索」标题行（右侧薄荷「清空」）+ 灰 pill chips。
-class _InitialView extends ConsumerWidget {
-  const _InitialView();
+/// 历史搜索区（21:19 + 用户拍板 2026-11-20）：标题行右侧「管理」，
+/// 点管理进入管理模式——chip 带 ×（点按删除单条），
+/// 右上角出现「清空」（批量，带确认）与「完成」（退出）。
+///
+/// 空历史整区隐藏。[scrollable]=true 时独立可滚（初始态）；
+/// 结果态经 [_ResultStateView] 直插 Column，占内容高度（≤20 条约数行）。
+class _HistoryView extends ConsumerStatefulWidget {
+  const _HistoryView({this.scrollable = false});
+
+  final bool scrollable;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_HistoryView> createState() => _HistoryViewState();
+}
+
+class _HistoryViewState extends ConsumerState<_HistoryView> {
+  bool _managing = false;
+
+  @override
+  Widget build(BuildContext context) {
     final history = ref.watch(searchHistoryProvider);
     if (history.isEmpty) return const SizedBox.shrink();
 
-    return ListView(
-      padding: EdgeInsets.zero,
-      children: [
-        _SectionHeader(
-          title: _t(context, 'search.history'),
-          trailing: Padding(
-            // 帧右距 28（头部已有水平 16）。
-            padding: const EdgeInsets.only(right: 12),
-            child: TextButton(
-              style: TextButton.styleFrom(padding: EdgeInsets.zero),
-              onPressed: () => _confirmClearHistory(context, ref),
-              child: Text(
-                _t(context, 'search.clear'),
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppTokens.mint.primary,
+    final children = <Widget>[
+      _SectionHeader(
+        title: _t(context, 'search.history'),
+        // 非管理态：「管理」；管理态：「清空」（批量，带确认）+「完成」。
+        trailing: _managing
+            ? Padding(
+                // 帧右距 28（头部已有水平 16）。
+                padding: const EdgeInsets.only(right: 12),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextButton(
+                      style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                      onPressed: () => _confirmClearHistory(context),
+                      child: Text(
+                        _t(context, 'search.clear'),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppTokens.mint.primary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppTokens.space3),
+                    TextButton(
+                      style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                      onPressed: () => setState(() => _managing = false),
+                      child: Text(
+                        _t(context, 'search.done'),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppTokens.mint.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : Padding(
+                // 帧右距 28（头部已有水平 16）。
+                padding: const EdgeInsets.only(right: 12),
+                child: TextButton(
+                  style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                  onPressed: () => setState(() => _managing = true),
+                  child: Text(
+                    _t(context, 'search.manage'),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppTokens.mint.primary,
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
+      ),
+      // 帧：标题→pills 9。
+      const SizedBox(height: 9),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppTokens.space4),
+        child: Wrap(
+          spacing: AppTokens.space2,
+          runSpacing: AppTokens.space2,
+          children: [
+            for (final word in history)
+              _HistoryChip(
+                label: word,
+                managing: _managing,
+                onTap: () => _applyKeyword(ref, word),
+                onDelete: () =>
+                    ref.read(searchHistoryProvider.notifier).remove(word),
+              ),
+          ],
         ),
-        // 帧：标题→pills 9。
-        const SizedBox(height: 9),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppTokens.space4),
-          child: Wrap(
-            spacing: AppTokens.space2,
-            runSpacing: AppTokens.space2,
-            children: [
-              for (final word in history)
-                _HistoryChip(
-                  label: word,
-                  onTap: () => _applyKeyword(ref, word),
-                ),
-            ],
-          ),
-        ),
-      ],
+      ),
+    ];
+    if (widget.scrollable) {
+      return ListView(padding: EdgeInsets.zero, children: children);
+    }
+    return ListView(
+      padding: EdgeInsets.zero,
+      shrinkWrap: true,
+      physics: const ClampingScrollPhysics(),
+      children: children,
     );
   }
 
@@ -165,10 +221,7 @@ class _InitialView extends ConsumerWidget {
     ref.read(searchKeywordProvider.notifier).update(word);
   }
 
-  static Future<void> _confirmClearHistory(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
+  Future<void> _confirmClearHistory(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -188,6 +241,27 @@ class _InitialView extends ConsumerWidget {
     if (confirmed == true) {
       ref.read(searchHistoryProvider.notifier).clear();
     }
+  }
+}
+
+class _ResultStateView extends ConsumerWidget {
+  const _ResultStateView({required this.keyword});
+
+  final String keyword;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final hasHistory = ref.watch(searchHistoryProvider).isNotEmpty;
+    if (!hasHistory) return _ResultView(keyword: keyword);
+    // 历史区只占内容高度（shrinkWrap），结果区吃全部余量——
+    // 若用 Flexible(flex:1) 与 Expanded 瓜分，历史短时余量会变死白、
+    // 结果区被拦腰截断。
+    return Column(
+      children: [
+        const _HistoryView(),
+        Expanded(child: _ResultView(keyword: keyword)),
+      ],
+    );
   }
 }
 
@@ -226,11 +300,20 @@ class _SectionHeader extends StatelessWidget {
 }
 
 /// 历史 pill（21:19）：高 26、圆角 13、surfaceAlt 底、11/400 弱色灰字。
+/// 宽度贴合文字（Container 带 alignment 会撑满可用宽，故用 Padding 包文字）。
+/// 管理模式（用户拍板）：点按删除单条，label 旁显示 ×。
 class _HistoryChip extends StatelessWidget {
-  const _HistoryChip({required this.label, required this.onTap});
+  const _HistoryChip({
+    required this.label,
+    required this.managing,
+    required this.onTap,
+    required this.onDelete,
+  });
 
   final String label;
+  final bool managing;
   final VoidCallback onTap;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -238,20 +321,38 @@ class _HistoryChip extends StatelessWidget {
       color: AppTokens.surfaceAlt,
       borderRadius: BorderRadius.circular(13),
       child: InkWell(
-        onTap: onTap,
+        onTap: managing ? onDelete : onTap,
         borderRadius: BorderRadius.circular(13),
-        child: Container(
-          height: 26,
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          alignment: Alignment.center,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w400,
-              color: AppTokens.textTertiary,
-            ),
-          ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+          child: managing
+              ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w400,
+                        color: AppTokens.textTertiary,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(
+                      Icons.close,
+                      size: 12,
+                      color: AppTokens.textTertiary,
+                    ),
+                  ],
+                )
+              : Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w400,
+                    color: AppTokens.textTertiary,
+                  ),
+                ),
         ),
       ),
     );
@@ -290,44 +391,38 @@ class _ResultView extends ConsumerWidget {
                   : LayoutBuilder(
                       builder: (context, constraints) {
                         // 帧：左右边距 16、列间距 8、行距 15。
+                        // Wrap + 定宽卡（同首页分区），行高由内容自适应，
+                        // 避免 GridView 固定 childAspectRatio 导致的文字溢出。
                         const padding = AppTokens.space4;
                         const columnGap = AppTokens.space2;
-                        const rowGap = 15.0;
-                        final cellWidth =
+                        final cardWidth =
                             (constraints.maxWidth - padding * 2 - columnGap) /
                             2;
-                        // 卡高 = 16:9 封面 + 卡→标题4 + 标题行18 + 标题→副标2
-                        //       + 副标行15（与 BangumiCard 内部结构对齐）。
-                        final cellHeight =
-                            cellWidth / AppTokens.coverRatioVideo +
-                            4 +
-                            18 +
-                            2 +
-                            15;
-                        return GridView.count(
+                        return SingleChildScrollView(
                           padding: const EdgeInsets.fromLTRB(
                             padding,
                             9,
                             padding,
                             padding,
                           ),
-                          crossAxisCount: 2,
-                          crossAxisSpacing: columnGap,
-                          mainAxisSpacing: rowGap,
-                          childAspectRatio: cellWidth / cellHeight,
-                          children: [
-                            for (final hit in visible)
-                              BangumiCard(
-                                coverUrl: hit.item.cover,
-                                title: hit.item.title,
-                                update: hit.item.update,
-                                subtitle: hit.source.name,
-                                onTap: () => context.push(
-                                  '${AppRoutes.detail}?url=${Uri.encodeComponent(hit.item.url)}'
-                                  '&src=${Uri.encodeComponent(hit.source.package)}',
+                          child: Wrap(
+                            spacing: columnGap,
+                            runSpacing: 15,
+                            children: [
+                              for (final hit in visible)
+                                BangumiCard(
+                                  coverUrl: hit.item.cover,
+                                  title: hit.item.title,
+                                  update: hit.item.update,
+                                  subtitle: hit.source.name,
+                                  width: cardWidth,
+                                  onTap: () => context.push(
+                                    '${AppRoutes.detail}?url=${Uri.encodeComponent(hit.item.url)}'
+                                    '&src=${Uri.encodeComponent(hit.source.package)}',
+                                  ),
                                 ),
-                              ),
-                          ],
+                            ],
+                          ),
                         );
                       },
                     ),
