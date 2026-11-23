@@ -17,9 +17,19 @@ class IOFileService extends FileService {
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
       'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
-  /// 反盗链 Referer 表：host（后缀匹配） → 期望 Referer。
-  /// 豆瓣图床 418 要求 Referer 来自豆瓣域。
+  /// 反盗链 Referer 例外表：host（后缀匹配） → 期望 Referer。
+  /// 只存「要求跨域 referer」的图床（如豆瓣要求 referer 来自豆瓣域）；
+  /// 其余图床自动走同源兜底（见 [_refererFor]），新源零配置。
   static const _referers = {'doubanio.com': 'https://www.douban.com/'};
+
+  /// Referer 决策：例外表命中用表值，否则自动同源
+  /// （https://图床自身域/）——大部分反盗链查同源即放行。
+  static String _refererFor(Uri uri) {
+    for (final entry in _referers.entries) {
+      if (uri.host.endsWith(entry.key)) return entry.value;
+    }
+    return '${uri.scheme}://${uri.host}/';
+  }
 
   @override
   Future<FileServiceResponse> get(
@@ -29,12 +39,7 @@ class IOFileService extends FileService {
     final uri = Uri.parse(url);
     final request = await _client.getUrl(uri);
     request.headers.set(HttpHeaders.userAgentHeader, _browserUa);
-    for (final entry in _referers.entries) {
-      if (uri.host.endsWith(entry.key)) {
-        request.headers.set(HttpHeaders.refererHeader, entry.value);
-        break;
-      }
-    }
+    request.headers.set(HttpHeaders.refererHeader, _refererFor(uri));
     headers?.forEach(request.headers.add);
     final response = await request.close();
     return _IOGetResponse(response, uri);
