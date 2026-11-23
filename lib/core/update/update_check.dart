@@ -8,10 +8,7 @@ import 'update_dialog.dart';
 ///
 /// [silent]=true（启动自动检查）：失败静默、无新版不打扰；
 /// false（关于页手动）：失败/已最新都给 SnackBar 反馈。
-Future<void> checkAppUpdate(
-  BuildContext context, {
-  bool silent = false,
-}) async {
+Future<void> checkAppUpdate(BuildContext context, {bool silent = false}) async {
   void feedback(String key) {
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(

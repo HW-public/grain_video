@@ -32,7 +32,9 @@ abstract final class AppSettings {
 }
 
 /// 播放器「预加载下一集」开关（state 镜像，UI 用）。
-final preloadNextProvider = NotifierProvider<PreloadNext, bool>(PreloadNext.new);
+final preloadNextProvider = NotifierProvider<PreloadNext, bool>(
+  PreloadNext.new,
+);
 
 class PreloadNext extends Notifier<bool> {
   @override

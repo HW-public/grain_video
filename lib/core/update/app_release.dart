@@ -20,7 +20,8 @@ class AppRelease {
   final bool force;
 
   /// 去掉 v 前缀的版本号。
-  String get version => tagName.startsWith('v') ? tagName.substring(1) : tagName;
+  String get version =>
+      tagName.startsWith('v') ? tagName.substring(1) : tagName;
 
   /// 从 GitHub releases/latest API JSON 解析；无 APK 资产/无 tag 返回 null。
   static AppRelease? fromGitHubJson(Map<String, dynamic> json) {
@@ -41,12 +42,7 @@ class AppRelease {
       force = true;
       body = body.substring('[force]'.length).trimLeft();
     }
-    return AppRelease(
-      tagName: tag,
-      notes: body,
-      apkUrl: apkUrl,
-      force: force,
-    );
+    return AppRelease(tagName: tag, notes: body, apkUrl: apkUrl, force: force);
   }
 }
 

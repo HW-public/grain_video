@@ -97,9 +97,7 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
         actions: [
           if (!release.force)
             TextButton(
-              onPressed: downloading
-                  ? null
-                  : () => Navigator.of(context).pop(),
+              onPressed: downloading ? null : () => Navigator.of(context).pop(),
               child: Text(FlutterI18n.translate(context, 'update.later')),
             ),
           FilledButton(

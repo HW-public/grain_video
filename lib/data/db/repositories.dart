@@ -111,12 +111,14 @@ class SearchHistoryRepository {
       await (_db.delete(
         _db.searchHistories,
       )..where((t) => t.keyword.equals(k))).go();
-      await _db.into(_db.searchHistories).insert(
-        SearchHistoriesCompanion.insert(
-          keyword: k,
-          searchedAt: DateTime.now().millisecondsSinceEpoch,
-        ),
-      );
+      await _db
+          .into(_db.searchHistories)
+          .insert(
+            SearchHistoriesCompanion.insert(
+              keyword: k,
+              searchedAt: DateTime.now().millisecondsSinceEpoch,
+            ),
+          );
     });
   }
 

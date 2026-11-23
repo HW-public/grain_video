@@ -50,10 +50,7 @@ class CacheClearPage extends ConsumerWidget {
           const SizedBox(height: AppTokens.space4),
           Text(
             FlutterI18n.translate(context, 'me.cachePreloadNote'),
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppTokens.textTertiary,
-            ),
+            style: const TextStyle(fontSize: 12, color: AppTokens.textTertiary),
           ),
         ],
       ),
@@ -101,7 +98,10 @@ class _CacheRow extends StatelessWidget {
                 loading: () => '…',
                 error: (_, _) => '—',
               ),
-              style: const TextStyle(fontSize: 13, color: AppTokens.textTertiary),
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppTokens.textTertiary,
+              ),
             ),
             const SizedBox(width: AppTokens.space2),
             TextButton(
