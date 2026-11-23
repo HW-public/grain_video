@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'io_file_service.dart';
+
 /// 应用图片缓存：磁盘缓存（对象数上限 + 30 天过期；
 /// flutter_cache_manager 3.x 已不支持字节上限，以对象数控量），
 /// 与「我的 → 缓存清理」联动（统计/清理走本类）。
@@ -20,6 +22,9 @@ abstract final class AppImageCache {
           _key,
           maxNrOfCacheObjects: maxObjects,
           stalePeriod: stalePeriod,
+          // 传输层换 dart:io HttpClient：默认 package:http 在部分国内
+          // 图床上会无限挂起（实测裸 HttpClient 正常）。
+          fileService: IOFileService(),
         ),
       );
 
