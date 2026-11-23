@@ -1,4 +1,4 @@
-# publish_wasm_run_libs.ps1 — 打包本机编译的 wasm_run jniLibs 为 Release 资产
+﻿# publish_wasm_run_libs.ps1 — 打包本机编译的 wasm_run jniLibs 为 Release 资产
 #
 # grain_video 的 release CI 不交叉编译 .so（frb build.rs + libclang 环境重），
 # 改为发布预编译产物：本脚本打包 → 上传到 grain_engine 仓的
