@@ -1,20 +1,19 @@
+import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
 import 'package:grain_video/core/theme/app_theme.dart';
 import 'package:grain_video/core/theme/tokens.dart';
 import 'package:grain_video/core/widgets/app_bottom_nav.dart';
+import 'package:grain_video/core/widgets/async_view.dart';
 import 'package:grain_video/data/db/database.dart';
+import 'package:grain_video/data/db/repositories.dart';
 import 'package:grain_video/features/me/pages/appearance_page.dart';
 import 'package:grain_video/features/me/pages/me_page.dart';
 import 'package:grain_video/features/me/pages/settings_page.dart';
-import 'package:grain_video/features/me/pages/watch_history_page.dart';
-import 'package:grain_video/features/me/providers/me_providers.dart';
 import 'package:grain_video/features/me/routes.dart';
-import 'package:grain_video/features/me/widgets/me_empty_state.dart';
 import 'package:grain_video/features/me/widgets/me_list_row.dart';
 import 'package:grain_video/features/me/widgets/theme_preview_card.dart';
 import 'package:grain_video/router.dart';
@@ -36,27 +35,60 @@ List<LocalizationsDelegate<dynamic>> _localizationsDelegates() {
   ];
 }
 
-/// 纯展示页（无数据提供者）直接走默认 ProviderScope。
+late AppDatabase db;
+
 /// 路由用完整外壳（StatefulShellRoute），底部导航由 HeHeAppShell 挂载。
-Widget _buildApp({String? initialLocation}) {
+/// 「我的」页分段器读收藏/历史数据库：默认注入内存库，避免测试环境挂起。
+Widget _buildApp({
+  String? initialLocation,
+  // riverpod 3 的 Override 是未导出 sealed 类型，签名只能用 dynamic。
+  List<dynamic> overrides = const [],
+}) {
   return ProviderScope(
+    overrides: [databaseProvider.overrideWithValue(db), ...overrides],
     child: MaterialApp.router(
       theme: AppTheme.light(),
       routerConfig: buildAppRouter(initialLocation: initialLocation),
       localizationsDelegates: _localizationsDelegates(),
-      supportedLocales: const [Locale('zh'), Locale('en')],
+      // 只钉 zh：断言用中文硬编码，平台默认 locale 是 en 会加载 en.json。
+      supportedLocales: const [Locale('zh')],
     ),
   );
 }
 
 void main() {
-  testWidgets('me page renders six entries and bottom nav', (tester) async {
+  setUp(() => db = AppDatabase.forTesting(NativeDatabase.memory()));
+  tearDown(() => db.close());
+
+  testWidgets('me page matches 21:20 frame: header, tabs, settings rows, nav', (
+    tester,
+  ) async {
     await tester.pumpWidget(_buildApp(initialLocation: MeRoutes.page));
     await tester.pumpAndSettle();
 
-    // 功能列表六项：观看历史 / 我的收藏 / 追番列表 / 扩展管理 / 设置 / 关于。
-    expect(find.byType(MeListRow), findsNWidgets(6));
     expect(find.byType(MePage), findsOneWidget);
+
+    // 头部：昵称 + 副标。
+    expect(
+      find.text(
+        FlutterI18n.translate(
+          tester.element(find.byType(MePage)),
+          'me.headerName',
+        ),
+      ),
+      findsOneWidget,
+    );
+
+    // 分段器三项：收藏 / 历史 / 下载（矢量 icon + 文字，断言文字）。
+    for (final tab in ['收藏', '历史', '下载']) {
+      expect(find.text(tab), findsOneWidget, reason: tab);
+    }
+
+    // 设置列表（帧五行 + 用户拍板保留的追番列表 = 六行）。
+    // emoji 与标签是两个 Text，这里断言标签文本。
+    for (final label in ['扩展管理', '追番列表', '外观', '网络代理', '缓存清理', '关于']) {
+      expect(find.text(label), findsOneWidget, reason: label);
+    }
 
     // 底部导航（当前项 = 我的，index 2），由外壳统一挂载。
     expect(find.byType(AppBottomNav), findsOneWidget);
@@ -70,31 +102,26 @@ void main() {
     expect(scaffold.backgroundColor, AppTokens.defaultPalette.pageBg);
   });
 
-  testWidgets('tapping history entry navigates to watch history page', (
+  testWidgets('tapping 历史 tab shows inline history grid empty state', (
     tester,
   ) async {
-    final router = GoRouter(initialLocation: MeRoutes.page, routes: meRoutes);
-    await tester.pumpWidget(
-      ProviderScope(
-        // 空历史：避免 widget 测试触真实数据库，且验证空态渲染。
-        overrides: [
-          watchHistoryListProvider.overrideWith(_EmptyHistoryNotifier.new),
-        ],
-        child: MaterialApp.router(
-          theme: AppTheme.light(),
-          routerConfig: router,
-          localizationsDelegates: _localizationsDelegates(),
-          supportedLocales: const [Locale('zh'), Locale('en')],
+    await tester.pumpWidget(_buildApp(initialLocation: MeRoutes.page));
+    await tester.pumpAndSettle();
+
+    // 新结构：历史是分段器 tab，网格内嵌展示（不再跳独立页）。
+    await tester.tap(find.text('历史'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(EmptyState), findsOneWidget);
+    expect(
+      find.text(
+        FlutterI18n.translate(
+          tester.element(find.byType(MePage)),
+          'me.emptyHistoryTitle',
         ),
       ),
+      findsOneWidget,
     );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byType(MeListRow).first);
-    await tester.pumpAndSettle();
-
-    expect(find.byType(WatchHistoryPage), findsOneWidget);
-    expect(find.byType(MeEmptyState), findsOneWidget);
   });
 
   testWidgets('settings shell renders three sub-page entries', (tester) async {
@@ -124,10 +151,4 @@ void main() {
     expect(selectedCards, hasLength(1));
     expect(selectedCards.single.palette.name, AppTokens.defaultPalette.name);
   });
-}
-
-/// 空历史 notifier：替代真实数据库读取（AsyncNotifier override 形态）。
-class _EmptyHistoryNotifier extends WatchHistoryListNotifier {
-  @override
-  Future<List<WatchHistory>> build() async => const [];
 }
