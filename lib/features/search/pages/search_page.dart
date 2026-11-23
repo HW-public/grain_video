@@ -405,38 +405,48 @@ class _ResultView extends ConsumerWidget {
                   : LayoutBuilder(
                       builder: (context, constraints) {
                         // 帧：左右边距 16、列间距 8、行距 15。
-                        // Wrap + 定宽卡（同首页分区），行高由内容自适应，
-                        // 避免 GridView 固定 childAspectRatio 导致的文字溢出。
+                        // GridView.builder 懒构建：滑到才创建卡片/发起封面请求。
                         const padding = AppTokens.space4;
                         const columnGap = AppTokens.space2;
                         final cardWidth =
                             (constraints.maxWidth - padding * 2 - columnGap) /
                             2;
-                        return SingleChildScrollView(
+                        // 卡高 = 16:9 封面 + 卡→标题4 + 标题18 + 2 + 副标15。
+                        final cardHeight =
+                            cardWidth / AppTokens.coverRatioVideo +
+                            4 +
+                            18 +
+                            2 +
+                            15;
+                        return GridView.builder(
                           padding: const EdgeInsets.fromLTRB(
                             padding,
                             9,
                             padding,
                             padding,
                           ),
-                          child: Wrap(
-                            spacing: columnGap,
-                            runSpacing: 15,
-                            children: [
-                              for (final hit in visible)
-                                BangumiCard(
-                                  coverUrl: hit.item.cover,
-                                  title: hit.item.title,
-                                  update: hit.item.update,
-                                  subtitle: hit.source.name,
-                                  width: cardWidth,
-                                  onTap: () => context.push(
-                                    '${AppRoutes.detail}?url=${Uri.encodeComponent(hit.item.url)}'
-                                    '&src=${Uri.encodeComponent(hit.source.package)}',
-                                  ),
-                                ),
-                            ],
-                          ),
+                          gridDelegate:
+                              SliverGridDelegateWithMaxCrossAxisExtent(
+                                maxCrossAxisExtent: cardWidth,
+                                mainAxisSpacing: 15,
+                                crossAxisSpacing: columnGap,
+                                mainAxisExtent: cardHeight,
+                              ),
+                          itemCount: visible.length,
+                          itemBuilder: (context, i) {
+                            final hit = visible[i];
+                            return BangumiCard(
+                              coverUrl: hit.item.cover,
+                              title: hit.item.title,
+                              update: hit.item.update,
+                              subtitle: hit.source.name,
+                              width: cardWidth,
+                              onTap: () => context.push(
+                                '${AppRoutes.detail}?url=${Uri.encodeComponent(hit.item.url)}'
+                                '&src=${Uri.encodeComponent(hit.source.package)}',
+                              ),
+                            );
+                          },
                         );
                       },
                     ),

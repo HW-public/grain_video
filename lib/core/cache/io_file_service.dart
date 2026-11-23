@@ -12,6 +12,15 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 class IOFileService extends FileService {
   final HttpClient _client = HttpClient();
 
+  /// 浏览器 UA：部分图床（豆瓣 418 / 各种反盗链）拒绝非浏览器 UA 的裸请求。
+  static const _browserUa =
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+      'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+
+  /// 反盗链 Referer 表：host（后缀匹配） → 期望 Referer。
+  /// 豆瓣图床 418 要求 Referer 来自豆瓣域。
+  static const _referers = {'doubanio.com': 'https://www.douban.com/'};
+
   @override
   Future<FileServiceResponse> get(
     String url, {
@@ -19,6 +28,13 @@ class IOFileService extends FileService {
   }) async {
     final uri = Uri.parse(url);
     final request = await _client.getUrl(uri);
+    request.headers.set(HttpHeaders.userAgentHeader, _browserUa);
+    for (final entry in _referers.entries) {
+      if (uri.host.endsWith(entry.key)) {
+        request.headers.set(HttpHeaders.refererHeader, entry.value);
+        break;
+      }
+    }
     headers?.forEach(request.headers.add);
     final response = await request.close();
     return _IOGetResponse(response, uri);

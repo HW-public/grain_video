@@ -219,21 +219,19 @@ class _FavoritesGrid extends ConsumerWidget {
             ),
           );
         }
-        return SingleChildScrollView(
-          child: _PosterGrid(
-            children: [
-              for (final item in items)
-                _PosterCard(
-                  coverUrl: item.cover,
-                  title: item.title,
-                  subtitle: _progressLabel(context, progress, item),
-                  onTap: () => context.push(
-                    '${AppRoutes.detail}?url=${Uri.encodeComponent(item.bangumiUrl)}'
-                    '&src=${Uri.encodeComponent(item.sourcePackage)}',
-                  ),
+        return _PosterGrid(
+          children: [
+            for (final item in items)
+              _PosterCard(
+                coverUrl: item.cover,
+                title: item.title,
+                subtitle: _progressLabel(context, progress, item),
+                onTap: () => context.push(
+                  '${AppRoutes.detail}?url=${Uri.encodeComponent(item.bangumiUrl)}'
+                  '&src=${Uri.encodeComponent(item.sourcePackage)}',
                 ),
-            ],
-          ),
+              ),
+          ],
         );
       },
     );
@@ -273,23 +271,21 @@ class _HistoryGrid extends ConsumerWidget {
             ),
           );
         }
-        return SingleChildScrollView(
-          child: _PosterGrid(
-            children: [
-              for (final item in items)
-                _PosterCard(
-                  coverUrl: item.cover,
-                  title: item.title,
-                  subtitle: item.episodeTitle,
-                  onTap: () => context.push(
-                    '${AppRoutes.player}?ep=${Uri.encodeComponent(item.episodeUrl)}'
-                    '&src=${Uri.encodeComponent(item.sourcePackage)}'
-                    '&title=${Uri.encodeComponent(item.title)}'
-                    '&bangumi=${Uri.encodeComponent(item.bangumiUrl)}',
-                  ),
+        return _PosterGrid(
+          children: [
+            for (final item in items)
+              _PosterCard(
+                coverUrl: item.cover,
+                title: item.title,
+                subtitle: item.episodeTitle,
+                onTap: () => context.push(
+                  '${AppRoutes.player}?ep=${Uri.encodeComponent(item.episodeUrl)}'
+                  '&src=${Uri.encodeComponent(item.sourcePackage)}'
+                  '&title=${Uri.encodeComponent(item.title)}'
+                  '&bangumi=${Uri.encodeComponent(item.bangumiUrl)}',
                 ),
-            ],
-          ),
+              ),
+          ],
         );
       },
     );
@@ -322,15 +318,19 @@ class _PosterGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        // GridView.builder 懒构建：滑到才创建卡片/发起封面请求。
         const gap = 10.0;
         final cardWidth = (constraints.maxWidth - gap * 2) / 3;
-        return Wrap(
-          spacing: gap,
-          runSpacing: AppTokens.space4,
-          children: [
-            for (final child in children)
-              SizedBox(width: cardWidth, child: child),
-          ],
+        return GridView.builder(
+          gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: cardWidth,
+            mainAxisSpacing: AppTokens.space4,
+            crossAxisSpacing: gap,
+            // 卡高 = 162 封面 + 6 + 标题18 + 2 + 副标15（与 _PosterCard 一致）。
+            mainAxisExtent: 204,
+          ),
+          itemCount: children.length,
+          itemBuilder: (context, i) => children[i],
         );
       },
     );

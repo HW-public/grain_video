@@ -16,17 +16,16 @@ abstract final class AppImageCache {
   static CacheManager? _instance;
 
   /// 全应用共用一个 CacheManager（上限/过期在此配置）。
-  static CacheManager get instance =>
-      _instance ??= CacheManager(
-        Config(
-          _key,
-          maxNrOfCacheObjects: maxObjects,
-          stalePeriod: stalePeriod,
-          // 传输层换 dart:io HttpClient：默认 package:http 在部分国内
-          // 图床上会无限挂起（实测裸 HttpClient 正常）。
-          fileService: IOFileService(),
-        ),
-      );
+  static CacheManager get instance => _instance ??= CacheManager(
+    Config(
+      _key,
+      maxNrOfCacheObjects: maxObjects,
+      stalePeriod: stalePeriod,
+      // 传输层换 dart:io HttpClient：默认 package:http 在部分国内
+      // 图床上会无限挂起（实测裸 HttpClient 正常）。
+      fileService: IOFileService(),
+    ),
+  );
 
   /// 缓存目录（cache_manager 存于临时目录下以 [_key] 命名的子目录）。
   static Future<Directory> cacheDir() async {
