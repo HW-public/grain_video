@@ -11,6 +11,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # grain_video 对 grain_engine 是 path 依赖：检出到上级目录。
+      - name: Checkout grain_engine sibling
+        run: git clone --depth 1 https://github.com/HW-public/grain_engine.git ../grain_engine
+
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -26,6 +30,29 @@ jobs:
 
       - name: Check layer imports
         run: dart run tool/check_imports.dart
+
+      # wasm_run 无 Linux 预编译产物：按发布包源码本地 cargo 构建
+      # （与 android/build_wasm_run_so.sh 同源，ffigen 需 libclang）。
+      - name: Build wasm_run runtime (linux)
+        run: |
+          set -e
+          sudo apt-get update && sudo apt-get install -y libclang-dev
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          export PATH="$HOME/.cargo/bin:$PATH"
+          SRC=$(find "$HOME/.pub-cache/hosted" -maxdepth 2 -type d -name 'wasm_run-*' | head -1)
+          TMP=$(mktemp -d)
+          cp -r "$SRC" "$TMP/wasm_run"
+          cd "$TMP/wasm_run"
+          # 发布的 pubspec 引用了发布包中不存在的 example path 依赖，去掉才能 resolve。
+          rm -rf example
+          sed -i '/^  wasm_run_example:$/,+1d' pubspec.yaml
+          # frb 1.82.x 默认 dart_format_line_length=0 被新版 dart format 拒绝：
+          # 在 inline_rust 行后补 80（与 android/build_wasm_run_so.sh 同款改法）。
+          sed -i 's/        inline_rust: true,/        inline_rust: true,\n        dart_format_line_length: 80,/' native/build.rs
+          dart pub get
+          cd native
+          cargo build --release
+          echo "WASM_RUN_DART_DYNAMIC_LIBRARY=$TMP/wasm_run/native/target/release/libwasm_run_dart.so" >> "$GITHUB_ENV"
 
       - name: Test
         run: flutter test
