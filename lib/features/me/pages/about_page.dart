@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
 
 import '../../../core/theme/tokens.dart';
+import '../../../core/update/update_check.dart';
 import '../widgets/me_list_card.dart';
 import '../widgets/me_list_row.dart';
 
 /// 关于页（spec 02）：品牌区 + 功能列表组 + 底部小字。
 ///
-/// 检查更新暂以「已是最新」提示落地；GitHub/分享等外链依赖
-/// url_launcher/share 插件，接入前为纯展示行。
+/// 检查更新已接真实逻辑（GitHub Releases 镜像链）；
+/// GitHub/分享等外链依赖 url_launcher/share 插件，接入前为纯展示行。
 class AboutPage extends StatelessWidget {
   const AboutPage({super.key});
 
@@ -36,11 +37,7 @@ class AboutPage extends StatelessWidget {
               MeListRow(
                 icon: Icons.sync,
                 title: FlutterI18n.translate(context, 'me.aboutCheckUpdate'),
-                subtitle: FlutterI18n.translate(context, 'me.aboutUpToDate'),
-                onTap: () => _toast(
-                  context,
-                  FlutterI18n.translate(context, 'me.aboutUpToDateToast'),
-                ),
+                onTap: () => checkAppUpdate(context),
               ),
               MeListRow(
                 icon: Icons.code,
@@ -117,9 +114,4 @@ class AboutPage extends StatelessWidget {
     );
   }
 
-  void _toast(BuildContext context, String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
-  }
 }

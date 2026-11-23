@@ -1,0 +1,46 @@
+name: release
+
+# 打 v* tag 自动构建签名 release APK 并发布 GitHub Release。
+# 前置：仓库 Secrets 配好（均为 base64）：
+#   KEY_PROPERTIES = android/key.properties 的 base64
+#   KEYSTORE_JKS   = android/app/grain_video.jks 的 base64
+# 强制更新：发版后在 Release body 首行加 [force] 即可（App 侧识别）。
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # grain_video 对 grain_engine 是 path 依赖：检出到上级目录。
+      - name: Checkout grain_engine sibling
+        run: git clone --depth 1 https://github.com/HW-public/grain_engine.git ../grain_engine
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.0'
+
+      - name: Restore signing secrets
+        run: |
+          echo "${{ secrets.KEY_PROPERTIES }}" | base64 -d > android/key.properties
+          echo "${{ secrets.KEYSTORE_JKS }}" | base64 -d > android/app/grain_video.jks
+
+      - run: flutter pub get
+
+      - run: flutter build apk --release
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/app/outputs/flutter-apk/app-release.apk
+          generate_release_notes: true

@@ -148,7 +148,7 @@ void main() {
           'me.cacheClear',
         ),
       ),
-      findsOneWidget,
+      findsNWidgets(2), // 图片缓存 + 安装包缓存 两行各一个清理按钮
     );
   });
 

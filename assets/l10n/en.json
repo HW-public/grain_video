@@ -145,7 +145,8 @@
     "cacheImage": "Image cache",
     "cacheClear": "Clear",
     "cacheCleared": "Cleared",
-    "cachePreloadNote": "Video preload lives in memory and is released automatically."
+    "cachePreloadNote": "Video preload lives in memory and is released automatically.",
+    "apkCache": "Installer cache"
   },
   "player": {
     "next": "Next",
@@ -156,5 +157,13 @@
     "emptyEpisodes": "No episodes",
     "preloadNext": "Preload next episode",
     "preloadNextDesc": "Resolve and buffer the next episode in advance"
+  },
+  "update": {
+    "newVersion": "New version available",
+    "versionLine": "Current v{current} → New v{latest}",
+    "later": "Later",
+    "now": "Update now",
+    "downloading": "Downloading…",
+    "checkFailed": "Update check failed, retry later"
   }
 }

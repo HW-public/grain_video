@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/cache/app_image_cache.dart';
+import '../../../core/update/app_updater.dart';
 import '../../../data/db/database.dart';
 import '../../../data/db/repositories.dart';
 
@@ -46,4 +47,9 @@ final followsListProvider = FutureProvider<List<Follow>>((ref) {
 /// 图片缓存磁盘占用（字节），缓存清理页与「我的」行共用。
 final imageCacheSizeProvider = FutureProvider<int>((ref) {
   return AppImageCache.sizeBytes();
+});
+
+/// 安装包缓存占用（字节），缓存清理页展示/清理。
+final apkCacheSizeProvider = FutureProvider<int>((ref) {
+  return AppUpdater.apkCacheBytes();
 });

@@ -33,6 +33,8 @@ dependencies:
   cached_network_image: ^3.4.1 # 封面磁盘缓存（对象数 LRU，缓存清理联动）
   flutter_cache_manager: ^3.5.0 # 缓存内核（cached_network_image 依赖，显式声明）
   shared_preferences: ^2.3.5 # 轻量设置持久化（预加载开关等）
+  package_info_plus: ^9.0.1 # 应用版本号读取（升级检查）
+  open_filex: ^4.5.0 # 调系统安装器（APK 安装）
 
   # WASM 插件引擎（唯一插件线路），独立仓库维护。
   # 联调期用 path 依赖；grain_video 发布前 grain_engine 需先发 pub.dev。
