@@ -10,7 +10,7 @@ import '../../../extension/plugin_manager.dart';
 import '../providers/home_providers.dart';
 import '../widgets/continue_watching_section.dart';
 import '../widgets/follow_alert_section.dart';
-import '../widgets/plugin_section.dart';
+import '../widgets/merged_latest_section.dart';
 
 /// 首页（设计稿「首页」4:31，无 AppBar）：
 /// 继续观看 hero → 追更提醒 → 各插件「最近更新」两列网格 → 底部导航。
@@ -19,14 +19,12 @@ import '../widgets/plugin_section.dart';
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
-  /// 下拉刷新：继续观看 + 追更提醒 + 全部插件分区并发重拉。
+  /// 下拉刷新：继续观看 + 追更提醒 + 合并「最近更新」并发重拉。
   Future<void> _refresh(WidgetRef ref) async {
-    final plugins = ref.read(pluginManagerProvider);
     await Future.wait([
       ref.refresh(recentWatchProvider.future),
       ref.refresh(followsProvider.future),
-      for (final e in plugins)
-        ref.refresh(pluginLatestProvider(e.info.package).future),
+      ref.refresh(mergedLatestProvider.future),
     ]);
   }
 
@@ -51,7 +49,8 @@ class HomePage extends ConsumerWidget {
             if (plugins.isEmpty)
               const _NoPlugins()
             else
-              for (final entry in plugins) PluginSection(entry: entry),
+              // 用户拍板：多源合并为单一「最近更新」分区（不再按源分多个区）。
+              const MergedLatestSection(),
           ],
         ),
       ),

@@ -6,26 +6,21 @@ import 'package:go_router/go_router.dart';
 import '../../../core/routes.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/widgets/bangumi_card.dart';
-import '../../../extension/models.dart';
-import '../../../extension/plugin_manager.dart';
 import '../providers/home_providers.dart';
 import 'section_header.dart';
 
-/// 单个插件的「emoji 源名 · 最近更新」两列网格分区（设计稿 4:31，数据源
-/// [pluginLatestProvider]）。视频卡 168×95(16:9) 圆角12，列间距10；
-/// 空数据时整区隐藏（不占位）。
-class PluginSection extends ConsumerWidget {
-  const PluginSection({super.key, required this.entry});
+/// 首页「最近更新」合并分区（用户 2026-11-20 定的演进方向）：
+/// 全部已安装插件的 latest 第一页并发拉取，按源轮流交错混排，
+/// 单分区展示（两列网格、总数封顶 [_maxItems]），不再按源分多个区。
+class MergedLatestSection extends ConsumerWidget {
+  const MergedLatestSection({super.key});
 
-  final PluginEntry entry;
-
-  /// 网格最多展示的条目数（帧未规定，记为偏离）。
+  /// 合并区总条数（帧未规定，沿用此前每区 12 的上限）。
   static const int _maxItems = 12;
 
   @override
-  Widget build(BuildContext context, ref) {
-    final value = ref.watch(pluginLatestProvider(entry.info.package));
-    // 用户拍板（2026-11-20）：标题不带源名——后续会把多插件数据合并为一个分区。
+  Widget build(BuildContext context, WidgetRef ref) {
+    final value = ref.watch(mergedLatestProvider);
     final title = FlutterI18n.translate(context, 'home.recentUpdates');
     return value.when(
       data: (items) {
@@ -37,7 +32,11 @@ class PluginSection extends ConsumerWidget {
             SectionHeader(
               title: title,
               trailing: GestureDetector(
-                onTap: () => context.push(AppRoutes.search),
+                // 用户拍板：去源主页（该源「最新+搜索」一体），不是搜索页；
+                // 默认源 = 首条可见内容的来源。
+                onTap: () => context.push(
+                  '${AppRoutes.source}?src=${Uri.encodeComponent(gridItems.first.sourcePackage)}',
+                ),
                 child: Text(
                   FlutterI18n.translate(context, 'home.more'),
                   style: TextStyle(
@@ -48,10 +47,6 @@ class PluginSection extends ConsumerWidget {
                 ),
               ),
             ),
-            // 分区之间间距 25（上一区标题底 → 下一区标题）：
-            // SectionHeader 上 16 + 本区底部 9。
-            // 两列网格：卡宽 = (可用宽-列距10)/2，窄屏也保持两列
-            // （帧 390 宽下为 168；写死 168 在 360 级窄屏会退化成单列）。
             Padding(
               padding: const EdgeInsets.fromLTRB(
                 AppTokens.space4,
@@ -67,13 +62,16 @@ class PluginSection extends ConsumerWidget {
                     spacing: gap,
                     runSpacing: gap,
                     children: [
-                      for (final item in gridItems)
+                      for (final hit in gridItems)
                         BangumiCard(
-                          coverUrl: item.cover,
-                          title: item.title,
-                          update: item.update,
+                          coverUrl: hit.item.cover,
+                          title: hit.item.title,
+                          update: hit.item.update,
                           width: cardWidth,
-                          onTap: () => _openDetail(context, item),
+                          onTap: () => context.push(
+                            '${AppRoutes.detail}?url=${Uri.encodeComponent(hit.item.url)}'
+                            '&src=${Uri.encodeComponent(hit.sourcePackage)}',
+                          ),
                         ),
                     ],
                   );
@@ -96,19 +94,10 @@ class PluginSection extends ConsumerWidget {
           SectionHeader(title: title),
           SectionError(
             error: error,
-            onRetry: () =>
-                ref.invalidate(pluginLatestProvider(entry.info.package)),
+            onRetry: () => ref.invalidate(mergedLatestProvider),
           ),
         ],
       ),
-    );
-  }
-
-  void _openDetail(BuildContext context, BangumiItem item) {
-    context.push(
-      '${AppRoutes.detail}'
-      '?url=${Uri.encodeComponent(item.url)}'
-      '&src=${Uri.encodeComponent(entry.info.package)}',
     );
   }
 }

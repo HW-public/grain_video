@@ -16,22 +16,34 @@ final followsProvider = FutureProvider<List<Follow>>((ref) async {
   return ref.watch(followsRepositoryProvider).list();
 });
 
-/// 指定插件的 latest 第一页（首页「<插件名> · 最近更新」网格数据源）。
-///
-/// 以插件 package 为键，常驻缓存；插件被卸载后返回空表（分区由页面隐藏），
-/// 重新安装后 invalidate 对应 family 实例即可。
-final pluginLatestProvider = FutureProvider.family<List<BangumiItem>, String>((
-  ref,
-  package,
-) async {
+/// 跨源条目：内容 + 所属插件包名（点跳详情取 src 用）。
+typedef SourcedItem = ({BangumiItem item, String sourcePackage});
+
+/// 首页合并「最近更新」：全部插件 latest 第一页并发拉取，按源轮流交错混排。
+/// 单插件失败不影响其余源（该源缺席混排）；全部失败抛错由分区错误态呈现。
+final mergedLatestProvider = FutureProvider<List<SourcedItem>>((ref) async {
   final entries = ref.watch(pluginManagerProvider);
-  PluginEntry? entry;
-  for (final e in entries) {
-    if (e.info.package == package) {
-      entry = e;
-      break;
+  final results = await Future.wait(
+    entries.map(
+      (e) => ref
+          .read(pluginManagerProvider.notifier)
+          .callLatest(e, 1)
+          .then((items) => (entry: e, items: items))
+          .catchError((Object _) => (entry: e, items: <BangumiItem>[])),
+    ),
+  );
+  // 按源轮流交错（源 A1 B1 C1 A2 B2 C2…），避免头部被单一源占满。
+  final maxLen = results.fold(
+    0,
+    (m, r) => r.items.length > m ? r.items.length : m,
+  );
+  final merged = <SourcedItem>[];
+  for (var i = 0; i < maxLen; i++) {
+    for (final r in results) {
+      if (i < r.items.length) {
+        merged.add((item: r.items[i], sourcePackage: r.entry.info.package));
+      }
     }
   }
-  if (entry == null) return const [];
-  return ref.watch(pluginManagerProvider.notifier).callLatest(entry, 1);
+  return merged;
 });

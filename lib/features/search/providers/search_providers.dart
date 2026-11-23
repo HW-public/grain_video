@@ -153,3 +153,67 @@ class SearchHistory extends Notifier<List<String>> {
     await ref.read(searchHistoryRepositoryProvider).remove(keyword);
   }
 }
+
+/// 源主页：该插件 latest 分页流（触底加载更多）。
+/// riverpod 3 family notifier：参数走构造函数。
+class SourceLatest extends AsyncNotifier<List<BangumiItem>> {
+  SourceLatest(this._entry);
+
+  final PluginEntry _entry;
+  int _page = 1;
+
+  /// 是否可能还有下一页（上一页满员即假设有；不满即末页）。
+  bool _hasMore = false;
+  bool get hasMore => _hasMore;
+
+  @override
+  Future<List<BangumiItem>> build() async {
+    _page = 1;
+    final items = await ref
+        .read(pluginManagerProvider.notifier)
+        .callLatest(_entry, 1);
+    _hasMore = items.length >= 20; // 各源单页 20 条范式
+    return items;
+  }
+
+  Future<void> loadMore() async {
+    if (!_hasMore) return;
+    final current = state.value ?? const <BangumiItem>[];
+    try {
+      final next = await ref
+          .read(pluginManagerProvider.notifier)
+          .callLatest(_entry, _page + 1);
+      _page += 1;
+      _hasMore = next.length >= 20;
+      // 去重防御：重复 url 不追加。
+      final seen = current.map((e) => e.url).toSet();
+      state = AsyncData([
+        ...current,
+        ...next.where((e) => !seen.contains(e.url)),
+      ]);
+    } on Object catch (e, st) {
+      state = AsyncError(e, st);
+    }
+  }
+}
+
+final sourceLatestProvider =
+    AsyncNotifierProvider.family<SourceLatest, List<BangumiItem>, PluginEntry>(
+      (entry) => SourceLatest(entry),
+    );
+
+/// 源主页：只搜单个插件。
+final sourceSearchProvider =
+    FutureProvider.family<
+      List<BangumiItem>,
+      ({String keyword, String package})
+    >((ref, arg) async {
+      final entry = ref
+          .watch(pluginManagerProvider)
+          .where((e) => e.info.package == arg.package)
+          .firstOrNull;
+      if (entry == null) return const [];
+      return ref
+          .read(pluginManagerProvider.notifier)
+          .callSearch(entry, arg.keyword);
+    });

@@ -25,6 +25,7 @@ GoRouter buildAppRouter({String? initialLocation}) => GoRouter(
         StatefulShellBranch(routes: meRoutes),
       ],
     ),
+    ...sourceRoutes,
     ...detailRoutes,
     ...playerRoutes,
     ...extensionsRoutes,
