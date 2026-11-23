@@ -15,9 +15,10 @@ jobs:
       - name: Checkout grain_engine sibling
         run: git clone --depth 1 https://github.com/HW-public/grain_engine.git ../grain_engine
 
+      # 与本地/release CI 钉同版本：stable 最新版的 dart format 风格与 3.32 不一致。
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: '3.32.0'
 
       - name: Install dependencies
         run: flutter pub get
