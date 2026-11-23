@@ -134,13 +134,18 @@ class _HistoryViewState extends ConsumerState<_HistoryView> {
         // 非管理态：「管理」；管理态：「清空」（批量，带确认）+「完成」。
         trailing: _managing
             ? Padding(
-                // 帧右距 28（头部已有水平 16）。
-                padding: const EdgeInsets.only(right: 12),
+                // 用户拍板（2026-11-23）：与搜索栏「搜索」按钮文字右缘对齐
+                // （屏幕右缘内 34 = 头部边距 16 + 此处 18），两按钮间距 4。
+                padding: const EdgeInsets.only(right: 18),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     TextButton(
-                      style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
                       onPressed: () => _confirmClearHistory(context),
                       child: Text(
                         _t(context, 'search.clear'),
@@ -151,9 +156,14 @@ class _HistoryViewState extends ConsumerState<_HistoryView> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: AppTokens.space3),
+                    // 用户拍板（2026-11-23）：「清空」「完成」间距 4→8。
+                    const SizedBox(width: 8),
                     TextButton(
-                      style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
                       onPressed: () => setState(() => _managing = false),
                       child: Text(
                         _t(context, 'search.done'),
@@ -168,10 +178,14 @@ class _HistoryViewState extends ConsumerState<_HistoryView> {
                 ),
               )
             : Padding(
-                // 帧右距 28（头部已有水平 16）。
-                padding: const EdgeInsets.only(right: 12),
+                // 用户拍板（2026-11-23）：与管理态一致，对齐搜索栏「搜索」按钮。
+                padding: const EdgeInsets.only(right: 18),
                 child: TextButton(
-                  style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                   onPressed: () => setState(() => _managing = true),
                   child: Text(
                     _t(context, 'search.manage'),
