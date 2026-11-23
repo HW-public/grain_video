@@ -35,6 +35,18 @@ jobs:
           echo "${{ secrets.KEY_PROPERTIES }}" | base64 -d > android/key.properties
           echo "${{ secrets.KEYSTORE_JKS }}" | base64 -d > android/app/grain_video.jks
 
+      # WASM 原生库：jniLibs 不入 git，发布在 grain_engine 仓的
+      # wasm-run-<版本> Release（用 android/publish_wasm_run_libs.ps1 生成）。
+      - name: Fetch wasm_run jniLibs
+        run: |
+          set -e
+          for url in \
+            "https://github.com/HW-public/grain_engine/releases/download/wasm-run-0.1.0%2B2/jniLibs.zip" \
+            "https://ghfast.top/https://github.com/HW-public/grain_engine/releases/download/wasm-run-0.1.0%2B2/jniLibs.zip"; do
+            if curl -fL --connect-timeout 10 -o /tmp/jniLibs.zip "$url"; then break; fi
+          done
+          unzip -q /tmp/jniLibs.zip -d android/app/src/main
+
       - run: flutter pub get
 
       - run: flutter build apk --release
