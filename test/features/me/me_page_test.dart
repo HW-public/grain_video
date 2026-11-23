@@ -11,6 +11,7 @@ import 'package:grain_video/core/widgets/async_view.dart';
 import 'package:grain_video/data/db/database.dart';
 import 'package:grain_video/data/db/repositories.dart';
 import 'package:grain_video/features/me/pages/appearance_page.dart';
+import 'package:grain_video/features/me/pages/cache_clear_page.dart';
 import 'package:grain_video/features/me/pages/me_page.dart';
 import 'package:grain_video/features/me/pages/settings_page.dart';
 import 'package:grain_video/features/me/routes.dart';
@@ -118,6 +119,33 @@ void main() {
         FlutterI18n.translate(
           tester.element(find.byType(MePage)),
           'me.emptyHistoryTitle',
+        ),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('cache clear page shows image cache row and clear action', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_buildApp(initialLocation: MeRoutes.settingsCache));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(CacheClearPage), findsOneWidget);
+    expect(
+      find.text(
+        FlutterI18n.translate(
+          tester.element(find.byType(CacheClearPage)),
+          'me.cacheImage',
+        ),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.text(
+        FlutterI18n.translate(
+          tester.element(find.byType(CacheClearPage)),
+          'me.cacheClear',
         ),
       ),
       findsOneWidget,

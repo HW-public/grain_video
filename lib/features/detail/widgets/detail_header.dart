@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
 
 import '../../../core/theme/tokens.dart';
+import '../../../core/widgets/cached_image.dart';
 import '../../../extension/models.dart';
 import '../../../extension/plugin_manager.dart';
 
@@ -132,12 +133,7 @@ class _Poster extends StatelessWidget {
         height: size / AppTokens.coverRatioComic,
         child: cover.isEmpty
             ? const ColoredBox(color: AppTokens.surfaceAlt)
-            : Image.network(
-                cover,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                    const ColoredBox(color: AppTokens.surfaceAlt),
-              ),
+            : CachedImage(url: cover),
       ),
     );
   }

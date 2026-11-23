@@ -30,6 +30,9 @@ dependencies:
   html: ^0.15.7 # HTML 解析（源站页面兜底解析）
   xpath_selector_html_parser: ^3.0.1 # XPath 选择器
   path_provider: ^2.1.5 # 应用目录（插件目录/数据库路径）
+  cached_network_image: ^3.4.1 # 封面磁盘缓存（对象数 LRU，缓存清理联动）
+  flutter_cache_manager: ^3.5.0 # 缓存内核（cached_network_image 依赖，显式声明）
+  shared_preferences: ^2.3.5 # 轻量设置持久化（预加载开关等）
 
   # WASM 插件引擎（唯一插件线路），独立仓库维护。
   # 联调期用 path 依赖；grain_video 发布前 grain_engine 需先发 pub.dev。

@@ -5,7 +5,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/routes.dart';
 import '../../../core/theme/tokens.dart';
+import '../../../core/cache/app_image_cache.dart';
 import '../../../core/widgets/async_view.dart';
+import '../../../core/widgets/cached_image.dart';
 import '../../../data/db/database.dart';
 import '../../../extension/plugin_manager.dart';
 import '../providers/me_providers.dart';
@@ -371,21 +373,10 @@ class _PosterCard extends StatelessWidget {
                       ),
                     ),
                   )
-                : Image.network(
-                    coverUrl,
+                : CachedImage(
+                    url: coverUrl,
                     width: double.infinity,
                     height: 162,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => const ColoredBox(
-                      color: AppTokens.surfaceAlt,
-                      child: SizedBox(
-                        height: 162,
-                        child: Icon(
-                          Icons.image_outlined,
-                          color: AppTokens.textTertiary,
-                        ),
-                      ),
-                    ),
                   ),
           ),
           const SizedBox(height: 6),
@@ -472,6 +463,10 @@ class _SettingsCard extends ConsumerWidget {
       _SettingsRowData(
         icon: Icons.cleaning_services_outlined,
         labelKey: 'me.cacheTitle',
+        // 与缓存清理页同源：实时图片缓存占用。
+        value: ref
+            .watch(imageCacheSizeProvider)
+            .when(data: formatBytes, loading: () => '', error: (_, _) => ''),
         onTap: () => context.push(MeRoutes.settingsCache),
       ),
       _SettingsRowData(

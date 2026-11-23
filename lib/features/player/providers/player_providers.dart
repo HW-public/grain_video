@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
+import '../../../core/settings/app_settings.dart';
 import '../../../data/db/repositories.dart';
 import '../../../extension/models.dart';
 import '../../../extension/plugin_manager.dart';
@@ -90,6 +91,35 @@ class PlayerViewState {
   static const Object _sentinel = Object();
 }
 
+/// 预加载解析结果缓存：episodeUrl → StreamInfo。
+///
+/// 起播当前集后后台 callWatch 下一集（L1），命中后换集免解析等待；
+/// 同时把下一集追加进播放单（L2，mpv 预缓冲）。
+class PreloadedStreams extends Notifier<Map<String, StreamInfo>> {
+  @override
+  Map<String, StreamInfo> build() => const {};
+
+  void store(String episodeUrl, StreamInfo info) {
+    state = {...state, episodeUrl: info};
+  }
+
+  /// 取出并移除（换集消费）。
+  StreamInfo? take(String episodeUrl) {
+    final info = state[episodeUrl];
+    if (info != null) {
+      state = Map.of(state)..remove(episodeUrl);
+    }
+    return info;
+  }
+
+  void clear() => state = const {};
+}
+
+final preloadedStreamsProvider =
+    NotifierProvider<PreloadedStreams, Map<String, StreamInfo>>(
+      PreloadedStreams.new,
+    );
+
 /// 单例 [Player]：换集只 open()，绝不 dispose 重建
 /// （Windows 上重建 VideoController 会挂约 200 秒，见 spike-media-kit）。
 final playerProvider = Provider<Player>((ref) {
@@ -129,6 +159,7 @@ class PlayerController extends Notifier<PlayerViewState> {
   /// 进入播放页：校验入参 → 找插件 → callWatch 取流 → callDetail 拉选集
   /// → 读历史进度 → open()。
   Future<void> load(PlayerArgs args) async {
+    ref.read(preloadedStreamsProvider.notifier).clear();
     if (!args.isValid) {
       state = PlayerViewState(
         args: args,
@@ -182,6 +213,8 @@ class PlayerController extends Notifier<PlayerViewState> {
         description: description,
       );
       await _open(stream, resumeMs: resumeMs);
+      // L1/L2：后台预载下一集（不阻塞起播）。
+      unawaited(_preloadNext(entry));
     } on Object catch (e) {
       state = state.copyWith(loading: false, error: e);
     }
@@ -207,14 +240,43 @@ class PlayerController extends Notifier<PlayerViewState> {
       if (entry == null) {
         throw StateError('plugin not installed: ${args.src}');
       }
-      final stream = await manager.callWatch(entry, args.ep);
+      // 预载命中：跳过 callWatch 解析等待。
+      final stream =
+          ref.read(preloadedStreamsProvider.notifier).take(args.ep) ??
+          await manager.callWatch(entry, args.ep);
       if (stream == null) {
         throw StateError('plugin returned no stream');
       }
       state = state.copyWith(loading: false);
       await _open(stream, resumeMs: 0);
+      unawaited(_preloadNext(entry));
     } on Object catch (e) {
       state = state.copyWith(loading: false, error: e);
+    }
+  }
+
+  /// L1+L2 预载下一集：开关开启、有下一集、未预载过时，
+  /// 后台 callWatch 解析直链存入缓存，并追加进播放单让 mpv 预缓冲。
+  Future<void> _preloadNext(PluginEntry entry) async {
+    try {
+      if (!ref.read(preloadNextProvider)) return;
+      final index = state.currentEpIndex;
+      final episodes = state.episodes;
+      if (index < 0 || index + 1 >= episodes.length) return;
+      final nextUrl = episodes[index + 1].url;
+      final cached = ref.read(preloadedStreamsProvider);
+      if (cached.containsKey(nextUrl)) return;
+      final stream = await ref
+          .read(pluginManagerProvider.notifier)
+          .callWatch(entry, nextUrl);
+      if (stream == null) return;
+      ref.read(preloadedStreamsProvider.notifier).store(nextUrl, stream);
+      // L2：mpv 默认 prefetch-playlist，播放单中的下一项会被预缓冲。
+      await ref
+          .read(playerProvider)
+          .add(Media(stream.url, httpHeaders: stream.headers));
+    } on Object {
+      // 预载失败不影响当前播放。
     }
   }
 

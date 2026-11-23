@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/routes.dart';
 import '../../../core/theme/tokens.dart';
+import '../../../core/widgets/cached_image.dart';
 import '../../../core/widgets/async_view.dart';
 import '../../../data/db/database.dart';
 import '../utils/date_format.dart';
@@ -171,22 +172,7 @@ class _Poster extends StatelessWidget {
     }
     return ClipRRect(
       borderRadius: radius,
-      child: Image.network(
-        url,
-        width: width,
-        height: height,
-        fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => Container(
-          width: width,
-          height: height,
-          color: AppTokens.defaultPalette.primaryContainer,
-          child: Icon(
-            Icons.movie_outlined,
-            size: 24,
-            color: AppTokens.defaultPalette.primary,
-          ),
-        ),
-      ),
+      child: CachedImage(url: url, width: width, height: height),
     );
   }
 }

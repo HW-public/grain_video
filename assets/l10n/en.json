@@ -141,7 +141,11 @@
     "modeRecommended": "(Recommended)",
     "headerName": "HeHe User",
     "headerSubtitle": "Local mode · data stays on device",
-    "aboutVersionLine": "{name} {version}"
+    "aboutVersionLine": "{name} {version}",
+    "cacheImage": "Image cache",
+    "cacheClear": "Clear",
+    "cacheCleared": "Cleared",
+    "cachePreloadNote": "Video preload lives in memory and is released automatically."
   },
   "player": {
     "next": "Next",
@@ -149,6 +153,8 @@
     "speed": "Speed",
     "settings": "Playback settings",
     "synopsis": "Synopsis",
-    "emptyEpisodes": "No episodes"
+    "emptyEpisodes": "No episodes",
+    "preloadNext": "Preload next episode",
+    "preloadNextDesc": "Resolve and buffer the next episode in advance"
   }
 }

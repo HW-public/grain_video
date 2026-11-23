@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../theme/tokens.dart';
+import 'cached_image.dart';
 
 /// 共享封面卡片（设计稿横滑行卡片范式）：
 /// 16:9 封面（[AppTokens.coverRatioVideo]）+ 标题 + update 角标，整卡可点。
 ///
 /// 横滑条（继续观看 / 各插件「最近更新」）共用本组件；
-/// 封面一律 [Image.network] + errorBuilder 占位（不使用 CachedNetworkImage）。
+/// 封面一律 [CachedImage]（磁盘缓存，占位在组件内部）。
 class BangumiCard extends StatelessWidget {
   const BangumiCard({
     super.key,
@@ -117,11 +118,7 @@ class _Cover extends StatelessWidget {
             if (coverUrl.isEmpty)
               const _CoverPlaceholder()
             else
-              Image.network(
-                coverUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => const _CoverPlaceholder(),
-              ),
+              CachedImage(url: coverUrl),
             if (update.isNotEmpty)
               Positioned(
                 top: 6,

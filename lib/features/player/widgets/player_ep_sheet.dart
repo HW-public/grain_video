@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/settings/app_settings.dart';
 import '../../../core/theme/tokens.dart';
 import '../providers/player_providers.dart';
 
@@ -124,6 +125,9 @@ Future<void> showPlayerSpeedSheet(BuildContext context) {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
+        // 预加载开关（用户拍板 2026-11-23：L1 预解析 + L2 播放单预缓冲）。
+        _PreloadTile(),
+        const Divider(height: 17, color: AppTokens.divider),
         Text(
           FlutterI18n.translate(context, 'player.speed'),
           style: const TextStyle(
@@ -192,6 +196,34 @@ class _SpeedChip extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// 预加载下一集开关（持久化在 shared_preferences）。
+class _PreloadTile extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final enabled = ref.watch(preloadNextProvider);
+    return SwitchListTile(
+      dense: true,
+      contentPadding: EdgeInsets.zero,
+      title: Text(
+        FlutterI18n.translate(context, 'player.preloadNext'),
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          color: AppTokens.textPrimary,
+        ),
+      ),
+      subtitle: Text(
+        FlutterI18n.translate(context, 'player.preloadNextDesc'),
+        style: const TextStyle(fontSize: 11, color: AppTokens.textTertiary),
+      ),
+      value: enabled,
+      activeColor: AppTokens.defaultPalette.primary,
+      onChanged: (v) =>
+          unawaited(ref.read(preloadNextProvider.notifier).set(v)),
     );
   }
 }

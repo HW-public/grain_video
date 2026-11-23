@@ -141,7 +141,11 @@
     "modeRecommended": "（推荐）",
     "headerName": "禾禾用户",
     "headerSubtitle": "本地模式 · 数据保存在本机",
-    "aboutVersionLine": "{name} {version}"
+    "aboutVersionLine": "{name} {version}",
+    "cacheImage": "图片缓存",
+    "cacheClear": "清理",
+    "cacheCleared": "已清理",
+    "cachePreloadNote": "视频预加载为内存缓冲，随播放自动释放，无需手动清理。"
   },
   "player": {
     "next": "下一集",
@@ -149,6 +153,8 @@
     "speed": "倍速",
     "settings": "播放设置",
     "synopsis": "简介",
-    "emptyEpisodes": "暂无剧集"
+    "emptyEpisodes": "暂无剧集",
+    "preloadNext": "预加载下一集",
+    "preloadNextDesc": "提前解析并缓冲下一集，切换更快"
   }
 }
