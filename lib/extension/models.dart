@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:html/parser.dart' as html_parser;
+
 import 'package:grain_engine/grain_engine.dart';
 
 /// 插件信息：grain.metadata 的解析视图（字段缺失时取兜底值）。
@@ -152,8 +154,10 @@ class BangumiDetail {
     return BangumiDetail(
       title: json['title'] is String ? json['title'] as String : '',
       cover: json['cover'] is String ? json['cover'] as String : '',
+      // 源站简介常带 HTML 实体（&#39;）与标签（<p>/<br>），
+      // 统一解码剥标签后展示（用户真机抓包 360 源 &#39; 原文显示）。
       description: json['description'] is String
-          ? json['description'] as String
+          ? _sanitizeText(json['description'] as String)
           : '',
       episodes: list is List
           ? list.map(Episode.fromJson).whereType<Episode>().toList()
@@ -168,6 +172,12 @@ class BangumiDetail {
 
   @override
   String toString() => 'BangumiDetail($title, ${episodes.length} 集)';
+}
+
+/// HTML 实体解码 + 标签剥离（html 包解析取纯文本）。
+String _sanitizeText(String raw) {
+  final text = html_parser.parse(raw).documentElement?.text ?? raw;
+  return text.trim();
 }
 
 /// 播放流：watch 结果 `{"url","headers"?}`。

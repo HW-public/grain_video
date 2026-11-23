@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import 'dart:async';
 
 import '../../../core/theme/tokens.dart';
 import '../../../core/update/update_check.dart';
+import '../../../core/update/app_updater.dart';
 import '../widgets/me_list_card.dart';
 import '../widgets/me_list_row.dart';
 
 /// 关于页（spec 02）：品牌区 + 功能列表组 + 底部小字。
 ///
-/// 检查更新已接真实逻辑（GitHub Releases 镜像链）；
-/// GitHub/分享等外链依赖 url_launcher/share 插件，接入前为纯展示行。
+/// 检查更新 / GitHub / 反馈 / 许可 / 分享 全部接真实逻辑。
 class AboutPage extends StatelessWidget {
   const AboutPage({super.key});
 
@@ -42,20 +46,44 @@ class AboutPage extends StatelessWidget {
               MeListRow(
                 icon: Icons.code,
                 title: FlutterI18n.translate(context, 'me.aboutGithub'),
-                subtitle: 'HW-public/miru-app',
+                subtitle: 'HW-public/grain_video',
                 showChevron: false,
+                onTap: () => unawaited(
+                  launchUrl(
+                    Uri.parse('https://github.com/HW-public/grain_video'),
+                    mode: LaunchMode.externalApplication,
+                  ),
+                ),
               ),
               MeListRow(
                 icon: Icons.feedback_outlined,
                 title: FlutterI18n.translate(context, 'me.aboutFeedback'),
+                onTap: () => unawaited(
+                  launchUrl(
+                    Uri.parse(
+                      'https://github.com/HW-public/grain_video/issues',
+                    ),
+                    mode: LaunchMode.externalApplication,
+                  ),
+                ),
               ),
               MeListRow(
                 icon: Icons.description_outlined,
                 title: FlutterI18n.translate(context, 'me.aboutLicense'),
+                onTap: () => showLicensePage(
+                  context: context,
+                  applicationName: FlutterI18n.translate(context, 'appTitle'),
+                ),
               ),
               MeListRow(
                 icon: Icons.share_outlined,
                 title: FlutterI18n.translate(context, 'me.aboutShare'),
+                onTap: () => unawaited(
+                  Share.share(
+                    '禾禾影视 · 追番一个 App 就够了 '
+                    'https://github.com/HW-public/grain_video',
+                  ),
+                ),
               ),
             ],
           ),
@@ -106,9 +134,13 @@ class AboutPage extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppTokens.space1),
-        const Text(
-          _appVersion,
-          style: TextStyle(fontSize: 12, color: AppTokens.textTertiary),
+        // 真实版本经 package_info 异步补读（AppUpdater.currentVersion）。
+        FutureBuilder<String>(
+          future: AppUpdater.currentVersion(),
+          builder: (context, snapshot) => Text(
+            snapshot.data == null ? _appVersion : 'v${snapshot.data}',
+            style: const TextStyle(fontSize: 12, color: AppTokens.textTertiary),
+          ),
         ),
       ],
     );

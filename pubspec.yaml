@@ -35,6 +35,9 @@ dependencies:
   shared_preferences: ^2.3.5 # 轻量设置持久化（预加载开关等）
   package_info_plus: ^9.0.1 # 应用版本号读取（升级检查）
   open_filex: ^4.5.0 # 调系统安装器（APK 安装）
+  screen_brightness: ^2.1.0 # 播放器手势：屏幕亮度调节
+  url_launcher: ^6.3.1 # 外链打开（关于页 GitHub/反馈）
+  share_plus: ^10.1.4 # 分享（关于页）
 
   # WASM 插件引擎（唯一插件线路），独立仓库维护。
   # 联调期用 path 依赖；grain_video 发布前 grain_engine 需先发 pub.dev。

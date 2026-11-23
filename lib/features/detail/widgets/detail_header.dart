@@ -133,7 +133,11 @@ class _Poster extends StatelessWidget {
         height: size / AppTokens.coverRatioComic,
         child: cover.isEmpty
             ? const ColoredBox(color: AppTokens.surfaceAlt)
-            : CachedImage(url: cover),
+            : CachedImage(
+                url: cover,
+                width: 104,
+                height: 104 / AppTokens.coverRatioComic,
+              ),
       ),
     );
   }

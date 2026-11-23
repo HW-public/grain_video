@@ -9,6 +9,7 @@ import '../../../core/theme/tokens.dart';
 import '../providers/player_providers.dart';
 import 'player_controls.dart';
 import 'player_ep_sheet.dart';
+import 'player_gestures.dart';
 
 /// 视频渲染区：media_kit Video（contain，darkBg 留黑）+ 点击显隐的遮罩。
 ///
@@ -41,8 +42,9 @@ class PlayerVideoArea extends ConsumerWidget {
 
     return ColoredBox(
       color: AppTokens.darkBg,
-      child: GestureDetector(
-        onTap: onToggleControls,
+      // 手势层：单击显隐控制、双击 ±10s、水平拖进度、垂直拖亮度/音量。
+      child: PlayerGestures(
+        onToggleControls: () => onToggleControls?.call(),
         child: Stack(
           fit: StackFit.expand,
           children: [

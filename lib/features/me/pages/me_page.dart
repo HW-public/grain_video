@@ -380,25 +380,33 @@ class _PosterCard extends StatelessWidget {
                   ),
           ),
           const SizedBox(height: 6),
-          Text(
-            title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppTokens.textPrimary,
+          // 定高文字行：GridView 卡高固定 204（=162+6+18+2+15 预算），
+          // 系统字体放大时按预算裁剪而不是撑破布局（真机抓包修复）。
+          SizedBox(
+            height: 18,
+            child: Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppTokens.textPrimary,
+              ),
             ),
           ),
           if (subtitle.isNotEmpty) ...[
             const SizedBox(height: 2),
-            Text(
-              subtitle,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 11,
-                color: AppTokens.textTertiary,
+            SizedBox(
+              height: 15,
+              child: Text(
+                subtitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppTokens.textTertiary,
+                ),
               ),
             ),
           ],

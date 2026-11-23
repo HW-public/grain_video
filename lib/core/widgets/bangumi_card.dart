@@ -118,7 +118,11 @@ class _Cover extends StatelessWidget {
             if (coverUrl.isEmpty)
               const _CoverPlaceholder()
             else
-              CachedImage(url: coverUrl),
+              CachedImage(
+                url: coverUrl,
+                width: width,
+                height: width / AppTokens.coverRatioVideo,
+              ),
             if (update.isNotEmpty)
               Positioned(
                 top: 6,

@@ -30,7 +30,11 @@ class CachedImage extends StatelessWidget {
       width: width,
       height: height,
       fit: fit,
-      memCacheWidth: width?.round(),
+      // 按显示尺寸解码，省内存（无限宽/高时回退原图）。
+      memCacheWidth: width != null && width!.isFinite ? width!.round() : null,
+      memCacheHeight: height != null && height!.isFinite
+          ? height!.round()
+          : null,
       placeholder: (_, _) => const _ImagePlaceholder(),
       errorWidget: (_, _, _) => const _ImagePlaceholder(),
     );

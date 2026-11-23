@@ -178,8 +178,11 @@ class PlayerCtrlRow extends ConsumerWidget {
         state.currentEpIndex >= 0 &&
         state.currentEpIndex + 1 < state.episodes.length;
 
-    return SizedBox(
-      height: 48,
+    // 不写死行高：系统字体放大时按钮 intrinsic 高度可能超 48，
+    // 硬约束会触发 BOTTOM OVERFLOW（用户真机抓包）。
+    // 横向可滚动：窄屏/大字下内容超宽时滑览而不是溢出（二次抓包修复）。
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
       child: Row(
         children: [
           IconButton(
@@ -212,7 +215,8 @@ class PlayerCtrlRow extends ConsumerWidget {
               label: Text(FlutterI18n.translate(context, 'player.next')),
               onPressed: () => unawaited(controller.nextEpisode()),
             ),
-          const Spacer(),
+          // 原 Spacer：横向滚动场景下 Row 宽度无界，Spacer 非法，改固定间隙。
+          const SizedBox(width: 8),
           TextButton(
             style: TextButton.styleFrom(foregroundColor: _iconColor),
             onPressed: () => showPlayerSpeedSheet(context),
