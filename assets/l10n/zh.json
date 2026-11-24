@@ -34,7 +34,15 @@
     "noLogs": "暂无日志",
     "settings": "设置",
     "installButton": "＋ 安装扩展 / 浏览仓库",
-    "summary": "已安装 {count} 个扩展 · 来自 {sites} 个仓库"
+    "summary": "已安装 {count} 个扩展 · 来自 {sites} 个仓库",
+    "swipeToDelete": "左滑扩展可删除",
+    "update": "更新",
+    "updatable": "{from} → {to} 可更新",
+    "latest": "最新",
+    "repoTitle": "扩展仓库",
+    "repoSearchHint": "搜索扩展名称或作者",
+    "repoEmpty": "仓库暂无可用扩展",
+    "installedBadge": "已安装"
   },
   "search": {
     "hint": "搜索番剧、漫画、小说…",
@@ -64,7 +72,8 @@
     "recentUpdates": "最近更新",
     "more": "更多 ›",
     "noPlugins": "还没有安装插件",
-    "goExtensions": "去扩展页安装"
+    "goExtensions": "去扩展页安装",
+    "updateBadge": "有更新"
   },
   "detail": {
     "play": "▶ 播放",
@@ -102,6 +111,25 @@
     "emptyFollowsTitle": "还没有追番",
     "emptyFollowsHint": "追番后更新会第一时间提醒你",
     "favoritedAt": "收藏于",
+    "edit": "编辑",
+    "done": "完成",
+    "totalFavorites": "共 {count} 部",
+    "totalHistory": "共 {count} 条 · 仅保留最近 30 天",
+    "removeFavorite": "取消收藏",
+    "deleteSelected": "删除({count})",
+    "playContinue": "续播",
+    "today": "今天",
+    "yesterday": "昨天",
+    "justNow": "刚刚",
+    "minutesAgo": "{count} 分钟前",
+    "hoursAgo": "{count} 小时前",
+    "clear": "清空",
+    "clearHistoryTitle": "清空历史记录",
+    "clearHistoryConfirm": "将清空全部 {count} 条观看历史，且不可恢复。",
+    "onlyLocalFavorites": "收藏数据仅保存在本机",
+    "onlyLocalHistory": "历史记录仅保存在本机",
+    "cancel": "取消",
+    "watchedTo": "看到",
     "followEpisode": "看到第 {n} 集",
     "followTotal": "全 {n} 集",
     "followNotStarted": "尚未开始观看",
@@ -146,7 +174,9 @@
     "cacheClear": "清理",
     "cacheCleared": "已清理",
     "cachePreloadNote": "视频预加载为内存缓冲，随播放自动释放，无需手动清理。",
-    "apkCache": "安装包缓存"
+    "apkCache": "安装包缓存",
+    "deleteHistoryTitle": "删除这条历史",
+    "deleteHistoryHint": "删除后不再保留这条观看进度。"
   },
   "player": {
     "next": "下一集",

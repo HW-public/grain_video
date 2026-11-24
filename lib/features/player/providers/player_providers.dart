@@ -46,6 +46,7 @@ class PlayerViewState {
     this.episodes = const [],
     this.currentEpIndex = -1,
     this.description = '',
+    this.cover = '',
 
     /// 真实起播（position > 0 && duration > 0 的首个 tick）。
     this.started = false,
@@ -60,6 +61,9 @@ class PlayerViewState {
 
   /// 条目简介（callDetail 顺带返回；竖屏 body「简介」区）。
   final String description;
+
+  /// 条目封面（callDetail 返回；进度落库时写入历史/追番，首页轮播用）。
+  final String cover;
   final bool started;
   final double rate;
 
@@ -73,6 +77,7 @@ class PlayerViewState {
     List<Episode>? episodes,
     int? currentEpIndex,
     String? description,
+    String? cover,
     bool? started,
     double? rate,
   }) {
@@ -83,6 +88,7 @@ class PlayerViewState {
       episodes: episodes ?? this.episodes,
       currentEpIndex: currentEpIndex ?? this.currentEpIndex,
       description: description ?? this.description,
+      cover: cover ?? this.cover,
       started: started ?? this.started,
       rate: rate ?? this.rate,
     );
@@ -185,12 +191,14 @@ class PlayerController extends Notifier<PlayerViewState> {
       var episodes = const <Episode>[];
       var index = -1;
       var description = '';
+      var cover = '';
       try {
         final detail = await manager.callDetail(entry, args.bangumi);
         if (detail != null) {
           episodes = detail.episodes;
           index = episodes.indexWhere((e) => e.url == args.ep);
           description = detail.description;
+          cover = detail.cover;
         }
       } on Object {
         // detail 未实现/失败：选集列表留空，不影响播放。
@@ -211,6 +219,7 @@ class PlayerController extends Notifier<PlayerViewState> {
         episodes: episodes,
         currentEpIndex: index,
         description: description,
+        cover: cover,
       );
       await _open(stream, resumeMs: resumeMs);
       // L1/L2：后台预载下一集（不阻塞起播）。
@@ -358,6 +367,7 @@ class PlayerController extends Notifier<PlayerViewState> {
             sourcePackage: args.src,
             bangumiUrl: args.bangumi,
             title: args.title,
+            cover: state.cover,
             episodeUrl: args.ep,
             episodeTitle: currentEpisodeTitle,
             positionMs: positionMs,
@@ -369,6 +379,7 @@ class PlayerController extends Notifier<PlayerViewState> {
             sourcePackage: args.src,
             bangumiUrl: args.bangumi,
             title: args.title,
+            cover: state.cover,
             currentEpisode: state.currentEpIndex + 1,
             totalEpisode: state.episodes.length,
           );

@@ -34,7 +34,15 @@
     "noLogs": "No logs yet",
     "settings": "Settings",
     "installButton": "＋ Install / Browse",
-    "summary": "{count} extensions installed · from {sites} repos"
+    "summary": "{count} extensions installed · from {sites} repos",
+    "swipeToDelete": "Swipe to delete",
+    "update": "Update",
+    "updatable": "{from} → {to} available",
+    "latest": "Latest",
+    "repoTitle": "Extension Repository",
+    "repoSearchHint": "Search by name or author",
+    "repoEmpty": "No extensions available",
+    "installedBadge": "Installed"
   },
   "search": {
     "hint": "Search anime, manga, novels…",
@@ -64,7 +72,8 @@
     "recentUpdates": "Latest updates",
     "more": "More ›",
     "noPlugins": "No plugins installed",
-    "goExtensions": "Go to Extensions"
+    "goExtensions": "Go to Extensions",
+    "updateBadge": "New episodes"
   },
   "detail": {
     "play": "▶ Play",
@@ -102,6 +111,25 @@
     "emptyFollowsTitle": "Not following anything yet",
     "emptyFollowsHint": "Follow shows to get update alerts",
     "favoritedAt": "Favorited",
+    "edit": "Edit",
+    "done": "Done",
+    "totalFavorites": "{count} items",
+    "totalHistory": "{count} entries · kept for 30 days",
+    "removeFavorite": "Remove favorite",
+    "deleteSelected": "Delete({count})",
+    "playContinue": "Resume",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "justNow": "Just now",
+    "minutesAgo": "{count} min ago",
+    "hoursAgo": "{count} hr ago",
+    "clear": "Clear",
+    "clearHistoryTitle": "Clear watch history",
+    "clearHistoryConfirm": "All {count} history entries will be removed. This cannot be undone.",
+    "onlyLocalFavorites": "Favorites are stored locally on this device",
+    "onlyLocalHistory": "History is stored locally on this device",
+    "cancel": "Cancel",
+    "watchedTo": "Watched",
     "followEpisode": "Up to ep. {n}",
     "followTotal": "{n} eps",
     "followNotStarted": "Not started",
@@ -146,7 +174,9 @@
     "cacheClear": "Clear",
     "cacheCleared": "Cleared",
     "cachePreloadNote": "Video preload lives in memory and is released automatically.",
-    "apkCache": "Installer cache"
+    "apkCache": "Installer cache",
+    "deleteHistoryTitle": "Delete this entry",
+    "deleteHistoryHint": "Its watch progress will be discarded."
   },
   "player": {
     "next": "Next",

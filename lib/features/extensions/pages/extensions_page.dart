@@ -1,23 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/tokens.dart';
 import '../../../core/widgets/async_view.dart';
+import '../../../core/widgets/swipe_delete_tile.dart';
 import '../../../extension/plugin_manager.dart';
-import '../../../extension/plugin_updater.dart';
 import '../providers/extensions_providers.dart';
+import '../routes.dart';
 import '../widgets/plugin_log_sheet.dart';
 import '../widgets/plugin_tile.dart';
 
-/// 扩展管理（对齐设计稿「设置-扩展管理」）：
-/// 薄荷页面底 + 白色圆角条目卡 + 右侧绿色设置链接 + 底部通栏主按钮。
-class ExtensionsPage extends ConsumerWidget {
+/// 扩展管理（Figma 27:210 范式）：
+/// 副标题计数 → 平铺条目卡（无站点分组、无「设置 ›」）→
+/// 有更新行内「更新」药丸（进入页面静默检查）→ 左滑删除（确认弹窗）→
+/// 列表下「左滑扩展可删除」提示 → 底部通栏安装按钮。
+class ExtensionsPage extends ConsumerStatefulWidget {
   const ExtensionsPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final groups = ref.watch(installedGroupsProvider);
+  ConsumerState<ExtensionsPage> createState() => _ExtensionsPageState();
+}
+
+class _ExtensionsPageState extends ConsumerState<ExtensionsPage> {
+  @override
+  void initState() {
+    super.initState();
+    // 进入页面静默检查一次更新，供行内药丸/可更新状态展示。
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(pendingUpdatesProvider.notifier).refresh();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final entries = ref.watch(pluginManagerProvider);
+    final pending = ref.watch(pendingUpdatesProvider);
     final controller = ref.watch(extensionsControllerProvider);
 
     return Scaffold(
@@ -31,6 +50,7 @@ class ExtensionsPage extends ConsumerWidget {
             icon: const Icon(Icons.refresh),
             onPressed: () => _run(context, () async {
               await controller.reload();
+              await ref.read(pendingUpdatesProvider.notifier).refresh();
               if (!context.mounted) return;
               _toast(
                 context,
@@ -40,7 +60,7 @@ class ExtensionsPage extends ConsumerWidget {
           ),
         ],
       ),
-      body: groups.isEmpty
+      body: entries.isEmpty
           ? EmptyState(
               icon: Icons.extension_outlined,
               message: FlutterI18n.translate(context, 'extensions.empty'),
@@ -53,18 +73,67 @@ class ExtensionsPage extends ConsumerWidget {
                 AppTokens.space6,
               ),
               children: [
-                _summaryBar(groups: groups),
+                _summaryBar(entries),
                 const SizedBox(height: AppTokens.space3),
-                for (final group in groups) ...[
-                  for (final entry in group.variants) ...[
-                    PluginTile(
+                for (final entry in entries) ...[
+                  SwipeDeleteTile(
+                    confirmTitleKey: 'extensions.delete',
+                    confirmHintKey: 'extensions.deleteHint',
+                    labelKey: 'extensions.delete',
+                    child: PluginTile(
                       entry: entry,
-                      onOpen: () =>
-                          _openPluginMenu(context, controller, group, entry),
+                      release: pending[entry.info.package],
+                      onTap: () => PluginLogSheet.show(
+                        context,
+                        site: siteOfEntry(entry),
+                        logs: controller.logsOf(entry),
+                      ),
+                      onUpdate: () => _run(
+                        context,
+                        () async {
+                          final release = pending[entry.info.package];
+                          if (release == null) return;
+                          await controller.install(release);
+                          await ref
+                              .read(pendingUpdatesProvider.notifier)
+                              .refresh();
+                          if (!context.mounted) return;
+                          _toast(
+                            context,
+                            '${FlutterI18n.translate(context, 'extensions.installed')}: '
+                            '${release.version}',
+                          );
+                        },
+                        errorPrefix: FlutterI18n.translate(
+                          context,
+                          'extensions.updateFailed',
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: AppTokens.space2),
-                  ],
+                    onDelete: () => _run(context, () async {
+                      await controller.remove(entry);
+                      if (!context.mounted) return;
+                      _toast(
+                        context,
+                        FlutterI18n.translate(context, 'extensions.removed'),
+                      );
+                    }),
+                  ),
+                  const SizedBox(height: AppTokens.space2),
                 ],
+                Padding(
+                  padding: const EdgeInsets.only(
+                    top: AppTokens.space2,
+                    left: AppTokens.space1,
+                  ),
+                  child: Text(
+                    FlutterI18n.translate(context, 'extensions.swipeToDelete'),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppTokens.textSecondary,
+                    ),
+                  ),
+                ),
               ],
             ),
       bottomNavigationBar: SafeArea(
@@ -83,7 +152,7 @@ class ExtensionsPage extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(AppTokens.radiusButton),
               ),
             ),
-            onPressed: () => _installMenu(context, controller),
+            onPressed: () => context.push(ExtensionsRoutes.repo),
             child: Text(
               FlutterI18n.translate(context, 'extensions.installButton'),
               style: const TextStyle(color: Colors.white, fontSize: 14),
@@ -94,268 +163,22 @@ class ExtensionsPage extends ConsumerWidget {
     );
   }
 
-  Widget _summaryBar({required List<SiteGroup> groups}) {
-    final count = groups.fold<int>(0, (sum, g) => sum + g.variants.length);
+  Widget _summaryBar(List<PluginEntry> entries) {
+    final sites = entries.map(siteOfEntry).toSet();
     return Builder(
       builder: (context) {
-        final theme = Theme.of(context);
-        final sites = groups.map((g) => g.site).toSet();
         return Text(
           FlutterI18n.translate(
             context,
             'extensions.summary',
-            translationParams: {'count': '$count', 'sites': '${sites.length}'},
+            translationParams: {
+              'count': '${entries.length}',
+              'sites': '${sites.length}',
+            },
           ),
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: AppTokens.textSecondary,
-            fontSize: 12,
-          ),
+          style: const TextStyle(fontSize: 12, color: AppTokens.textSecondary),
         );
       },
-    );
-  }
-
-  /// 条目设置菜单：日志 / 更新（若有）/ 删除。
-  Future<void> _openPluginMenu(
-    BuildContext context,
-    ExtensionsController controller,
-    SiteGroup group,
-    PluginEntry entry,
-  ) async {
-    final action = await showModalBottomSheet<String>(
-      context: context,
-      showDragHandle: true,
-      builder: (sheetContext) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.receipt_long_outlined),
-              title: Text(FlutterI18n.translate(context, 'extensions.logs')),
-              onTap: () => Navigator.of(sheetContext).pop('logs'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete_outline),
-              title: Text(FlutterI18n.translate(context, 'extensions.delete')),
-              onTap: () => Navigator.of(sheetContext).pop('delete'),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (!context.mounted) return;
-
-    switch (action) {
-      case 'logs':
-        PluginLogSheet.show(
-          context,
-          site: group.site,
-          logs: controller.logsOfGroup(group),
-        );
-      case 'delete':
-        await _confirmRemove(context, controller, entry);
-    }
-  }
-
-  /// 底部主按钮菜单：导入本地 / 检查更新。
-  Future<void> _installMenu(
-    BuildContext context,
-    ExtensionsController controller,
-  ) async {
-    final action = await showModalBottomSheet<String>(
-      context: context,
-      showDragHandle: true,
-      builder: (sheetContext) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.upload_file_outlined),
-              title: Text(FlutterI18n.translate(context, 'extensions.import')),
-              onTap: () => Navigator.of(sheetContext).pop('import'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.system_update_alt),
-              title: Text(
-                FlutterI18n.translate(context, 'extensions.checkUpdates'),
-              ),
-              onTap: () => Navigator.of(sheetContext).pop('updates'),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (!context.mounted) return;
-
-    switch (action) {
-      case 'import':
-        await _importDialog(context, controller);
-      case 'updates':
-        await _checkUpdates(context, controller);
-    }
-  }
-
-  Future<void> _importDialog(
-    BuildContext context,
-    ExtensionsController controller,
-  ) async {
-    final pathController = TextEditingController();
-    final path = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(FlutterI18n.translate(context, 'extensions.import')),
-        content: TextField(
-          controller: pathController,
-          autofocus: true,
-          decoration: InputDecoration(
-            hintText: FlutterI18n.translate(context, 'extensions.importHint'),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(FlutterI18n.translate(context, 'common.cancel')),
-          ),
-          FilledButton(
-            onPressed: () =>
-                Navigator.of(dialogContext).pop(pathController.text),
-            child: Text(FlutterI18n.translate(context, 'common.confirm')),
-          ),
-        ],
-      ),
-    );
-    pathController.dispose();
-    final trimmed = path?.trim() ?? '';
-    if (trimmed.isEmpty || !context.mounted) return;
-
-    await _run(
-      context,
-      () async {
-        final imported = await controller.importWasm(trimmed);
-        if (!context.mounted) return;
-        _toast(
-          context,
-          '${FlutterI18n.translate(context, 'extensions.imported')}: '
-          '${imported.info.name} ${imported.info.version}',
-        );
-      },
-      errorPrefix: FlutterI18n.translate(context, 'extensions.importFailed'),
-    );
-  }
-
-  Future<void> _confirmRemove(
-    BuildContext context,
-    ExtensionsController controller,
-    PluginEntry entry,
-  ) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(FlutterI18n.translate(context, 'extensions.delete')),
-        content: Text(FlutterI18n.translate(context, 'extensions.deleteHint')),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(FlutterI18n.translate(context, 'common.cancel')),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(FlutterI18n.translate(context, 'common.confirm')),
-          ),
-        ],
-      ),
-    );
-    if (ok != true || !context.mounted) return;
-    await _run(context, () async {
-      await controller.remove(entry);
-      if (!context.mounted) return;
-      _toast(context, FlutterI18n.translate(context, 'extensions.removed'));
-    });
-  }
-
-  Future<void> _checkUpdates(
-    BuildContext context,
-    ExtensionsController controller,
-  ) async {
-    await _run(
-      context,
-      () async {
-        final pending = await controller.checkUpdates();
-        if (!context.mounted) return;
-        if (pending.isEmpty) {
-          _toast(
-            context,
-            FlutterI18n.translate(context, 'extensions.upToDate'),
-          );
-          return;
-        }
-        await _showUpdates(context, controller, pending);
-      },
-      errorPrefix: FlutterI18n.translate(
-        context,
-        'extensions.checkUpdatesFailed',
-      ),
-    );
-  }
-
-  Future<void> _showUpdates(
-    BuildContext context,
-    ExtensionsController controller,
-    List<PluginRelease> pending,
-  ) {
-    return showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(
-          FlutterI18n.translate(dialogContext, 'extensions.updatesTitle'),
-        ),
-        content: SizedBox(
-          width: 420,
-          child: ListView(
-            shrinkWrap: true,
-            children: [
-              for (final release in pending)
-                ListTile(
-                  title: Text(
-                    release.name.isEmpty ? release.package : release.name,
-                  ),
-                  subtitle: Text('${release.package} · ${release.version}'),
-                  trailing: FilledButton(
-                    onPressed: () async {
-                      Navigator.of(dialogContext).pop();
-                      if (!context.mounted) return;
-                      await _run(
-                        context,
-                        () async {
-                          await controller.install(release);
-                          if (!context.mounted) return;
-                          _toast(
-                            context,
-                            '${FlutterI18n.translate(context, 'extensions.installed')}: '
-                            '${release.version}',
-                          );
-                        },
-                        errorPrefix: FlutterI18n.translate(
-                          context,
-                          'extensions.updateFailed',
-                        ),
-                      );
-                    },
-                    child: Text(
-                      FlutterI18n.translate(context, 'extensions.install'),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(FlutterI18n.translate(context, 'common.cancel')),
-          ),
-        ],
-      ),
     );
   }
 

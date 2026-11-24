@@ -3,30 +3,73 @@ import 'package:flutter_i18n/flutter_i18n.dart';
 
 import '../../../core/theme/tokens.dart';
 import '../../../extension/plugin_manager.dart';
+import '../../../extension/plugin_updater.dart';
 import '../providers/extensions_providers.dart';
 
-/// 单个插件条目行（设计稿：白色圆角卡片，高 64，左 emoji + 名称/包·版本，右侧绿色设置链接）。
+/// 单个插件条目卡（Figma 27:210 范式）：白底 r12 高 76，
+/// 矢量 icon 36 + 名称 14/600 + 包名 11 + 版本行 11；
+/// 有更新时版本行变绿「vA → vB 可更新」，右侧出「更新」描边药丸；
+/// 无「设置 ›」入口（配置项随扩展详情页一并取消，操作=左滑删除/点按看日志）。
 class PluginTile extends StatelessWidget {
-  const PluginTile({super.key, required this.entry, required this.onOpen});
+  const PluginTile({
+    super.key,
+    required this.entry,
+    this.release,
+    required this.onTap,
+    required this.onUpdate,
+  });
 
   final PluginEntry entry;
-  final VoidCallback onOpen;
+
+  /// 清单中可更新的 release；null = 已最新。
+  final PluginRelease? release;
+  final VoidCallback onTap;
+  final VoidCallback onUpdate;
+
+  /// 按内容源给个稳定矢量 icon（无真实图标字段，用站点名哈希避免频繁变动）。
+  static const _icons = [
+    Icons.movie_outlined,
+    Icons.menu_book_outlined,
+    Icons.book_outlined,
+    Icons.live_tv_outlined,
+    Icons.inventory_2_outlined,
+    Icons.local_movies_outlined,
+    Icons.video_library_outlined,
+    Icons.podcasts_outlined,
+  ];
+
+  static IconData _iconFor(PluginEntry entry) {
+    final site = siteOfEntry(entry);
+    var hash = 0;
+    for (final code in site.codeUnits) {
+      hash = (hash + code) % _icons.length;
+    }
+    return _icons[hash];
+  }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final pending = release;
     return Material(
       color: AppTokens.surface,
       borderRadius: BorderRadius.circular(AppTokens.radiusCard),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
-        borderRadius: BorderRadius.circular(AppTokens.radiusCard),
-        onTap: onOpen,
+        onTap: onTap,
         child: Container(
-          height: 64,
+          height: 76,
           padding: const EdgeInsets.symmetric(horizontal: AppTokens.space4),
           child: Row(
             children: [
-              Text(_emojiFor(entry), style: const TextStyle(fontSize: 36)),
+              SizedBox(
+                width: 36,
+                height: 36,
+                child: Icon(
+                  _iconFor(entry),
+                  size: 28,
+                  color: AppTokens.textPrimary,
+                ),
+              ),
               const SizedBox(width: AppTokens.space3),
               Expanded(
                 child: Column(
@@ -35,20 +78,41 @@ class PluginTile extends StatelessWidget {
                   children: [
                     Text(
                       entry.info.name,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: AppTokens.textPrimary,
+                      style: const TextStyle(
                         fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppTokens.textPrimary,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${entry.info.package} · ${entry.info.version}'
-                      '${entry.info.webSite.isNotEmpty ? '' : ''}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppTokens.textSecondary,
+                      entry.info.package,
+                      style: const TextStyle(
                         fontSize: 11,
+                        color: AppTokens.textSecondary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      pending == null
+                          ? '${entry.info.version} · ${FlutterI18n.translate(context, 'extensions.latest')}'
+                          : FlutterI18n.translate(
+                              context,
+                              'extensions.updatable',
+                              translationParams: {
+                                'from': entry.info.version,
+                                'to': pending.version,
+                              },
+                            ),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: pending == null
+                            ? AppTokens.textSecondary
+                            : AppTokens.defaultPalette.primary,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -56,28 +120,36 @@ class PluginTile extends StatelessWidget {
                   ],
                 ),
               ),
-              Text(
-                '${FlutterI18n.translate(context, 'extensions.settings')} ›',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppTokens.defaultPalette.primary,
-                  fontSize: 12,
+              if (pending != null)
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTokens.defaultPalette.primary,
+                    side: BorderSide(
+                      color: AppTokens.defaultPalette.primary,
+                      width: 1,
+                    ),
+                    minimumSize: const Size(64, 32),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppTokens.space3,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppTokens.radiusChip),
+                    ),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  onPressed: onUpdate,
+                  child: Text(
+                    FlutterI18n.translate(context, 'extensions.update'),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
-              ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  /// 按内容源给个稳定 emoji（无真实图标字段，用站点名哈希避免频繁变动）。
-  static String _emojiFor(PluginEntry entry) {
-    const emojis = ['🌸', '📚', '📖', '🎬', '📦', '🍿', '🎞️', '🌙'];
-    final site = siteOfEntry(entry);
-    var hash = 0;
-    for (final code in site.codeUnits) {
-      hash = (hash + code) % emojis.length;
-    }
-    return emojis[hash];
   }
 }

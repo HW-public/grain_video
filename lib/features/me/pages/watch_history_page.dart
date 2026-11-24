@@ -7,14 +7,17 @@ import '../../../core/routes.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/widgets/cached_image.dart';
 import '../../../core/widgets/async_view.dart';
+import '../../../core/widgets/swipe_delete_tile.dart';
 import '../../../data/db/database.dart';
 import '../utils/date_format.dart';
 import '../providers/me_providers.dart';
 import '../widgets/me_empty_state.dart';
 
-/// 观看历史列表：AsyncView 三态 + 空态走「状态-空态」帧范式。
+/// 我的历史列表，按 Figma 帧 233:1298「我的-历史」还原：
+/// 红色清空（确认后清空）+ 副标题 + 今天/昨天/日期分组 +
+/// 三行条目（来源·集数 / 看到进度·相对时间 / 续播）+ 本机保存页脚。
 ///
-/// 点击条目跳播放器（ep/src/title/bangumi 四参数，见路由契约）。
+/// 保留左滑删除（Dismissible，设计稿未禁止）。
 class WatchHistoryPage extends ConsumerWidget {
   const WatchHistoryPage({super.key});
 
@@ -25,6 +28,23 @@ class WatchHistoryPage extends ConsumerWidget {
       backgroundColor: AppTokens.defaultPalette.pageBg,
       appBar: AppBar(
         title: Text(FlutterI18n.translate(context, 'me.historyTitle')),
+        actions: [
+          history.maybeWhen(
+            data: (items) => items.isEmpty
+                ? const SizedBox.shrink()
+                : TextButton(
+                    onPressed: () => _confirmClear(context, ref, items.length),
+                    child: Text(
+                      FlutterI18n.translate(context, 'me.clear'),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppTokens.danger,
+                      ),
+                    ),
+                  ),
+            orElse: () => const SizedBox.shrink(),
+          ),
+        ],
       ),
       body: AsyncView(
         value: history,
@@ -39,30 +59,139 @@ class WatchHistoryPage extends ConsumerWidget {
               onAction: () => context.go(AppRoutes.home),
             );
           }
-          return ListView.separated(
-            padding: const EdgeInsets.all(AppTokens.space4),
-            itemCount: items.length,
-            separatorBuilder: (_, _) =>
-                const SizedBox(height: AppTokens.space3),
-            itemBuilder: (context, index) {
-              final item = items[index];
-              // 左滑删除：滑掉即从数据库移除并刷新列表。
-              return Dismissible(
-                key: ValueKey('history-${item.id}'),
-                direction: DismissDirection.endToStart,
-                background: const _DeleteBackground(),
-                onDismissed: (_) =>
-                    ref.read(watchHistoryListProvider.notifier).remove(item.id),
-                child: _HistoryItem(
-                  item: item,
-                  onTap: () => _play(context, item),
+          return ListView(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppTokens.space4,
+              vertical: AppTokens.space2,
+            ),
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: AppTokens.space1,
+                  bottom: AppTokens.space2,
                 ),
-              );
-            },
+                child: Text(
+                  FlutterI18n.translate(
+                    context,
+                    'me.totalHistory',
+                    translationParams: {'count': '${items.length}'},
+                  ),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppTokens.textSecondary,
+                  ),
+                ),
+              ),
+              ..._buildGrouped(context, ref, items),
+              const SizedBox(height: AppTokens.space6),
+              Padding(
+                padding: const EdgeInsets.only(left: AppTokens.space1),
+                child: Text(
+                  FlutterI18n.translate(context, 'me.onlyLocalHistory'),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppTokens.textSecondary,
+                  ),
+                ),
+              ),
+            ],
           );
         },
       ),
     );
+  }
+
+  /// 按 今天/昨天/日期 分组；组标签变化时插入标题行。
+  List<Widget> _buildGrouped(
+    BuildContext context,
+    WidgetRef ref,
+    List<WatchHistory> items,
+  ) {
+    final widgets = <Widget>[];
+    String? lastLabel;
+    for (var i = 0; i < items.length; i++) {
+      final item = items[i];
+      final labelKey = formatMeGroupLabel(item.updatedAt);
+      if (labelKey != lastLabel) {
+        lastLabel = labelKey;
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppTokens.space1,
+              AppTokens.space3,
+              0,
+              AppTokens.space1,
+            ),
+            child: Text(
+              labelKey.startsWith('me.')
+                  ? FlutterI18n.translate(context, labelKey)
+                  : labelKey,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppTokens.textPrimary,
+              ),
+            ),
+          ),
+        );
+      }
+      // 左滑露出删除按钮 → 点击 → 二次确认后移除。
+      widgets.add(
+        SwipeDeleteTile(
+          confirmTitleKey: 'me.deleteHistoryTitle',
+          confirmHintKey: 'me.deleteHistoryHint',
+          onDelete: () async =>
+              ref.read(watchHistoryListProvider.notifier).remove(item.id),
+          child: _HistoryItem(
+            item: item,
+            isLatest: i == 0,
+            onTap: () => _play(context, item),
+          ),
+        ),
+      );
+    }
+    return widgets;
+  }
+
+  Future<void> _confirmClear(
+    BuildContext context,
+    WidgetRef ref,
+    int count,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(
+          FlutterI18n.translate(dialogContext, 'me.clearHistoryTitle'),
+        ),
+        content: Text(
+          FlutterI18n.translate(
+            dialogContext,
+            'me.clearHistoryConfirm',
+            translationParams: {'count': '$count'},
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(FlutterI18n.translate(dialogContext, 'me.cancel')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(
+              FlutterI18n.translate(dialogContext, 'me.clear'),
+              style: const TextStyle(
+                color: AppTokens.danger,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await ref.read(watchHistoryListProvider.notifier).clearAll();
+    }
   }
 
   void _play(BuildContext context, WatchHistory item) {
@@ -76,94 +205,123 @@ class WatchHistoryPage extends ConsumerWidget {
 }
 
 class _HistoryItem extends StatelessWidget {
-  const _HistoryItem({required this.item, required this.onTap});
+  const _HistoryItem({
+    required this.item,
+    required this.isLatest,
+    required this.onTap,
+  });
 
   final WatchHistory item;
+  final bool isLatest;
   final VoidCallback onTap;
+
+  /// 第三行：看到 mm:ss · 相对时间；无进度时只显示相对时间。
+  String _progressLine(BuildContext context) {
+    final time = _relativeTime(context, item.updatedAt);
+    if (item.positionMs <= 0) return time;
+    return '${FlutterI18n.translate(context, 'me.watchedTo')} '
+        '${formatPositionClock(item.positionMs)} · $time';
+  }
+
+  String _relativeTime(BuildContext context, DateTime date) {
+    final now = DateTime.now();
+    final diff = now.difference(date);
+    if (diff.inMinutes < 1) {
+      return FlutterI18n.translate(context, 'me.justNow');
+    }
+    if (diff.inHours < 1) {
+      return FlutterI18n.translate(
+        context,
+        'me.minutesAgo',
+        translationParams: {'count': '${diff.inMinutes}'},
+      );
+    }
+    if (diff.inHours < 24) {
+      return FlutterI18n.translate(
+        context,
+        'me.hoursAgo',
+        translationParams: {'count': '${diff.inHours}'},
+      );
+    }
+    final today = DateTime(now.year, now.month, now.day);
+    final day = DateTime(date.year, date.month, date.day);
+    if (today.difference(day).inDays == 1) {
+      return FlutterI18n.translate(context, 'me.yesterday');
+    }
+    return formatMeDate(date);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final episodeLine = item.episodeTitle.isEmpty
+        ? item.sourcePackage
+        : '${item.sourcePackage} · ${item.episodeTitle}';
     return InkWell(
       borderRadius: BorderRadius.circular(AppTokens.radiusCard),
       onTap: onTap,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _Cover(url: item.cover),
-          const SizedBox(width: AppTokens.space3),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppTokens.textPrimary,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppTokens.space2),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _Cover(url: item.cover),
+            const SizedBox(width: AppTokens.space3),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.title,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppTokens.textPrimary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: AppTokens.space1),
-                Text(
-                  item.episodeTitle.isEmpty
-                      ? formatMeDate(item.updatedAt)
-                      : '${item.episodeTitle} · ${formatMeDate(item.updatedAt)}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppTokens.textSecondary,
+                  const SizedBox(height: AppTokens.space1),
+                  Text(
+                    episodeLine,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppTokens.textSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+                  const SizedBox(height: AppTokens.space1),
+                  Text(
+                    _progressLine(context),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppTokens.textSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
-          ),
-          const Icon(
-            Icons.chevron_right,
-            size: 18,
-            color: AppTokens.textTertiary,
-          ),
-        ],
+            if (isLatest)
+              Padding(
+                padding: const EdgeInsets.only(top: AppTokens.space3),
+                child: Text(
+                  '${FlutterI18n.translate(context, 'me.playContinue')} ›',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppTokens.defaultPalette.primary,
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
 }
 
-/// 左滑删除露出的背景：危险色底 + 删除图标/文字，靠右对齐。
-class _DeleteBackground extends StatelessWidget {
-  const _DeleteBackground();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTokens.danger,
-        borderRadius: BorderRadius.circular(AppTokens.radiusCard),
-      ),
-      alignment: Alignment.centerRight,
-      padding: const EdgeInsets.only(right: AppTokens.space4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          const Icon(Icons.delete_outline, color: Colors.white, size: 20),
-          const SizedBox(width: AppTokens.space1),
-          Text(
-            FlutterI18n.translate(context, 'me.delete'),
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// 16:9 封面占位：无图时用浅绿底 + 图标。
+/// 封面占位（设计稿统一 56×76 竖版槽）：无图时浅绿底 + 图标。
 class _Cover extends StatelessWidget {
   const _Cover({required this.url});
 
@@ -171,8 +329,8 @@ class _Cover extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const width = 120.0;
-    const height = width / AppTokens.coverRatioVideo;
+    const width = 56.0;
+    const height = 76.0;
     final radius = BorderRadius.circular(AppTokens.space2);
     if (url.isEmpty) {
       return Container(
@@ -184,7 +342,7 @@ class _Cover extends StatelessWidget {
         ),
         child: Icon(
           Icons.play_circle_outline,
-          size: 28,
+          size: 24,
           color: AppTokens.defaultPalette.primary,
         ),
       );

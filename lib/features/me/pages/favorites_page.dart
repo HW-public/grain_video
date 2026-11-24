@@ -8,24 +8,83 @@ import '../../../core/theme/tokens.dart';
 import '../../../core/widgets/cached_image.dart';
 import '../../../core/widgets/async_view.dart';
 import '../../../data/db/database.dart';
+import '../../../data/db/repositories.dart';
 import '../utils/date_format.dart';
 import '../providers/me_providers.dart';
 import '../widgets/me_empty_state.dart';
 
-/// 我的收藏列表：2:3 封面行 + 空态（「状态-空态」帧范式）。
-///
-/// 点击跳详情（src/url 参数为假定契约，待详情页定稿对齐）。
-class FavoritesPage extends ConsumerWidget {
+/// 我的收藏列表，按 Figma 帧 233:1264「我的-收藏」还原：
+/// 副标题计数 + 封面行（来源/收藏时间/⋮）+ 编辑多选删除 + 本机保存页脚。
+class FavoritesPage extends ConsumerStatefulWidget {
   const FavoritesPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<FavoritesPage> createState() => _FavoritesPageState();
+}
+
+class _FavoritesPageState extends ConsumerState<FavoritesPage> {
+  /// 编辑模式与选中集合（按 bangumiUrl 去重键）。
+  var _editMode = false;
+  final _selected = <String>{};
+
+  void _toggleEdit() {
+    setState(() {
+      _editMode = !_editMode;
+      _selected.clear();
+    });
+  }
+
+  Future<void> _removeSelected(List<Favorite> items) async {
+    final repo = ref.read(favoritesRepositoryProvider);
+    final targets = items
+        .where((e) => _selected.contains(e.bangumiUrl))
+        .toList();
+    for (final item in targets) {
+      await repo.toggle(
+        sourcePackage: item.sourcePackage,
+        bangumiUrl: item.bangumiUrl,
+        title: item.title,
+        cover: item.cover,
+      );
+    }
+    ref.invalidate(favoritesListProvider);
+    _toggleEdit();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final favorites = ref.watch(favoritesListProvider);
     return Scaffold(
       backgroundColor: AppTokens.defaultPalette.pageBg,
       appBar: AppBar(
         title: Text(FlutterI18n.translate(context, 'me.favoritesTitle')),
+        actions: [
+          favorites.maybeWhen(
+            data: (items) => items.isEmpty
+                ? const SizedBox.shrink()
+                : TextButton(
+                    onPressed: _toggleEdit,
+                    child: Text(
+                      FlutterI18n.translate(
+                        context,
+                        _editMode ? 'me.done' : 'me.edit',
+                      ),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppTokens.defaultPalette.primary,
+                      ),
+                    ),
+                  ),
+            orElse: () => const SizedBox.shrink(),
+          ),
+        ],
       ),
+      bottomNavigationBar: _editMode && _selected.isNotEmpty
+          ? _DeleteBar(
+              count: _selected.length,
+              onDelete: () => favorites.whenData(_removeSelected),
+            )
+          : null,
       body: AsyncView(
         value: favorites,
         builder: (context, items) {
@@ -36,15 +95,69 @@ class FavoritesPage extends ConsumerWidget {
               hint: FlutterI18n.translate(context, 'me.emptyFavoritesHint'),
             );
           }
-          return ListView.separated(
-            padding: const EdgeInsets.all(AppTokens.space4),
-            itemCount: items.length,
-            separatorBuilder: (_, _) =>
-                const SizedBox(height: AppTokens.space3),
-            itemBuilder: (context, index) => _FavoriteItem(
-              item: items[index],
-              onTap: () => _openDetail(context, items[index]),
+          return ListView(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppTokens.space4,
+              vertical: AppTokens.space2,
             ),
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: AppTokens.space1,
+                  bottom: AppTokens.space2,
+                ),
+                child: Text(
+                  FlutterI18n.translate(
+                    context,
+                    'me.totalFavorites',
+                    translationParams: {'count': '${items.length}'},
+                  ),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppTokens.textSecondary,
+                  ),
+                ),
+              ),
+              for (final item in items)
+                _FavoriteItem(
+                  item: item,
+                  editMode: _editMode,
+                  selected: _selected.contains(item.bangumiUrl),
+                  onTap: () {
+                    if (_editMode) {
+                      setState(() {
+                        if (!_selected.remove(item.bangumiUrl)) {
+                          _selected.add(item.bangumiUrl);
+                        }
+                      });
+                    } else {
+                      _openDetail(context, item);
+                    }
+                  },
+                  onRemove: () async {
+                    await ref
+                        .read(favoritesRepositoryProvider)
+                        .toggle(
+                          sourcePackage: item.sourcePackage,
+                          bangumiUrl: item.bangumiUrl,
+                          title: item.title,
+                          cover: item.cover,
+                        );
+                    ref.invalidate(favoritesListProvider);
+                  },
+                ),
+              const SizedBox(height: AppTokens.space6),
+              Padding(
+                padding: const EdgeInsets.only(left: AppTokens.space1),
+                child: Text(
+                  FlutterI18n.translate(context, 'me.onlyLocalFavorites'),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppTokens.textSecondary,
+                  ),
+                ),
+              ),
+            ],
           );
         },
       ),
@@ -59,55 +172,132 @@ class FavoritesPage extends ConsumerWidget {
   }
 }
 
+/// 编辑模式下底部的删除条。
+class _DeleteBar extends StatelessWidget {
+  const _DeleteBar({required this.count, required this.onDelete});
+
+  final int count;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(AppTokens.space4),
+        child: FilledButton(
+          style: FilledButton.styleFrom(
+            backgroundColor: AppTokens.danger,
+            minimumSize: const Size.fromHeight(44),
+          ),
+          onPressed: onDelete,
+          child: Text(
+            FlutterI18n.translate(
+              context,
+              'me.deleteSelected',
+              translationParams: {'count': '$count'},
+            ),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _FavoriteItem extends StatelessWidget {
-  const _FavoriteItem({required this.item, required this.onTap});
+  const _FavoriteItem({
+    required this.item,
+    required this.editMode,
+    required this.selected,
+    required this.onTap,
+    required this.onRemove,
+  });
 
   final Favorite item;
+  final bool editMode;
+  final bool selected;
   final VoidCallback onTap;
+  final VoidCallback onRemove;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(AppTokens.radiusCard),
       onTap: onTap,
-      child: Row(
-        children: [
-          _Poster(url: item.cover),
-          const SizedBox(width: AppTokens.space3),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppTokens.textPrimary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppTokens.space2),
+        child: Row(
+          children: [
+            if (editMode)
+              Padding(
+                padding: const EdgeInsets.only(right: AppTokens.space2),
+                child: Icon(
+                  selected ? Icons.check_circle : Icons.radio_button_unchecked,
+                  size: 22,
+                  color: selected
+                      ? AppTokens.defaultPalette.primary
+                      : AppTokens.textTertiary,
                 ),
-                const SizedBox(height: AppTokens.space1),
-                Text(
-                  '${FlutterI18n.translate(context, 'me.favoritedAt')}'
-                  ' ${formatMeDate(item.createdAt)}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppTokens.textSecondary,
+              ),
+            _Poster(url: item.cover),
+            const SizedBox(width: AppTokens.space3),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.title,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppTokens.textPrimary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+                  const SizedBox(height: AppTokens.space1),
+                  Text(
+                    item.sourcePackage,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppTokens.textSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: AppTokens.space1),
+                  Text(
+                    '${FlutterI18n.translate(context, 'me.favoritedAt')} '
+                    '${formatMeDate(item.createdAt)}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppTokens.textSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
-          ),
-          const Icon(
-            Icons.chevron_right,
-            size: 18,
-            color: AppTokens.textTertiary,
-          ),
-        ],
+            if (!editMode)
+              PopupMenuButton<String>(
+                icon: const Icon(
+                  Icons.more_vert,
+                  size: 20,
+                  color: AppTokens.textTertiary,
+                ),
+                onSelected: (_) => onRemove(),
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'remove',
+                    child: Text(
+                      FlutterI18n.translate(context, 'me.removeFavorite'),
+                    ),
+                  ),
+                ],
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -121,8 +311,8 @@ class _Poster extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const width = 64.0;
-    const height = width / AppTokens.coverRatioComic;
+    const width = 56.0;
+    const height = 76.0;
     final radius = BorderRadius.circular(AppTokens.space2);
     if (url.isEmpty) {
       return Container(

@@ -12,7 +12,7 @@ import 'features/search/routes.dart';
 ///
 /// home / search / me 三个一级页包在 [StatefulShellRoute] 里共用
 /// [HeHeAppShell]（单个 Scaffold + 底部导航，切换不跳动）；
-/// 详情 / 播放器 / 扩展管理 为压栈二级页。
+/// 详情 / 播放器 / 扩展管理 / 「我的」全部二级页为压栈页，无底部导航。
 GoRouter buildAppRouter({String? initialLocation}) => GoRouter(
   initialLocation: initialLocation,
   routes: [
@@ -29,6 +29,7 @@ GoRouter buildAppRouter({String? initialLocation}) => GoRouter(
     ...detailRoutes,
     ...playerRoutes,
     ...extensionsRoutes,
+    ...meSubRoutes,
   ],
 );
 

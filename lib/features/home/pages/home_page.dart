@@ -9,7 +9,6 @@ import '../../../core/widgets/async_view.dart';
 import '../../../extension/plugin_manager.dart';
 import '../providers/home_providers.dart';
 import '../widgets/continue_watching_section.dart';
-import '../widgets/follow_alert_section.dart';
 import '../widgets/merged_latest_section.dart';
 
 /// 首页（设计稿「首页」4:31，无 AppBar）：
@@ -44,8 +43,8 @@ class HomePage extends ConsumerWidget {
             bottom: AppTokens.space6,
           ),
           children: [
+            // 用户拍板（2026-11-24）：追更提醒并入继续观看轮播（徽标形态），不再单列。
             const ContinueWatchingSection(),
-            const FollowAlertSection(),
             if (plugins.isEmpty)
               const _NoPlugins()
             else

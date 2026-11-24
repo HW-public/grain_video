@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/routes.dart';
 import '../../../core/theme/tokens.dart';
+import '../../../core/widgets/cached_image.dart';
 import '../../../data/db/database.dart';
 import '../providers/home_providers.dart';
 import 'section_header.dart';
@@ -24,7 +25,8 @@ class ContinueWatchingSection extends ConsumerStatefulWidget {
 class _ContinueWatchingSectionState
     extends ConsumerState<ContinueWatchingSection> {
   static const double _cardHeight = 184;
-  static const int _maxPages = 5;
+  // 用户拍板（2026-11-24）：收窄到 3，预览性质不占屏。
+  static const int _maxPages = 3;
 
   final PageController _controller = PageController();
   int _page = 0;
@@ -38,9 +40,14 @@ class _ContinueWatchingSectionState
   @override
   Widget build(BuildContext context) {
     final value = ref.watch(recentWatchProvider);
+    final follows = ref.watch(followsProvider).value ?? const <Follow>[];
+    // 有更新的追番：总集数 > 已看到集数。
+    final updated = follows
+        .where((f) => f.totalEpisode > 0 && f.totalEpisode > f.currentEpisode)
+        .toList();
     return value.when(
-      data: (items) {
-        final heroItems = items.take(_maxPages).toList();
+      data: (history) {
+        final heroItems = _compose(history, updated);
         if (heroItems.isEmpty) {
           return const Padding(
             padding: EdgeInsets.symmetric(horizontal: AppTokens.space4),
@@ -75,12 +82,84 @@ class _ContinueWatchingSectionState
       ),
     );
   }
+
+  /// 轮播合成（用户拍板 2026-11-24：追更并入轮播，不再单列）：
+  /// 1) 观看历史（前 [_maxPages]），有更新的带徽标；
+  /// 2) 追了但没进历史（或历史被截断）的更新番补位。
+  List<_HeroItem> _compose(List<WatchHistory> history, List<Follow> updated) {
+    final items = <_HeroItem>[];
+    final byKey = <String, Follow>{
+      for (final f in updated) '${f.sourcePackage}|${f.bangumiUrl}': f,
+    };
+    for (final h in history.take(_maxPages)) {
+      final f = byKey.remove('${h.sourcePackage}|${h.bangumiUrl}');
+      items.add(
+        _HeroItem(
+          title: h.title,
+          cover: h.cover,
+          episodeTitle: h.episodeTitle,
+          bangumiUrl: h.bangumiUrl,
+          sourcePackage: h.sourcePackage,
+          positionMs: h.positionMs,
+          durationMs: h.durationMs,
+          hasUpdate: f != null,
+          latestEpisode: f?.totalEpisode ?? 0,
+        ),
+      );
+    }
+    for (final f in byKey.values) {
+      if (items.length >= _maxPages) break;
+      items.add(
+        _HeroItem(
+          title: f.title,
+          cover: f.cover,
+          episodeTitle: '',
+          bangumiUrl: f.bangumiUrl,
+          sourcePackage: f.sourcePackage,
+          positionMs: 0,
+          durationMs: 0,
+          hasUpdate: true,
+          latestEpisode: f.totalEpisode,
+        ),
+      );
+    }
+    return items;
+  }
+}
+
+/// 轮播卡视图模型：观看历史与追番补位共用。
+class _HeroItem {
+  const _HeroItem({
+    required this.title,
+    required this.cover,
+    required this.episodeTitle,
+    required this.bangumiUrl,
+    required this.sourcePackage,
+    required this.positionMs,
+    required this.durationMs,
+    required this.hasUpdate,
+    required this.latestEpisode,
+  });
+
+  final String title;
+  final String cover;
+  final String episodeTitle;
+  final String bangumiUrl;
+  final String sourcePackage;
+  final int positionMs;
+  final int durationMs;
+
+  /// 追更有更新（徽标）。
+  final bool hasUpdate;
+
+  /// 更新到的集数（徽标文案）。
+  final int latestEpisode;
 }
 
 class _HeroCard extends StatelessWidget {
   const _HeroCard({required this.item});
 
-  final WatchHistory item;
+  final _HeroItem item;
 
   // 白色透明度（帧规格）：标签 95%、副文案 92%、进度轨道 30%。
   static const _white92 = Color(0xEBFFFFFF);
@@ -109,14 +188,44 @@ class _HeroCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(24),
           ),
           child: Stack(
+            fit: StackFit.expand,
             children: [
+              // 用户拍板（2026-11-23）：hero 放影片封面图；无图回退纯色主色。
+              // 全幅铺图 + 底部渐变压暗，保证文字/播放钮可读。
+              if (item.cover.isNotEmpty)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: CachedImage(url: item.cover, fit: BoxFit.cover),
+                ),
+              if (item.cover.isNotEmpty)
+                const DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.vertical(
+                      bottom: Radius.circular(24),
+                    ),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.transparent, Color(0x99000000)],
+                    ),
+                  ),
+                ),
               // 标签 (18,94)：10/600 白95%，纯文字无底。
               // 纵向位置为用户拍板（2026-11-20）：内容靠下底留20，
               // 帧原值在中偏上（顶42），下方留白72。
               Positioned(
                 left: 18,
                 top: 94,
-                child: _ContinueChip(episodeTitle: item.episodeTitle),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _ContinueChip(episodeTitle: item.episodeTitle),
+                    if (item.hasUpdate) ...[
+                      const SizedBox(width: 6),
+                      const _UpdateBadge(),
+                    ],
+                  ],
+                ),
               ),
               // 标题 (18,112)：19/700 白。
               Positioned(
@@ -245,6 +354,32 @@ class _EmptyHeroCard extends StatelessWidget {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 「更新至第N集」橙色徽标（追更并入轮播的用户拍板形态）。
+class _UpdateBadge extends ConsumerWidget {
+  const _UpdateBadge();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // 所属卡片已带 latestEpisode，文案经具名参数传入太绕——
+    // 徽标只画样式，文案由父级负责注入。
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: AppTokens.mint.secondary,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        FlutterI18n.translate(context, 'home.updateBadge'),
+        style: const TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
         ),
       ),
     );

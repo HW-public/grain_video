@@ -7,13 +7,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:grain_video/core/theme/app_theme.dart';
 import 'package:grain_video/core/theme/tokens.dart';
 import 'package:grain_video/core/widgets/app_bottom_nav.dart';
-import 'package:grain_video/core/widgets/async_view.dart';
 import 'package:grain_video/data/db/database.dart';
 import 'package:grain_video/data/db/repositories.dart';
 import 'package:grain_video/features/me/pages/appearance_page.dart';
 import 'package:grain_video/features/me/pages/cache_clear_page.dart';
 import 'package:grain_video/features/me/pages/me_page.dart';
 import 'package:grain_video/features/me/pages/settings_page.dart';
+import 'package:grain_video/features/me/pages/watch_history_page.dart';
 import 'package:grain_video/features/me/routes.dart';
 import 'package:grain_video/features/me/widgets/me_list_row.dart';
 import 'package:grain_video/features/me/widgets/theme_preview_card.dart';
@@ -103,21 +103,21 @@ void main() {
     expect(scaffold.backgroundColor, AppTokens.defaultPalette.pageBg);
   });
 
-  testWidgets('tapping 历史 tab shows inline history grid empty state', (
-    tester,
-  ) async {
+  testWidgets('tapping 历史 entry card opens watch history page', (tester) async {
     await tester.pumpWidget(_buildApp(initialLocation: MeRoutes.page));
     await tester.pumpAndSettle();
 
-    // 新结构：历史是分段器 tab，网格内嵌展示（不再跳独立页）。
+    // 新结构（帧 223:28~30）：三格入口卡点击进独立列表页（帧内不再嵌预览）。
     await tester.tap(find.text('历史'));
     await tester.pumpAndSettle();
 
-    expect(find.byType(EmptyState), findsOneWidget);
+    expect(find.byType(WatchHistoryPage), findsOneWidget);
+    // 二级页与扩展管理同待遇：压栈全屏，无底部导航。
+    expect(find.byType(AppBottomNav), findsNothing);
     expect(
       find.text(
         FlutterI18n.translate(
-          tester.element(find.byType(MePage)),
+          tester.element(find.byType(WatchHistoryPage)),
           'me.emptyHistoryTitle',
         ),
       ),

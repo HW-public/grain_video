@@ -12,3 +12,6 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+
+# Gradle 构建产物（诊断报告/中间产物/kotlin 缓存）
+/build/

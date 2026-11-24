@@ -29,6 +29,12 @@ class WatchHistoryListNotifier extends AsyncNotifier<List<WatchHistory>> {
       () => ref.read(watchHistoryRepositoryProvider).recent(),
     );
   }
+
+  /// 清空全部历史（确认对话框后调用）。
+  Future<void> clearAll() async {
+    await ref.read(watchHistoryRepositoryProvider).clear();
+    state = const AsyncData(<WatchHistory>[]);
+  }
 }
 
 final watchHistoryListProvider =
