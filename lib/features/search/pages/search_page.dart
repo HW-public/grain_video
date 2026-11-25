@@ -411,13 +411,16 @@ class _ResultView extends ConsumerWidget {
                         final cardWidth =
                             (constraints.maxWidth - padding * 2 - columnGap) /
                             2;
-                        // 卡高 = 16:9 封面 + 卡→标题4 + 标题18 + 2 + 副标15。
+                        // 卡高 = 16:9 封面 + 卡→标题6 + 标题18 + 2 + 副标15。
+                        // 文字行高随系统/应用字号缩放，预算同步乘 textScaler，
+                        // 否则大字号下 Column 溢出（真机抓包修复）。
+                        final scaler = MediaQuery.textScalerOf(context);
                         final cardHeight =
                             cardWidth / AppTokens.coverRatioVideo +
-                            4 +
-                            18 +
+                            6 +
+                            scaler.scale(18.0) +
                             2 +
-                            15;
+                            scaler.scale(15.0);
                         return GridView.builder(
                           padding: const EdgeInsets.fromLTRB(
                             padding,
