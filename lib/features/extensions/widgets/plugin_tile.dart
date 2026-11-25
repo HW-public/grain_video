@@ -50,8 +50,9 @@ class PluginTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pending = release;
+    final cs = Theme.of(context).colorScheme;
     return Material(
-      color: AppTokens.surface,
+      color: cs.surface,
       borderRadius: BorderRadius.circular(AppTokens.radiusCard),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -64,11 +65,7 @@ class PluginTile extends StatelessWidget {
               SizedBox(
                 width: 36,
                 height: 36,
-                child: Icon(
-                  _iconFor(entry),
-                  size: 28,
-                  color: AppTokens.textPrimary,
-                ),
+                child: Icon(_iconFor(entry), size: 28, color: cs.onSurface),
               ),
               const SizedBox(width: AppTokens.space3),
               Expanded(
@@ -78,10 +75,10 @@ class PluginTile extends StatelessWidget {
                   children: [
                     Text(
                       entry.info.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: AppTokens.textPrimary,
+                        color: cs.onSurface,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -89,9 +86,9 @@ class PluginTile extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       entry.info.package,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: AppTokens.textSecondary,
+                        color: cs.onSurface.withValues(alpha: 0.65),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -111,8 +108,8 @@ class PluginTile extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 11,
                         color: pending == null
-                            ? AppTokens.textSecondary
-                            : AppTokens.defaultPalette.primary,
+                            ? cs.onSurface.withValues(alpha: 0.65)
+                            : cs.primary,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -123,11 +120,8 @@ class PluginTile extends StatelessWidget {
               if (pending != null)
                 OutlinedButton(
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppTokens.defaultPalette.primary,
-                    side: BorderSide(
-                      color: AppTokens.defaultPalette.primary,
-                      width: 1,
-                    ),
+                    foregroundColor: cs.primary,
+                    side: BorderSide(color: cs.primary, width: 1),
                     minimumSize: const Size(64, 32),
                     padding: const EdgeInsets.symmetric(
                       horizontal: AppTokens.space3,

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:grain_video/app.dart';
 import 'package:grain_video/core/routes.dart';
-import 'package:grain_video/core/theme/tokens.dart';
+import 'package:grain_video/core/theme/app_theme.dart';
 import 'package:grain_video/core/widgets/async_view.dart';
 import 'package:grain_video/features/extensions/pages/extensions_page.dart';
 import 'package:grain_video/features/home/pages/home_page.dart';
@@ -36,7 +36,12 @@ void main() {
         matching: find.byType(Scaffold),
       ),
     );
-    expect(scaffold.backgroundColor, AppTokens.defaultPalette.pageBg);
+    // 页面不再硬编码底色，生效值来自主题（默认亮色）。
+    final pageContext = tester.element(find.byType(ExtensionsPage));
+    expect(
+      scaffold.backgroundColor ?? Theme.of(pageContext).scaffoldBackgroundColor,
+      AppTheme.light().scaffoldBackgroundColor,
+    );
     // 首页无插件时也用 EmptyState（go_router 叠放仍在树中），锚定到 ExtensionsPage。
     expect(
       find.descendant(

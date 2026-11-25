@@ -34,7 +34,10 @@ class SearchInputBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = Theme.of(context).colorScheme.primary;
+    final cs = Theme.of(context).colorScheme;
+    final primary = cs.primary;
+    final weakColor = cs.onSurface.withValues(alpha: 0.45);
+    final subColor = cs.onSurface.withValues(alpha: 0.65);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -46,16 +49,16 @@ class SearchInputBar extends StatelessWidget {
       child: Container(
         height: 44,
         decoration: BoxDecoration(
-          color: AppTokens.surface,
+          color: cs.surface,
           borderRadius: BorderRadius.circular(22),
         ),
         child: Row(
           children: [
-            const Padding(
-              padding: EdgeInsets.only(left: AppTokens.space4),
+            Padding(
+              padding: const EdgeInsets.only(left: AppTokens.space4),
               child: Text(
                 '🔍',
-                style: TextStyle(fontSize: 14, color: AppTokens.textTertiary),
+                style: TextStyle(fontSize: 14, color: weakColor),
               ),
             ),
             Expanded(
@@ -67,10 +70,10 @@ class SearchInputBar extends StatelessWidget {
                 textInputAction: TextInputAction.search,
                 onChanged: onChanged,
                 onSubmitted: onSubmitted,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w400,
-                  color: AppTokens.textSecondary,
+                  color: subColor,
                 ),
                 cursorColor: primary,
                 cursorWidth: 2,
@@ -80,10 +83,10 @@ class SearchInputBar extends StatelessWidget {
                     horizontal: AppTokens.space2,
                   ),
                   hintText: hint,
-                  hintStyle: const TextStyle(
+                  hintStyle: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w400,
-                    color: AppTokens.textSecondary,
+                    color: subColor,
                   ),
                   border: InputBorder.none,
                 ),
@@ -102,11 +105,7 @@ class SearchInputBar extends StatelessWidget {
                       onChanged?.call('');
                       onClear?.call();
                     },
-                    child: const Icon(
-                      Icons.cancel,
-                      size: 16,
-                      color: AppTokens.textTertiary,
-                    ),
+                    child: Icon(Icons.cancel, size: 16, color: weakColor),
                   ),
                 );
               },

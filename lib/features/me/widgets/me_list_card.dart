@@ -13,22 +13,19 @@ class MeListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dividerColor = Theme.of(context).dividerColor.withValues(alpha: 0.5);
     return Container(
       decoration: BoxDecoration(
-        color: AppTokens.surface,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppTokens.radiusCard),
-        border: Border.all(color: AppTokens.divider.withValues(alpha: 0.5)),
+        border: Border.all(color: dividerColor),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           for (var i = 0; i < children.length; i++) ...[
-            if (i > 0)
-              Container(
-                height: 1,
-                color: AppTokens.divider.withValues(alpha: 0.5),
-              ),
+            if (i > 0) Container(height: 1, color: dividerColor),
             children[i],
           ],
         ],

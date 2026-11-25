@@ -32,9 +32,9 @@ class HomePage extends ConsumerWidget {
     final plugins = ref.watch(pluginManagerProvider);
 
     return Scaffold(
-      backgroundColor: AppTokens.defaultPalette.pageBg,
+      // 页面底交给主题 scaffoldBackgroundColor（亮=pageBg / 暗=darkBg）。
       body: RefreshIndicator(
-        color: AppTokens.mint.primary,
+        color: Theme.of(context).colorScheme.primary,
         onRefresh: () => _refresh(ref),
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),

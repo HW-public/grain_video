@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/routes.dart';
+import '../../../core/settings/app_settings.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/cache/app_image_cache.dart';
 import '../../../extension/plugin_manager.dart';
@@ -24,7 +25,7 @@ class MePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: AppTokens.defaultPalette.pageBg,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: ListView(
           // 帧：头像 y60 = 状态栏 44 + 16；左右 16。
@@ -54,22 +55,20 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Row(
       children: [
         Container(
           width: 56,
           height: 56,
           alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: AppTokens.defaultPalette.primary,
-            shape: BoxShape.circle,
-          ),
-          child: const Text(
+          decoration: BoxDecoration(color: cs.primary, shape: BoxShape.circle),
+          child: Text(
             '禾',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: Colors.white,
+              color: cs.onPrimary,
             ),
           ),
         ),
@@ -79,18 +78,18 @@ class _Header extends StatelessWidget {
           children: [
             Text(
               FlutterI18n.translate(context, 'me.headerName'),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
-                color: AppTokens.textPrimary,
+                color: cs.onSurface,
               ),
             ),
             const SizedBox(height: 3),
             Text(
               FlutterI18n.translate(context, 'me.headerSubtitle'),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: AppTokens.textTertiary,
+                color: cs.onSurface.withValues(alpha: 0.45),
               ),
             ),
           ],
@@ -163,8 +162,9 @@ class _EntryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Material(
-      color: AppTokens.surface,
+      color: cs.surface,
       borderRadius: BorderRadius.circular(AppTokens.radiusCard),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -174,22 +174,22 @@ class _EntryCard extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 18, color: AppTokens.textPrimary),
+              Icon(icon, size: 18, color: cs.onSurface),
               const SizedBox(height: 4),
               Text(
                 name,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: AppTokens.textPrimary,
+                  color: cs.onSurface,
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 '$count ›',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
-                  color: AppTokens.textTertiary,
+                  color: cs.onSurface.withValues(alpha: 0.45),
                 ),
               ),
             ],
@@ -239,10 +239,11 @@ class _SettingsCard extends ConsumerWidget {
       _SettingsRowData(
         icon: Icons.color_lens_outlined,
         labelKey: 'me.appearanceTitle',
+        // 跟随当前所选色板（换肤后右侧值即时更新）。
         value: FlutterI18n.translate(
           context,
           'me.appearanceValue',
-          translationParams: {'name': AppTokens.defaultPalette.name},
+          translationParams: {'name': ref.watch(paletteProvider).name},
         ),
         onTap: () => context.push(MeRoutes.settingsAppearance),
       ),
@@ -271,7 +272,7 @@ class _SettingsCard extends ConsumerWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppTokens.surface,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
       ),
       clipBehavior: Clip.antiAlias,
@@ -284,7 +285,10 @@ class _SettingsCard extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppTokens.space4,
                 ),
-                child: Container(height: 1, color: AppTokens.divider),
+                child: Container(
+                  height: 1,
+                  color: Theme.of(context).dividerColor,
+                ),
               ),
             _SettingsRow(data: rows[i]),
           ],
@@ -315,6 +319,7 @@ class _SettingsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return InkWell(
       onTap: data.onTap,
       child: SizedBox(
@@ -323,15 +328,15 @@ class _SettingsRow extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: AppTokens.space4),
           child: Row(
             children: [
-              Icon(data.icon, size: 18, color: AppTokens.textPrimary),
+              Icon(data.icon, size: 18, color: cs.onSurface),
               const SizedBox(width: AppTokens.space3),
               Expanded(
                 child: Text(
                   FlutterI18n.translate(context, data.labelKey),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w400,
-                    color: AppTokens.textPrimary,
+                    color: cs.onSurface,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -342,19 +347,19 @@ class _SettingsRow extends StatelessWidget {
                   flex: 0,
                   child: Text(
                     data.value!,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: AppTokens.textTertiary,
+                      color: cs.onSurface.withValues(alpha: 0.45),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
               const SizedBox(width: AppTokens.space1),
-              const Icon(
+              Icon(
                 Icons.chevron_right,
                 size: 18,
-                color: AppTokens.textTertiary,
+                color: cs.onSurface.withValues(alpha: 0.45),
               ),
             ],
           ),

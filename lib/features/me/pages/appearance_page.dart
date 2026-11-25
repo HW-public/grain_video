@@ -1,145 +1,331 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/settings/app_settings.dart';
 import '../../../core/theme/tokens.dart';
 import '../widgets/me_list_card.dart';
 import '../widgets/theme_preview_card.dart';
 
-/// 设置-外观页（设计稿 27:211）：主题色三卡（粉橘/珊瑚橙/薄荷绿）
-/// + 显示模式三行（亮色/暗色/跟随系统），只读展示当前默认
-/// （薄荷绿 + 亮色）；换肤与暗色交互后续版本开放。
-class AppearancePage extends StatelessWidget {
+/// 设置-外观页（Figma 27:211 改版）：
+/// 主题色三卡（薄荷绿默认激活，点击换肤）→ 显示模式三缩略卡
+/// （亮色/暗夜/跟随系统，点击切换 ThemeMode）→ 界面区
+/// （字号滑条四档 + 圆角三 chips），全部持久化并即时生效。
+class AppearancePage extends ConsumerWidget {
   const AppearancePage({super.key});
 
-  static const _palettes = [AppTokens.sakura, AppTokens.coral, AppTokens.mint];
+  static const _palettes = [AppTokens.mint, AppTokens.sakura, AppTokens.coral];
 
   static const _modes = [
-    (icon: Icons.wb_sunny_outlined, key: 'me.modeLight', recommended: true),
-    (icon: Icons.dark_mode_outlined, key: 'me.modeDark', recommended: false),
-    (icon: Icons.monitor_outlined, key: 'me.modeSystem', recommended: false),
+    (mode: ThemeMode.light, icon: Icons.wb_sunny_outlined, key: 'me.modeLight'),
+    (mode: ThemeMode.dark, icon: Icons.dark_mode_outlined, key: 'me.modeDark'),
+    (
+      mode: ThemeMode.system,
+      icon: Icons.monitor_outlined,
+      key: 'me.modeSystem',
+    ),
+  ];
+
+  static const _radiusStyles = [
+    (value: 'standard', key: 'me.radiusStandard'),
+    (value: 'round', key: 'me.radiusRound'),
+    (value: 'sharp', key: 'me.radiusSharp'),
   ];
 
   @override
-  Widget build(BuildContext context) {
-    // AppPalette 字段为 final 非 const，const 上下文不可访问，提升为局部变量。
-    final primaryColor = AppTokens.defaultPalette.primary;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final palette = ref.watch(paletteProvider);
+    final mode = ref.watch(themeModeProvider);
+    final fontIndex = ref.watch(fontScaleProvider);
+    final radius = ref.watch(radiusStyleProvider);
+    final cs = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: AppTokens.defaultPalette.pageBg,
       appBar: AppBar(
         title: Text(FlutterI18n.translate(context, 'me.appearanceTitle')),
-        actions: [
-          // 顶栏右侧主题指示圆点（设计稿同款）。
-          Padding(
-            padding: const EdgeInsets.only(right: AppTokens.space4),
-            child: Center(
-              child: Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
-                  color: primaryColor,
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(AppTokens.space4),
         children: [
-          _sectionTitle(FlutterI18n.translate(context, 'me.themeSection')),
+          _sectionTitle(
+            context,
+            FlutterI18n.translate(context, 'me.themeSection'),
+          ),
           const SizedBox(height: AppTokens.space3),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               for (var i = 0; i < _palettes.length; i++) ...[
                 if (i > 0) const SizedBox(width: AppTokens.space3),
                 Expanded(
-                  child: ThemePreviewCard(
-                    palette: _palettes[i],
-                    selected:
-                        _palettes[i].name == AppTokens.defaultPalette.name,
+                  child: Stack(
+                    children: [
+                      ThemePreviewCard(
+                        palette: _palettes[i],
+                        selected: _palettes[i].name == palette.name,
+                        onTap: () => ref
+                            .read(paletteProvider.notifier)
+                            .select(_palettes[i]),
+                      ),
+                      if (_palettes[i].name == palette.name)
+                        Positioned(
+                          top: AppTokens.space2,
+                          right: AppTokens.space2,
+                          child: UsingBadge(color: _palettes[i].primary),
+                        ),
+                    ],
                   ),
                 ),
               ],
             ],
           ),
           const SizedBox(height: AppTokens.space6),
-          _sectionTitle(FlutterI18n.translate(context, 'me.modeSection')),
+          _sectionTitle(
+            context,
+            FlutterI18n.translate(context, 'me.modeSection'),
+          ),
+          const SizedBox(height: AppTokens.space3),
+          Row(
+            children: [
+              for (var i = 0; i < _modes.length; i++) ...[
+                if (i > 0) const SizedBox(width: AppTokens.space3),
+                Expanded(
+                  child: _ModeCard(
+                    icon: _modes[i].icon,
+                    label: FlutterI18n.translate(context, _modes[i].key),
+                    selected: mode == _modes[i].mode,
+                    onTap: () => ref
+                        .read(themeModeProvider.notifier)
+                        .select(_modes[i].mode),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: AppTokens.space6),
+          _sectionTitle(
+            context,
+            FlutterI18n.translate(context, 'me.uiSection'),
+          ),
           const SizedBox(height: AppTokens.space3),
           MeListCard(
             children: [
-              for (final mode in _modes)
-                _ModeRow(
-                  icon: mode.icon,
-                  label: FlutterI18n.translate(context, mode.key),
-                  recommended: mode.recommended,
-                  selected: mode.recommended,
+              // 字号：四档滑条（小/标准/大/特大），全局 textScaler 即时生效。
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppTokens.space4,
+                  AppTokens.space3,
+                  AppTokens.space4,
+                  AppTokens.space2,
                 ),
+                child: Row(
+                  children: [
+                    Text(
+                      FlutterI18n.translate(context, 'me.fontSize'),
+                      style: TextStyle(fontSize: 14, color: cs.onSurface),
+                    ),
+                    Expanded(
+                      child: Slider(
+                        value: fontIndex.toDouble().clamp(
+                          0,
+                          AppSettings.fontScaleValues.length - 1.0,
+                        ),
+                        min: 0,
+                        max: (AppSettings.fontScaleValues.length - 1)
+                            .toDouble(),
+                        divisions: AppSettings.fontScaleValues.length - 1,
+                        activeColor: palette.primary,
+                        onChanged: (value) => ref
+                            .read(fontScaleProvider.notifier)
+                            .select(value.round()),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // 圆角：三 chips；持久化已接入，全局圆角受 const token 限制暂不变体。
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppTokens.space4,
+                  0,
+                  AppTokens.space4,
+                  AppTokens.space3,
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      FlutterI18n.translate(context, 'me.radius'),
+                      style: TextStyle(fontSize: 14, color: cs.onSurface),
+                    ),
+                    const Spacer(),
+                    for (final style in _radiusStyles)
+                      Padding(
+                        padding: const EdgeInsets.only(left: AppTokens.space2),
+                        child: _RadiusChip(
+                          label: FlutterI18n.translate(context, style.key),
+                          selected: radius == style.value,
+                          color: palette.primary,
+                          onTap: () => ref
+                              .read(radiusStyleProvider.notifier)
+                              .select(style.value),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
             ],
           ),
           const SizedBox(height: AppTokens.space6),
           Text(
             FlutterI18n.translate(context, 'me.appearanceHint'),
-            style: const TextStyle(fontSize: 12, color: AppTokens.textTertiary),
+            style: TextStyle(
+              fontSize: 12,
+              color: cs.onSurface.withValues(alpha: 0.45),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _sectionTitle(String text) {
+  Widget _sectionTitle(BuildContext context, String text) {
     return Text(
       text,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 15,
         fontWeight: FontWeight.w600,
-        color: AppTokens.textPrimary,
+        color: Theme.of(context).colorScheme.onSurface,
       ),
     );
   }
 }
 
-/// 显示模式行：图标 + 名称（+「推荐」标记），选中行名称主色加粗。
-class _ModeRow extends StatelessWidget {
-  const _ModeRow({
+/// 显示模式缩略卡（帧 227:1173~1189 范式）：图标 + 名称，
+/// 选中 2px 主色描边 + 右上对勾圆标。
+class _ModeCard extends StatelessWidget {
+  const _ModeCard({
     required this.icon,
     required this.label,
-    required this.recommended,
     required this.selected,
+    required this.onTap,
   });
 
   final IconData icon;
   final String label;
-  final bool recommended;
   final bool selected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final primary = AppTokens.defaultPalette.primary;
-    return SizedBox(
-      height: 52,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppTokens.space4),
-        child: Row(
-          children: [
-            Icon(icon, size: 20, color: primary),
-            const SizedBox(width: AppTokens.space3),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                color: selected ? primary : AppTokens.textPrimary,
-              ),
+    final cs = Theme.of(context).colorScheme;
+    final primary = cs.primary;
+    return Material(
+      color: cs.surface,
+      borderRadius: BorderRadius.circular(AppTokens.radiusCard),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          height: 96,
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: selected ? primary : Theme.of(context).dividerColor,
+              width: selected ? 2 : 1,
             ),
-            if (recommended) ...[
-              const SizedBox(width: AppTokens.space2),
-              Text(
-                FlutterI18n.translate(context, 'me.modeRecommended'),
-                style: TextStyle(fontSize: 12, color: primary),
+            borderRadius: BorderRadius.circular(AppTokens.radiusCard),
+          ),
+          child: Stack(
+            children: [
+              Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      icon,
+                      size: 28,
+                      color: selected
+                          ? primary
+                          : cs.onSurface.withValues(alpha: 0.65),
+                    ),
+                    const SizedBox(height: AppTokens.space2),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: selected
+                            ? FontWeight.w700
+                            : FontWeight.w500,
+                        color: selected ? primary : cs.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              if (selected)
+                Positioned(
+                  top: AppTokens.space2,
+                  right: AppTokens.space2,
+                  child: Container(
+                    width: 18,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      color: primary,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                    child: const Icon(
+                      Icons.check,
+                      size: 11,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
             ],
-          ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 圆角风格 chip（未选灰底、选中主色浅底主色字）。
+class _RadiusChip extends StatelessWidget {
+  const _RadiusChip({
+    required this.label,
+    required this.selected,
+    required this.color,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return InkWell(
+      borderRadius: BorderRadius.circular(AppTokens.radiusChip),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppTokens.space3,
+          vertical: AppTokens.space1,
+        ),
+        decoration: BoxDecoration(
+          color: selected
+              ? color.withValues(alpha: 0.15)
+              : cs.onSurface.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(AppTokens.radiusChip),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+            color: selected ? color : cs.onSurface.withValues(alpha: 0.65),
+          ),
         ),
       ),
     );

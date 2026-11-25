@@ -176,7 +176,16 @@
     "cachePreloadNote": "视频预加载为内存缓冲，随播放自动释放，无需手动清理。",
     "apkCache": "安装包缓存",
     "deleteHistoryTitle": "删除这条历史",
-    "deleteHistoryHint": "删除后不再保留这条观看进度。"
+    "deleteHistoryHint": "删除后不再保留这条观看进度。",
+    "using": "使用中",
+    "uiSection": "界面",
+    "fontSize": "字号",
+    "radius": "圆角",
+    "radiusStandard": "标准",
+    "radiusRound": "圆润",
+    "radiusSharp": "方正",
+    "cacheTotal": "缓存总量",
+    "cacheClearAll": "清理全部缓存"
   },
   "player": {
     "next": "下一集",

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/tokens.dart';
 
 /// 共享底部导航（设计稿「底部导航」帧 5:67）：首页 / 搜索 / 我的。
 ///
@@ -30,8 +29,8 @@ class AppBottomNav extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // 顶部 1px 分隔线（变量 3:27）。
-        const Divider(height: 1, color: AppTokens.divider),
+        // 顶部 1px 分隔线（跟随主题 dividerColor）。
+        Divider(height: 1, color: Theme.of(context).dividerColor),
         SizedBox(
           // 栏高为用户拍板（2026-11-20）：56，帧原值 72。
           height: 56,
@@ -76,6 +75,7 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return InkWell(
       onTap: onTap,
       child: TweenAnimationBuilder<double>(
@@ -85,13 +85,13 @@ class _NavItem extends StatelessWidget {
         curve: selected ? Curves.easeOut : Curves.easeIn,
         builder: (context, t, _) {
           final iconColor = Color.lerp(
-            AppTokens.textSecondary,
-            AppTokens.defaultPalette.primary,
+            cs.onSurface.withValues(alpha: 0.65),
+            cs.primary,
             t,
           )!;
           final labelColor = Color.lerp(
-            AppTokens.textSecondary,
-            AppTokens.textPrimary,
+            cs.onSurface.withValues(alpha: 0.65),
+            cs.onSurface,
             t,
           )!;
           // 回弹：选中时 icon 放大 15% 并带回弹曲线。

@@ -42,7 +42,7 @@ class MergedLatestSection extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: AppTokens.mint.primary,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
               ),

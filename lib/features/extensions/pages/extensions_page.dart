@@ -38,11 +38,10 @@ class _ExtensionsPageState extends ConsumerState<ExtensionsPage> {
     final entries = ref.watch(pluginManagerProvider);
     final pending = ref.watch(pendingUpdatesProvider);
     final controller = ref.watch(extensionsControllerProvider);
+    final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: AppTokens.defaultPalette.pageBg,
       appBar: AppBar(
-        backgroundColor: AppTokens.defaultPalette.pageBg,
         title: Text(FlutterI18n.translate(context, 'nav.extensions')),
         actions: [
           IconButton(
@@ -128,9 +127,9 @@ class _ExtensionsPageState extends ConsumerState<ExtensionsPage> {
                   ),
                   child: Text(
                     FlutterI18n.translate(context, 'extensions.swipeToDelete'),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppTokens.textSecondary,
+                      color: cs.onSurface.withValues(alpha: 0.65),
                     ),
                   ),
                 ),
@@ -146,7 +145,7 @@ class _ExtensionsPageState extends ConsumerState<ExtensionsPage> {
           ),
           child: FilledButton(
             style: FilledButton.styleFrom(
-              backgroundColor: AppTokens.defaultPalette.primary,
+              backgroundColor: cs.primary,
               minimumSize: const Size.fromHeight(48),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppTokens.radiusButton),
@@ -155,7 +154,7 @@ class _ExtensionsPageState extends ConsumerState<ExtensionsPage> {
             onPressed: () => context.push(ExtensionsRoutes.repo),
             child: Text(
               FlutterI18n.translate(context, 'extensions.installButton'),
-              style: const TextStyle(color: Colors.white, fontSize: 14),
+              style: TextStyle(color: cs.onPrimary, fontSize: 14),
             ),
           ),
         ),
@@ -176,7 +175,12 @@ class _ExtensionsPageState extends ConsumerState<ExtensionsPage> {
               'sites': '${sites.length}',
             },
           ),
-          style: const TextStyle(fontSize: 12, color: AppTokens.textSecondary),
+          style: TextStyle(
+            fontSize: 12,
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.65),
+          ),
         );
       },
     );

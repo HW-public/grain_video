@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import 'core/theme/tokens.dart';
 import 'core/update/update_check.dart';
 import 'core/widgets/app_bottom_nav.dart';
 import 'core/widgets/app_tab_scope.dart';
@@ -36,7 +35,7 @@ class _HeHeAppShellState extends State<HeHeAppShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTokens.defaultPalette.pageBg,
+      // 页面底交给主题 scaffoldBackgroundColor（亮=pageBg / 暗=darkBg）。
       body: AppTabScope(index: widget.shell.currentIndex, child: widget.shell),
       bottomNavigationBar: AppBottomNav(
         currentIndex: widget.shell.currentIndex,

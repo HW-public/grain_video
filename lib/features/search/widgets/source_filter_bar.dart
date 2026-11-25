@@ -9,8 +9,8 @@ import '../providers/search_providers.dart';
 /// 源筛选 chips 行（Figma 21:19 `.src-chips`）：横向滚动，
 /// 首项「全部」+ 每个已安装插件一项（emoji + 源名）。
 ///
-/// 选中=底 mint.primaryContainer(3:19 #D5F5E7)+12/600 主色字；
-/// 未选=白底无描边+12/400 次文字色。chips 高 32 圆角 16、间距 8。
+/// 选中=底主色 18% 透明+12/600 主色字；未选=surface 底无描边+12/400
+/// 次文字色（onSurface 65%）。chips 高 32 圆角 16、间距 8。
 /// 选中经 [searchSourceFilterProvider] 过滤结果区；空插件时整行隐藏。
 class SourceFilterBar extends ConsumerWidget {
   const SourceFilterBar({super.key});
@@ -71,8 +71,8 @@ class _FilterChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Material(
-      // 帧 3:19 #D5F5E7 = mint.primaryContainer。
-      color: selected ? AppTokens.mint.primaryContainer : AppTokens.surface,
+      // 选中底=主色 18% 透明（亮=浅绿底/暗=暗夜主色底），未选=surface。
+      color: selected ? scheme.primary.withValues(alpha: 0.15) : scheme.surface,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
@@ -88,7 +88,9 @@ class _FilterChip extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-              color: selected ? scheme.primary : AppTokens.textSecondary,
+              color: selected
+                  ? scheme.primary
+                  : scheme.onSurface.withValues(alpha: 0.65),
             ),
           ),
         ),

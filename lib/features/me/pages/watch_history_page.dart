@@ -24,8 +24,8 @@ class WatchHistoryPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final history = ref.watch(watchHistoryListProvider);
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: AppTokens.defaultPalette.pageBg,
       appBar: AppBar(
         title: Text(FlutterI18n.translate(context, 'me.historyTitle')),
         actions: [
@@ -76,9 +76,9 @@ class WatchHistoryPage extends ConsumerWidget {
                     'me.totalHistory',
                     translationParams: {'count': '${items.length}'},
                   ),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: AppTokens.textSecondary,
+                    color: cs.onSurface.withValues(alpha: 0.65),
                   ),
                 ),
               ),
@@ -88,9 +88,9 @@ class WatchHistoryPage extends ConsumerWidget {
                 padding: const EdgeInsets.only(left: AppTokens.space1),
                 child: Text(
                   FlutterI18n.translate(context, 'me.onlyLocalHistory'),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: AppTokens.textSecondary,
+                    color: cs.onSurface.withValues(alpha: 0.65),
                   ),
                 ),
               ),
@@ -126,10 +126,10 @@ class WatchHistoryPage extends ConsumerWidget {
               labelKey.startsWith('me.')
                   ? FlutterI18n.translate(context, labelKey)
                   : labelKey,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
-                color: AppTokens.textPrimary,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ),
@@ -253,6 +253,7 @@ class _HistoryItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final episodeLine = item.episodeTitle.isEmpty
         ? item.sourcePackage
         : '${item.sourcePackage} · ${item.episodeTitle}';
@@ -272,10 +273,10 @@ class _HistoryItem extends StatelessWidget {
                 children: [
                   Text(
                     item.title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
-                      color: AppTokens.textPrimary,
+                      color: cs.onSurface,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -283,9 +284,9 @@ class _HistoryItem extends StatelessWidget {
                   const SizedBox(height: AppTokens.space1),
                   Text(
                     episodeLine,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppTokens.textSecondary,
+                      color: cs.onSurface.withValues(alpha: 0.65),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -293,9 +294,9 @@ class _HistoryItem extends StatelessWidget {
                   const SizedBox(height: AppTokens.space1),
                   Text(
                     _progressLine(context),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppTokens.textSecondary,
+                      color: cs.onSurface.withValues(alpha: 0.65),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -308,10 +309,7 @@ class _HistoryItem extends StatelessWidget {
                 padding: const EdgeInsets.only(top: AppTokens.space3),
                 child: Text(
                   '${FlutterI18n.translate(context, 'me.playContinue')} ›',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: AppTokens.defaultPalette.primary,
-                  ),
+                  style: TextStyle(fontSize: 13, color: cs.primary),
                 ),
               ),
           ],
@@ -333,18 +331,15 @@ class _Cover extends StatelessWidget {
     const height = 76.0;
     final radius = BorderRadius.circular(AppTokens.space2);
     if (url.isEmpty) {
+      final cs = Theme.of(context).colorScheme;
       return Container(
         width: width,
         height: height,
         decoration: BoxDecoration(
-          color: AppTokens.defaultPalette.primaryContainer,
+          color: cs.primary.withValues(alpha: 0.15),
           borderRadius: radius,
         ),
-        child: Icon(
-          Icons.play_circle_outline,
-          size: 24,
-          color: AppTokens.defaultPalette.primary,
-        ),
+        child: Icon(Icons.play_circle_outline, size: 24, color: cs.primary),
       );
     }
     return ClipRRect(

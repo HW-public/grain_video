@@ -161,12 +161,12 @@ class _HeroCard extends StatelessWidget {
 
   final _HeroItem item;
 
-  // 白色透明度（帧规格）：标签 95%、副文案 92%、进度轨道 30%。
-  static const _white92 = Color(0xEBFFFFFF);
-  static const _white30 = Color(0x4DFFFFFF);
-
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    // 卡面主文字色：有封面时压黑渐变上保持白色（两主题通用）；
+    // 无封面纯色主色卡上跟随 onPrimary（亮=白 / 暗=深底，保证可读）。
+    final fg = item.cover.isNotEmpty ? Colors.white : cs.onPrimary;
     final durationMs = item.durationMs;
     final hasProgress = durationMs > 0;
     final progress = hasProgress
@@ -183,8 +183,8 @@ class _HeroCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         child: Ink(
           decoration: BoxDecoration(
-            // 帧为纯色主色（变量 3:18），非渐变。
-            color: AppTokens.mint.primary,
+            // 帧为纯色主色（变量 3:18），非渐变；跟随主题/色板。
+            color: cs.primary,
             borderRadius: BorderRadius.circular(24),
           ),
           child: Stack(
@@ -219,7 +219,10 @@ class _HeroCard extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _ContinueChip(episodeTitle: item.episodeTitle),
+                    _ContinueChip(
+                      episodeTitle: item.episodeTitle,
+                      color: fg.withValues(alpha: 0.95),
+                    ),
                     if (item.hasUpdate) ...[
                       const SizedBox(width: 6),
                       const _UpdateBadge(),
@@ -236,10 +239,10 @@ class _HeroCard extends StatelessWidget {
                   item.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 19,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                    color: fg,
                   ),
                 ),
               ),
@@ -258,7 +261,10 @@ class _HeroCard extends StatelessWidget {
                         'duration': _formatMs(durationMs),
                       },
                     ),
-                    style: const TextStyle(fontSize: 11, color: _white92),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: fg.withValues(alpha: 0.92),
+                    ),
                   ),
                 ),
               // 进度条 y=160：轨道宽120 高4 白30%，填充白100%。
@@ -269,12 +275,12 @@ class _HeroCard extends StatelessWidget {
                   child: Container(
                     width: 120,
                     height: 4,
-                    color: _white30,
+                    color: fg.withValues(alpha: 0.30),
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: FractionallySizedBox(
                         widthFactor: progress,
-                        child: const ColoredBox(color: Colors.white),
+                        child: ColoredBox(color: fg),
                       ),
                     ),
                   ),
@@ -287,15 +293,8 @@ class _HeroCard extends StatelessWidget {
                 child: Container(
                   width: 44,
                   height: 44,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.play_arrow,
-                    size: 24,
-                    color: AppTokens.mint.primary,
-                  ),
+                  decoration: BoxDecoration(color: fg, shape: BoxShape.circle),
+                  child: Icon(Icons.play_arrow, size: 24, color: cs.primary),
                 ),
               ),
             ],
@@ -319,10 +318,9 @@ class _HeroCard extends StatelessWidget {
 class _EmptyHeroCard extends StatelessWidget {
   const _EmptyHeroCard();
 
-  static const _white80 = Color(0xCCFFFFFF);
-
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -331,7 +329,7 @@ class _EmptyHeroCard extends StatelessWidget {
         child: Ink(
           height: _ContinueWatchingSectionState._cardHeight,
           decoration: BoxDecoration(
-            color: AppTokens.mint.primary,
+            color: cs.primary,
             borderRadius: BorderRadius.circular(24),
           ),
           child: Center(
@@ -340,16 +338,19 @@ class _EmptyHeroCard extends StatelessWidget {
               children: [
                 Text(
                   FlutterI18n.translate(context, 'home.continueEmpty'),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    color: cs.onPrimary,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   FlutterI18n.translate(context, 'home.continueEmptyHint'),
-                  style: const TextStyle(fontSize: 12, color: _white80),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: cs.onPrimary.withValues(alpha: 0.80),
+                  ),
                 ),
               ],
             ),
@@ -387,10 +388,12 @@ class _UpdateBadge extends ConsumerWidget {
 }
 
 /// 「继续观看 · 第N集」标签（帧 5:34：10/600 白95%，纯文字无底）。
+/// 颜色由父卡按有无封面下发（[color]）。
 class _ContinueChip extends StatelessWidget {
-  const _ContinueChip({required this.episodeTitle});
+  const _ContinueChip({required this.episodeTitle, required this.color});
 
   final String episodeTitle;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -398,11 +401,7 @@ class _ContinueChip extends StatelessWidget {
     final text = episodeTitle.isEmpty ? base : '$base · $episodeTitle';
     return Text(
       text,
-      style: const TextStyle(
-        fontSize: 10,
-        fontWeight: FontWeight.w600,
-        color: Color(0xF2FFFFFF),
-      ),
+      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: color),
     );
   }
 }
@@ -417,6 +416,7 @@ class _Dots extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(top: 12),
       child: Row(
@@ -428,7 +428,7 @@ class _Dots extends StatelessWidget {
               width: i == page ? 18 : 6,
               height: 6,
               decoration: BoxDecoration(
-                color: i == page ? AppTokens.mint.primary : AppTokens.divider,
+                color: i == page ? cs.primary : Theme.of(context).dividerColor,
                 borderRadius: BorderRadius.circular(3),
               ),
             ),

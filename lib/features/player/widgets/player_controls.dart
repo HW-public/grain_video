@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/theme/tokens.dart';
 import '../providers/player_providers.dart';
 import 'player_ep_sheet.dart';
 
@@ -40,12 +39,13 @@ class PlayerSeekBar extends StatefulWidget {
 class _PlayerSeekBarState extends State<PlayerSeekBar> {
   double? _dragFraction;
 
-  Color get _trackColor =>
-      widget.dark ? const Color(0x33FFFFFF) : AppTokens.divider;
-  Color get _playedColor => AppTokens.defaultPalette.primarySoft;
-  Color get _timeColor => widget.dark
+  Color _trackColor(BuildContext context) =>
+      widget.dark ? const Color(0x33FFFFFF) : Theme.of(context).dividerColor;
+  Color _playedColor(BuildContext context) =>
+      Theme.of(context).colorScheme.primary;
+  Color _timeColor(BuildContext context) => widget.dark
       ? Colors.white.withValues(alpha: 0.85)
-      : AppTokens.textTertiary;
+      : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.45);
 
   void _update(double dx, double width) {
     final fraction = (dx / width).clamp(0.0, 1.0);
@@ -92,7 +92,7 @@ class _PlayerSeekBarState extends State<PlayerSeekBar> {
                         width: constraints.maxWidth,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: _trackColor,
+                          color: _trackColor(context),
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
@@ -101,7 +101,7 @@ class _PlayerSeekBarState extends State<PlayerSeekBar> {
                         child: Container(
                           height: 4,
                           decoration: BoxDecoration(
-                            color: _playedColor,
+                            color: _playedColor(context),
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),
@@ -137,11 +137,11 @@ class _PlayerSeekBarState extends State<PlayerSeekBar> {
             children: [
               Text(
                 formatDuration(shown),
-                style: TextStyle(fontSize: 11, color: _timeColor),
+                style: TextStyle(fontSize: 11, color: _timeColor(context)),
               ),
               Text(
                 formatDuration(duration),
-                style: TextStyle(fontSize: 11, color: _timeColor),
+                style: TextStyle(fontSize: 11, color: _timeColor(context)),
               ),
             ],
           ),
@@ -168,12 +168,13 @@ class PlayerCtrlRow extends ConsumerWidget {
   final bool fullscreen;
   final VoidCallback? onFullscreen;
 
-  Color get _iconColor => dark ? Colors.white : AppTokens.textPrimary;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.read(playerControllerProvider.notifier);
     final state = ref.watch(playerControllerProvider);
+    final iconColor = dark
+        ? Colors.white
+        : Theme.of(context).colorScheme.onSurface;
     final hasNext =
         state.currentEpIndex >= 0 &&
         state.currentEpIndex + 1 < state.episodes.length;
@@ -188,14 +189,14 @@ class PlayerCtrlRow extends ConsumerWidget {
           IconButton(
             tooltip: playing ? 'pause' : 'play',
             iconSize: 28,
-            color: _iconColor,
+            color: iconColor,
             icon: Icon(playing ? Icons.pause : Icons.play_arrow),
             onPressed: controller.toggle,
           ),
           IconButton(
             tooltip: 'skip back 10s',
             iconSize: 24,
-            color: _iconColor,
+            color: iconColor,
             icon: const Icon(Icons.replay_10),
             onPressed: () =>
                 unawaited(controller.skip(const Duration(seconds: -10))),
@@ -203,14 +204,14 @@ class PlayerCtrlRow extends ConsumerWidget {
           IconButton(
             tooltip: 'skip forward 10s',
             iconSize: 24,
-            color: _iconColor,
+            color: iconColor,
             icon: const Icon(Icons.forward_10),
             onPressed: () =>
                 unawaited(controller.skip(const Duration(seconds: 10))),
           ),
           if (hasNext)
             TextButton.icon(
-              style: TextButton.styleFrom(foregroundColor: _iconColor),
+              style: TextButton.styleFrom(foregroundColor: iconColor),
               icon: const Icon(Icons.skip_next, size: 22),
               label: Text(FlutterI18n.translate(context, 'player.next')),
               onPressed: () => unawaited(controller.nextEpisode()),
@@ -218,7 +219,7 @@ class PlayerCtrlRow extends ConsumerWidget {
           // 原 Spacer：横向滚动场景下 Row 宽度无界，Spacer 非法，改固定间隙。
           const SizedBox(width: 8),
           TextButton(
-            style: TextButton.styleFrom(foregroundColor: _iconColor),
+            style: TextButton.styleFrom(foregroundColor: iconColor),
             onPressed: () => showPlayerSpeedSheet(context),
             child: Text(
               '${state.rate.toStringAsFixed(state.rate.truncateToDouble() == state.rate ? 1 : 2)}x',
@@ -227,7 +228,7 @@ class PlayerCtrlRow extends ConsumerWidget {
           ),
           if (state.episodes.isNotEmpty)
             TextButton(
-              style: TextButton.styleFrom(foregroundColor: _iconColor),
+              style: TextButton.styleFrom(foregroundColor: iconColor),
               onPressed: () => showPlayerEpSheet(context),
               child: Text(
                 FlutterI18n.translate(context, 'player.episodes'),
@@ -240,7 +241,7 @@ class PlayerCtrlRow extends ConsumerWidget {
           IconButton(
             tooltip: 'fullscreen',
             iconSize: 24,
-            color: _iconColor,
+            color: iconColor,
             icon: Icon(fullscreen ? Icons.fullscreen_exit : Icons.fullscreen),
             onPressed: onFullscreen,
           ),

@@ -49,9 +49,12 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
   double _verticalBase = 0;
   double _verticalValue = 0;
 
-  /// 长按倍速（用户拍板 2026-11-23）：按住不动 → 最大档，松手恢复原倍速。
-  static const double _holdSpeedRate = 2.0; // 速度弹层最大档
+  /// 长按倍速（帧 142:140/21:21 手势规范）：按住不动按半区定速——
+  /// 左半 0.5x 慢放 / 右半 2.0x 倍速，松手恢复原倍速。
+  static const double _holdSpeedLeft = 0.5;
+  static const double _holdSpeedRight = 2.0;
   bool _holdingSpeed = false;
+  double _holdRate = _holdSpeedRight;
   double _savedRate = 1.0;
 
   PlayerController get _controller =>
@@ -99,12 +102,16 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
 
   // ---- 长按倍速 ----
 
-  void _onLongPressStart(LongPressStartDetails _) {
+  void _onLongPressStart(LongPressStartDetails d) {
     if (_holdingSpeed) return;
+    final width = context.size?.width ?? 0;
+    _holdRate = d.localPosition.dx < width / 2
+        ? _holdSpeedLeft
+        : _holdSpeedRight;
     final state = ref.read(playerControllerProvider);
     _savedRate = state.rate;
     setState(() => _holdingSpeed = true);
-    unawaited(_controller.setRate(_holdSpeedRate));
+    unawaited(_controller.setRate(_holdRate));
   }
 
   void _onLongPressEnd() {
@@ -244,14 +251,20 @@ class _PlayerGesturesState extends ConsumerState<PlayerGestures> {
                       color: const Color(0xB3000000),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.fast_forward, size: 14, color: Colors.white),
-                        SizedBox(width: 4),
+                        Icon(
+                          _holdRate < 1
+                              ? Icons.slow_motion_video
+                              : Icons.fast_forward,
+                          size: 14,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(width: 4),
                         Text(
-                          '2.0x',
-                          style: TextStyle(
+                          '${_holdRate}x',
+                          style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                             color: Colors.white,

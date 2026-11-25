@@ -23,10 +23,10 @@ class SectionHeader extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: AppTokens.textPrimary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const Spacer(),
@@ -50,7 +50,12 @@ class SectionEmpty extends StatelessWidget {
       child: Center(
         child: Text(
           message,
-          style: const TextStyle(fontSize: 12, color: AppTokens.textTertiary),
+          style: TextStyle(
+            fontSize: 12,
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.45),
+          ),
         ),
       ),
     );

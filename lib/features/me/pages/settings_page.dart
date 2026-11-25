@@ -14,7 +14,6 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTokens.defaultPalette.pageBg,
       appBar: AppBar(
         title: Text(FlutterI18n.translate(context, 'me.settingsTitle')),
       ),

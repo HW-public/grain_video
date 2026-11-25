@@ -23,6 +23,7 @@ class EpisodeSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     final current = ref.watch(followProvider(args)).value?.currentEpisode ?? 0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -34,7 +35,7 @@ class EpisodeSection extends ConsumerWidget {
               FlutterI18n.translate(context, 'detail.episodes'),
               style: theme.textTheme.titleMedium?.copyWith(
                 fontSize: 16,
-                color: AppTokens.textPrimary,
+                color: cs.onSurface,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -47,7 +48,7 @@ class EpisodeSection extends ConsumerWidget {
                 ),
                 style: theme.textTheme.bodySmall?.copyWith(
                   fontSize: 12,
-                  color: AppTokens.defaultPalette.primarySoft,
+                  color: cs.primary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -58,7 +59,7 @@ class EpisodeSection extends ConsumerWidget {
           Text(
             FlutterI18n.translate(context, 'detail.noEpisodes'),
             style: theme.textTheme.bodySmall?.copyWith(
-              color: AppTokens.textTertiary,
+              color: cs.onSurface.withValues(alpha: 0.45),
             ),
           )
         else
@@ -97,13 +98,14 @@ class _EpisodeCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     final textColor = selected
-        ? AppTokens.defaultPalette.primarySoft
-        : AppTokens.textSecondary;
+        ? cs.primary
+        : cs.onSurface.withValues(alpha: 0.65);
     return Material(
       color: selected
-          ? AppTokens.defaultPalette.primaryContainer
-          : AppTokens.surfaceAlt,
+          ? cs.primary.withValues(alpha: 0.15)
+          : cs.onSurface.withValues(alpha: 0.05),
       borderRadius: BorderRadius.circular(8),
       clipBehavior: Clip.antiAlias,
       child: InkWell(

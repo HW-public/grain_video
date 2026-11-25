@@ -2,7 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../cache/app_image_cache.dart';
-import '../theme/tokens.dart';
 
 /// 带磁盘缓存的网络图（cached_network_image 封装）：
 /// 命中即秒显，未命中/失败时显示统一占位（surfaceAlt 底 + 图标）。
@@ -46,13 +45,14 @@ class _ImagePlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const ColoredBox(
-      color: AppTokens.surfaceAlt,
+    final cs = Theme.of(context).colorScheme;
+    return ColoredBox(
+      color: cs.onSurface.withValues(alpha: 0.05),
       child: Center(
         child: Icon(
           Icons.image_outlined,
           size: 32,
-          color: AppTokens.textTertiary,
+          color: cs.onSurface.withValues(alpha: 0.45),
         ),
       ),
     );

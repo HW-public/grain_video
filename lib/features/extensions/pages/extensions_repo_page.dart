@@ -99,9 +99,7 @@ class _ExtensionsRepoPageState extends ConsumerState<ExtensionsRepoPage> {
     final pending = ref.watch(pendingUpdatesProvider);
 
     return Scaffold(
-      backgroundColor: AppTokens.defaultPalette.pageBg,
       appBar: AppBar(
-        backgroundColor: AppTokens.defaultPalette.pageBg,
         title: Text(FlutterI18n.translate(context, 'extensions.repoTitle')),
         actions: [
           // 本地 .wasm 导入入口（管理页顶栏已按设计稿只留刷新）。
@@ -261,11 +259,12 @@ class _RepoCardState extends State<_RepoCard> {
   @override
   Widget build(BuildContext context) {
     final release = widget.release;
+    final cs = Theme.of(context).colorScheme;
     return Container(
       height: 96,
       padding: const EdgeInsets.symmetric(horizontal: AppTokens.space4 - 4),
       decoration: BoxDecoration(
-        color: AppTokens.surface,
+        color: cs.surface,
         borderRadius: BorderRadius.circular(AppTokens.radiusCard),
       ),
       child: Row(
@@ -291,10 +290,10 @@ class _RepoCardState extends State<_RepoCard> {
               children: [
                 Text(
                   release.name.isEmpty ? release.package : release.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: AppTokens.textPrimary,
+                    color: cs.onSurface,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -303,9 +302,9 @@ class _RepoCardState extends State<_RepoCard> {
                 Text(
                   '${release.site.isEmpty ? release.package : release.site} · '
                   'v${release.version}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: AppTokens.textSecondary,
+                    color: cs.onSurface.withValues(alpha: 0.65),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -319,8 +318,9 @@ class _RepoCardState extends State<_RepoCard> {
     );
   }
 
-  /// 状态药丸：安装中(转圈) > 更新(白底绿框) > 已安装(灰底) > 安装(绿底白字)。
+  /// 状态药丸：安装中(转圈) > 更新(主色描边) > 已安装(灰底) > 安装(主色底)。
   Widget _buildButton() {
+    final cs = Theme.of(context).colorScheme;
     if (_installing) {
       return const SizedBox(
         width: 80,
@@ -337,8 +337,8 @@ class _RepoCardState extends State<_RepoCard> {
     if (widget.updatable) {
       return OutlinedButton(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppTokens.defaultPalette.primary,
-          side: BorderSide(color: AppTokens.defaultPalette.primary),
+          foregroundColor: cs.primary,
+          side: BorderSide(color: cs.primary),
           minimumSize: const Size(80, 36),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppTokens.radiusChip),
@@ -358,22 +358,22 @@ class _RepoCardState extends State<_RepoCard> {
         height: 36,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: AppTokens.surfaceAlt,
+          color: cs.onSurface.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(AppTokens.radiusChip),
         ),
         child: Text(
           FlutterI18n.translate(context, 'extensions.installedBadge'),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w500,
-            color: AppTokens.textSecondary,
+            color: cs.onSurface.withValues(alpha: 0.65),
           ),
         ),
       );
     }
     return FilledButton(
       style: FilledButton.styleFrom(
-        backgroundColor: AppTokens.defaultPalette.primary,
+        backgroundColor: cs.primary,
         minimumSize: const Size(80, 36),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppTokens.radiusChip),

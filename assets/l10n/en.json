@@ -176,7 +176,16 @@
     "cachePreloadNote": "Video preload lives in memory and is released automatically.",
     "apkCache": "Installer cache",
     "deleteHistoryTitle": "Delete this entry",
-    "deleteHistoryHint": "Its watch progress will be discarded."
+    "deleteHistoryHint": "Its watch progress will be discarded.",
+    "using": "Active",
+    "uiSection": "Interface",
+    "fontSize": "Font size",
+    "radius": "Corners",
+    "radiusStandard": "Standard",
+    "radiusRound": "Round",
+    "radiusSharp": "Sharp",
+    "cacheTotal": "Total cache",
+    "cacheClearAll": "Clear all cache"
   },
   "player": {
     "next": "Next",

@@ -32,6 +32,7 @@ class DetailHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     return SizedBox(
       height: _blockHeight + _posterOverlap,
       child: Stack(
@@ -78,7 +79,7 @@ class DetailHeader extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontSize: 18,
-                    color: AppTokens.textPrimary,
+                    color: cs.onSurface,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -91,7 +92,7 @@ class DetailHeader extends StatelessWidget {
                   ),
                   style: theme.textTheme.bodySmall?.copyWith(
                     fontSize: 11,
-                    color: AppTokens.textSecondary,
+                    color: cs.onSurface.withValues(alpha: 0.65),
                   ),
                 ),
                 if (entry != null)
@@ -105,7 +106,7 @@ class DetailHeader extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodySmall?.copyWith(
                       fontSize: 11,
-                      color: AppTokens.textSecondary,
+                      color: cs.onSurface.withValues(alpha: 0.65),
                     ),
                   ),
               ],
@@ -132,7 +133,11 @@ class _Poster extends StatelessWidget {
         width: size,
         height: size / AppTokens.coverRatioComic,
         child: cover.isEmpty
-            ? const ColoredBox(color: AppTokens.surfaceAlt)
+            ? ColoredBox(
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.05),
+              )
             : CachedImage(
                 url: cover,
                 width: 104,

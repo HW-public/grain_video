@@ -22,6 +22,7 @@ class MeEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppTokens.space6),
@@ -32,31 +33,27 @@ class MeEmptyState extends StatelessWidget {
               width: 140,
               height: 140,
               decoration: BoxDecoration(
-                color: AppTokens.defaultPalette.primaryContainer,
+                color: cs.primary.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                icon,
-                size: 44,
-                color: AppTokens.defaultPalette.primary,
-              ),
+              child: Icon(icon, size: 44, color: cs.primary),
             ),
             const SizedBox(height: AppTokens.space5),
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: AppTokens.textPrimary,
+                color: cs.onSurface,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppTokens.space2),
             Text(
               hint,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: AppTokens.textSecondary,
+                color: cs.onSurface.withValues(alpha: 0.65),
               ),
               textAlign: TextAlign.center,
             ),
@@ -64,7 +61,7 @@ class MeEmptyState extends StatelessWidget {
               const SizedBox(height: AppTokens.space6),
               FilledButton(
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppTokens.defaultPalette.primary,
+                  backgroundColor: cs.primary,
                   minimumSize: const Size(200, 44),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppTokens.radiusChip),
@@ -73,7 +70,7 @@ class MeEmptyState extends StatelessWidget {
                 onPressed: onAction,
                 child: Text(
                   actionLabel!,
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                  style: TextStyle(color: cs.onPrimary, fontSize: 14),
                 ),
               ),
             ],

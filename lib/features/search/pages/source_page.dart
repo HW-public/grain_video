@@ -52,7 +52,6 @@ class _SourcePageState extends ConsumerState<SourcePage> {
         .firstOrNull;
 
     return Scaffold(
-      backgroundColor: AppTokens.defaultPalette.pageBg,
       appBar: AppBar(title: Text(entry?.info.name ?? widget.package)),
       body: Column(
         children: [

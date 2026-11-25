@@ -21,8 +21,8 @@ class AboutPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: AppTokens.defaultPalette.pageBg,
       appBar: AppBar(
         title: Text(FlutterI18n.translate(context, 'me.aboutTitle')),
       ),
@@ -91,15 +91,18 @@ class AboutPage extends StatelessWidget {
           Text(
             FlutterI18n.translate(context, 'me.aboutSlogan'),
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 12, color: AppTokens.textTertiary),
+            style: TextStyle(
+              fontSize: 12,
+              color: cs.onSurface.withValues(alpha: 0.45),
+            ),
           ),
           const SizedBox(height: AppTokens.space1),
           Text(
             FlutterI18n.translate(context, 'me.aboutCopyright'),
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 10.5,
-              color: AppTokens.textTertiary,
+              color: cs.onSurface.withValues(alpha: 0.45),
             ),
           ),
         ],
@@ -107,30 +110,27 @@ class AboutPage extends StatelessWidget {
     );
   }
 
-  /// 品牌区：浅绿底托 logo 占位 + 应用名 + 版本号。
+  /// 品牌区：主色浅底托 logo 占位 + 应用名 + 版本号。
   Widget _buildBrand(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Column(
       children: [
         Container(
           width: 88,
           height: 88,
           decoration: BoxDecoration(
-            color: AppTokens.defaultPalette.primaryContainer,
+            color: cs.primary.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(24),
           ),
-          child: Icon(
-            Icons.eco_outlined,
-            size: 40,
-            color: AppTokens.defaultPalette.primary,
-          ),
+          child: Icon(Icons.eco_outlined, size: 40, color: cs.primary),
         ),
         const SizedBox(height: AppTokens.space4),
         Text(
           FlutterI18n.translate(context, 'appTitle'),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w700,
-            color: AppTokens.textPrimary,
+            color: cs.onSurface,
           ),
         ),
         const SizedBox(height: AppTokens.space1),
@@ -139,7 +139,10 @@ class AboutPage extends StatelessWidget {
           future: AppUpdater.currentVersion(),
           builder: (context, snapshot) => Text(
             snapshot.data == null ? _appVersion : 'v${snapshot.data}',
-            style: const TextStyle(fontSize: 12, color: AppTokens.textTertiary),
+            style: TextStyle(
+              fontSize: 12,
+              color: cs.onSurface.withValues(alpha: 0.45),
+            ),
           ),
         ),
       ],

@@ -140,7 +140,8 @@ class _SwipeDeleteTileState extends State<SwipeDeleteTile> {
                 child: Transform.translate(
                   offset: Offset(offset, 0),
                   child: ColoredBox(
-                    color: AppTokens.defaultPalette.pageBg,
+                    // 跟随主题页面底（亮=pageBg / 暗=darkBg）。
+                    color: Theme.of(context).scaffoldBackgroundColor,
                     child: child,
                   ),
                 ),

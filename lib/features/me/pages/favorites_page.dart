@@ -54,8 +54,8 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
   @override
   Widget build(BuildContext context) {
     final favorites = ref.watch(favoritesListProvider);
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: AppTokens.defaultPalette.pageBg,
       appBar: AppBar(
         title: Text(FlutterI18n.translate(context, 'me.favoritesTitle')),
         actions: [
@@ -69,10 +69,7 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
                         context,
                         _editMode ? 'me.done' : 'me.edit',
                       ),
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppTokens.defaultPalette.primary,
-                      ),
+                      style: TextStyle(fontSize: 14, color: cs.primary),
                     ),
                   ),
             orElse: () => const SizedBox.shrink(),
@@ -112,9 +109,9 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
                     'me.totalFavorites',
                     translationParams: {'count': '${items.length}'},
                   ),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: AppTokens.textSecondary,
+                    color: cs.onSurface.withValues(alpha: 0.65),
                   ),
                 ),
               ),
@@ -151,9 +148,9 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
                 padding: const EdgeInsets.only(left: AppTokens.space1),
                 child: Text(
                   FlutterI18n.translate(context, 'me.onlyLocalFavorites'),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: AppTokens.textSecondary,
+                    color: cs.onSurface.withValues(alpha: 0.65),
                   ),
                 ),
               ),
@@ -221,6 +218,7 @@ class _FavoriteItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return InkWell(
       borderRadius: BorderRadius.circular(AppTokens.radiusCard),
       onTap: onTap,
@@ -235,8 +233,8 @@ class _FavoriteItem extends StatelessWidget {
                   selected ? Icons.check_circle : Icons.radio_button_unchecked,
                   size: 22,
                   color: selected
-                      ? AppTokens.defaultPalette.primary
-                      : AppTokens.textTertiary,
+                      ? cs.primary
+                      : cs.onSurface.withValues(alpha: 0.45),
                 ),
               ),
             _Poster(url: item.cover),
@@ -247,10 +245,10 @@ class _FavoriteItem extends StatelessWidget {
                 children: [
                   Text(
                     item.title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
-                      color: AppTokens.textPrimary,
+                      color: cs.onSurface,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -258,9 +256,9 @@ class _FavoriteItem extends StatelessWidget {
                   const SizedBox(height: AppTokens.space1),
                   Text(
                     item.sourcePackage,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppTokens.textSecondary,
+                      color: cs.onSurface.withValues(alpha: 0.65),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -269,9 +267,9 @@ class _FavoriteItem extends StatelessWidget {
                   Text(
                     '${FlutterI18n.translate(context, 'me.favoritedAt')} '
                     '${formatMeDate(item.createdAt)}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppTokens.textSecondary,
+                      color: cs.onSurface.withValues(alpha: 0.65),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -281,10 +279,10 @@ class _FavoriteItem extends StatelessWidget {
             ),
             if (!editMode)
               PopupMenuButton<String>(
-                icon: const Icon(
+                icon: Icon(
                   Icons.more_vert,
                   size: 20,
-                  color: AppTokens.textTertiary,
+                  color: cs.onSurface.withValues(alpha: 0.45),
                 ),
                 onSelected: (_) => onRemove(),
                 itemBuilder: (context) => [
@@ -315,18 +313,15 @@ class _Poster extends StatelessWidget {
     const height = 76.0;
     final radius = BorderRadius.circular(AppTokens.space2);
     if (url.isEmpty) {
+      final cs = Theme.of(context).colorScheme;
       return Container(
         width: width,
         height: height,
         decoration: BoxDecoration(
-          color: AppTokens.defaultPalette.primaryContainer,
+          color: cs.primary.withValues(alpha: 0.15),
           borderRadius: radius,
         ),
-        child: Icon(
-          Icons.image_outlined,
-          size: 24,
-          color: AppTokens.defaultPalette.primary,
-        ),
+        child: Icon(Icons.image_outlined, size: 24, color: cs.primary),
       );
     }
     return ClipRRect(

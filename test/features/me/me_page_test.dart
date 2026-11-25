@@ -97,10 +97,11 @@ void main() {
     expect(nav.currentIndex, 2);
 
     // 设计稿：薄荷页面底（锚定 MePage 的 Scaffold——外壳另有一个）。
+    // 页面底已改走主题：显式取 Theme.scaffoldBackgroundColor，亮色下值不变。
     final scaffold = tester.widget<Scaffold>(
       find.descendant(of: find.byType(MePage), matching: find.byType(Scaffold)),
     );
-    expect(scaffold.backgroundColor, AppTokens.defaultPalette.pageBg);
+    expect(scaffold.backgroundColor, AppTheme.light().scaffoldBackgroundColor);
   });
 
   testWidgets('tapping 历史 entry card opens watch history page', (tester) async {

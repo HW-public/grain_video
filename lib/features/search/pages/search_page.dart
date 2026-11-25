@@ -128,6 +128,7 @@ class _HistoryViewState extends ConsumerState<_HistoryView> {
     final history = ref.watch(searchHistoryProvider);
     if (history.isEmpty) return const SizedBox.shrink();
 
+    final primary = Theme.of(context).colorScheme.primary;
     final children = <Widget>[
       _SectionHeader(
         title: _t(context, 'search.history'),
@@ -152,7 +153,7 @@ class _HistoryViewState extends ConsumerState<_HistoryView> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: AppTokens.mint.primary,
+                          color: primary,
                         ),
                       ),
                     ),
@@ -170,7 +171,7 @@ class _HistoryViewState extends ConsumerState<_HistoryView> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: AppTokens.mint.primary,
+                          color: primary,
                         ),
                       ),
                     ),
@@ -192,7 +193,7 @@ class _HistoryViewState extends ConsumerState<_HistoryView> {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: AppTokens.mint.primary,
+                      color: primary,
                     ),
                   ),
                 ),
@@ -302,7 +303,7 @@ class _SectionHeader extends StatelessWidget {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: AppTokens.textPrimary,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ),
@@ -313,7 +314,8 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-/// 历史 pill（21:19）：高 26、圆角 13、surfaceAlt 底、11/400 弱色灰字。
+/// 历史 pill（21:19）：高 26、圆角 13、onSurface 5% 底、11/400 弱色字
+///（onSurface 45%）。
 /// 宽度贴合文字（Container 带 alignment 会撑满可用宽，故用 Padding 包文字）。
 /// 管理模式（用户拍板）：点按删除单条，label 旁显示 ×。
 class _HistoryChip extends StatelessWidget {
@@ -331,8 +333,10 @@ class _HistoryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final weakColor = cs.onSurface.withValues(alpha: 0.45);
     return Material(
-      color: AppTokens.surfaceAlt,
+      color: cs.onSurface.withValues(alpha: 0.05),
       borderRadius: BorderRadius.circular(13),
       child: InkWell(
         onTap: managing ? onDelete : onTap,
@@ -345,26 +349,22 @@ class _HistoryChip extends StatelessWidget {
                   children: [
                     Text(
                       label,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w400,
-                        color: AppTokens.textTertiary,
+                        color: weakColor,
                       ),
                     ),
                     const SizedBox(width: 4),
-                    const Icon(
-                      Icons.close,
-                      size: 12,
-                      color: AppTokens.textTertiary,
-                    ),
+                    Icon(Icons.close, size: 12, color: weakColor),
                   ],
                 )
               : Text(
                   label,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w400,
-                    color: AppTokens.textTertiary,
+                    color: weakColor,
                   ),
                 ),
         ),
@@ -467,6 +467,7 @@ class _ResultHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       // 帧：chips 底→结果标题 24；右距 34（已有水平 16）。
       padding: const EdgeInsets.fromLTRB(16, 24, 18, 0),
@@ -484,7 +485,7 @@ class _ResultHeader extends StatelessWidget {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: AppTokens.textPrimary,
+                color: cs.onSurface,
               ),
             ),
           ),
@@ -493,7 +494,7 @@ class _ResultHeader extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: AppTokens.mint.primary,
+              color: cs.primary,
             ),
           ),
         ],

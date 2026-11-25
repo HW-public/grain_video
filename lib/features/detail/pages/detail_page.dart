@@ -33,7 +33,6 @@ class DetailPage extends ConsumerWidget {
     if (async is AsyncError<BangumiDetail> &&
         async.error is PluginNotFoundException) {
       return Scaffold(
-        backgroundColor: AppTokens.defaultPalette.pageBg,
         body: SafeArea(
           child: EmptyState(
             icon: Icons.extension_off_outlined,
@@ -44,7 +43,6 @@ class DetailPage extends ConsumerWidget {
     }
 
     return Scaffold(
-      backgroundColor: AppTokens.defaultPalette.pageBg,
       body: AsyncView<BangumiDetail>(
         value: async,
         onRetry: () => actions.retry(args),
@@ -136,7 +134,8 @@ class _ActionBar extends ConsumerWidget {
     final favorite = ref.watch(favoriteProvider(args)).value ?? false;
     final follow = ref.watch(followProvider(args)).value;
     final followed = follow != null;
-    final primary = AppTokens.defaultPalette.primarySoft;
+    final cs = Theme.of(context).colorScheme;
+    final primary = cs.primary;
     final firstEp = detail.episodes.isEmpty ? null : detail.episodes.first;
 
     return Row(
@@ -145,7 +144,7 @@ class _ActionBar extends ConsumerWidget {
           child: FilledButton.icon(
             style: FilledButton.styleFrom(
               backgroundColor: primary,
-              foregroundColor: Colors.white,
+              foregroundColor: cs.onPrimary,
               minimumSize: const Size.fromHeight(42),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppTokens.radiusButton),
@@ -164,7 +163,7 @@ class _ActionBar extends ConsumerWidget {
         const SizedBox(width: AppTokens.space2),
         FilledButton.tonalIcon(
           style: FilledButton.styleFrom(
-            backgroundColor: AppTokens.defaultPalette.primaryContainer,
+            backgroundColor: primary.withValues(alpha: 0.15),
             foregroundColor: primary,
             minimumSize: const Size(72, 42),
             shape: RoundedRectangleBorder(
@@ -188,9 +187,9 @@ class _ActionBar extends ConsumerWidget {
         const SizedBox(width: AppTokens.space2),
         OutlinedButton.icon(
           style: OutlinedButton.styleFrom(
-            foregroundColor: AppTokens.textPrimary,
+            foregroundColor: cs.onSurface,
             minimumSize: const Size(72, 42),
-            side: const BorderSide(color: AppTokens.divider),
+            side: BorderSide(color: Theme.of(context).dividerColor),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppTokens.radiusButton),
             ),
@@ -199,7 +198,7 @@ class _ActionBar extends ConsumerWidget {
           icon: Icon(
             followed ? Icons.notifications : Icons.notifications_none,
             size: 18,
-            color: AppTokens.textPrimary,
+            color: cs.onSurface,
           ),
           label: Text(
             FlutterI18n.translate(
@@ -230,12 +229,13 @@ class _DescriptionState extends State<_Description> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     if (widget.text.isEmpty) {
       return Text(
         FlutterI18n.translate(context, 'detail.noDescription'),
         style: theme.textTheme.bodySmall?.copyWith(
           fontSize: 12,
-          color: AppTokens.textSecondary,
+          color: cs.onSurface.withValues(alpha: 0.65),
         ),
       );
     }
@@ -248,7 +248,7 @@ class _DescriptionState extends State<_Description> {
           overflow: _expanded ? TextOverflow.visible : TextOverflow.ellipsis,
           style: theme.textTheme.bodySmall?.copyWith(
             fontSize: 12,
-            color: AppTokens.textSecondary,
+            color: cs.onSurface.withValues(alpha: 0.65),
           ),
         ),
         GestureDetector(
@@ -262,7 +262,7 @@ class _DescriptionState extends State<_Description> {
               ),
               style: theme.textTheme.bodySmall?.copyWith(
                 fontSize: 12,
-                color: AppTokens.defaultPalette.primary,
+                color: cs.primary,
               ),
             ),
           ),

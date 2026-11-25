@@ -25,6 +25,7 @@ class MeListRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return InkWell(
       onTap: onTap,
       child: SizedBox(
@@ -33,15 +34,15 @@ class MeListRow extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: AppTokens.space4),
           child: Row(
             children: [
-              Icon(icon, size: 22, color: AppTokens.defaultPalette.primary),
+              Icon(icon, size: 22, color: cs.primary),
               const SizedBox(width: AppTokens.space3),
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
-                    color: AppTokens.textPrimary,
+                    color: cs.onSurface,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -52,9 +53,9 @@ class MeListRow extends StatelessWidget {
                   flex: 0,
                   child: Text(
                     subtitle!,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppTokens.textTertiary,
+                      color: cs.onSurface.withValues(alpha: 0.45),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -62,10 +63,10 @@ class MeListRow extends StatelessWidget {
                 ),
               if (showChevron) ...[
                 const SizedBox(width: AppTokens.space1),
-                const Icon(
+                Icon(
                   Icons.chevron_right,
                   size: 18,
-                  color: AppTokens.textTertiary,
+                  color: cs.onSurface.withValues(alpha: 0.45),
                 ),
               ],
             ],

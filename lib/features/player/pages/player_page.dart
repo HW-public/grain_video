@@ -110,15 +110,15 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
     _syncProgressTimer(state);
 
     if (state.loading) {
-      return const Scaffold(
-        backgroundColor: AppTokens.darkBg,
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: Center(
           child: SizedBox(
             width: 48,
             height: 48,
             child: CircularProgressIndicator(
               strokeWidth: 3,
-              color: Color(0xFF6CE5B0),
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
         ),
@@ -133,12 +133,13 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
   /// + 下方标题/剧集信息（亮底 body，圆角顶角）。
   Widget _buildPortrait(PlayerViewState state) {
     final args = state.args;
+    final cs = Theme.of(context).colorScheme;
     final episodeTitle = ref
         .read(playerControllerProvider.notifier)
         .currentEpisodeTitle;
 
     return Scaffold(
-      backgroundColor: AppTokens.darkBg,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -154,9 +155,11 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
           ),
           Expanded(
             child: Container(
-              decoration: const BoxDecoration(
-                color: AppTokens.surface,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              decoration: BoxDecoration(
+                color: cs.surface,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(24),
+                ),
               ),
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -166,7 +169,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                       width: 36,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: AppTokens.divider,
+                        color: Theme.of(context).dividerColor,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -180,10 +183,10 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                           episodeTitle.isEmpty
                               ? args.title
                               : '${args.title} · $episodeTitle',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            color: AppTokens.textPrimary,
+                            color: cs.onSurface,
                           ),
                         ),
                       ),
@@ -195,7 +198,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
-                            color: AppTokens.defaultPalette.primaryContainer,
+                            color: cs.primary.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(
                               AppTokens.radiusChip,
                             ),
@@ -205,7 +208,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
-                              color: AppTokens.defaultPalette.primary,
+                              color: cs.primary,
                             ),
                           ),
                         ),
@@ -217,10 +220,10 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                   if (state.episodes.isNotEmpty) ...[
                     Text(
                       FlutterI18n.translate(context, 'player.episodes'),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: AppTokens.textPrimary,
+                        color: cs.onSurface,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -237,10 +240,10 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                   if (state.description.isNotEmpty) ...[
                     Text(
                       FlutterI18n.translate(context, 'player.synopsis'),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: AppTokens.textPrimary,
+                        color: cs.onSurface,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -248,10 +251,10 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                       state.description,
                       maxLines: 5,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12.5,
                         height: 1.7,
-                        color: AppTokens.textSecondary,
+                        color: cs.onSurface.withValues(alpha: 0.65),
                       ),
                     ),
                   ],
@@ -332,6 +335,7 @@ class _EpisodeGrid extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final episodes = ref.watch(playerControllerProvider).episodes;
+    final cs = Theme.of(context).colorScheme;
 
     return GridView.builder(
       shrinkWrap: true,
@@ -351,13 +355,11 @@ class _EpisodeGrid extends ConsumerWidget {
           child: Container(
             decoration: BoxDecoration(
               color: current
-                  ? AppTokens.defaultPalette.primaryContainer
-                  : AppTokens.surfaceAlt,
+                  ? cs.primary.withValues(alpha: 0.15)
+                  : cs.onSurface.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(AppTokens.radiusCard),
               border: Border.all(
-                color: current
-                    ? AppTokens.defaultPalette.primarySoft
-                    : AppTokens.divider,
+                color: current ? cs.primary : Theme.of(context).dividerColor,
               ),
             ),
             child: Center(
@@ -369,8 +371,8 @@ class _EpisodeGrid extends ConsumerWidget {
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: current
-                      ? AppTokens.defaultPalette.primary
-                      : AppTokens.textSecondary,
+                      ? cs.primary
+                      : cs.onSurface.withValues(alpha: 0.65),
                 ),
               ),
             ),
@@ -389,18 +391,19 @@ class _PlayerErrorView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: AppTokens.darkBg,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
+              Icon(
                 Icons.error_outline,
                 size: 48,
-                color: Color(0xB3FFFFFF),
+                color: cs.onSurface.withValues(alpha: 0.65),
               ),
               const SizedBox(height: 12),
               Text(
@@ -408,7 +411,7 @@ class _PlayerErrorView extends ConsumerWidget {
                 textAlign: TextAlign.center,
                 maxLines: 6,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: Color(0xB3FFFFFF)),
+                style: TextStyle(color: cs.onSurface.withValues(alpha: 0.65)),
               ),
               const SizedBox(height: 12),
               FilledButton.tonal(

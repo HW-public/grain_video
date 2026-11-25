@@ -45,6 +45,7 @@ class BangumiCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return SizedBox(
       width: width,
       child: InkWell(
@@ -65,10 +66,10 @@ class BangumiCard extends StatelessWidget {
               title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: AppTokens.textPrimary,
+                color: cs.onSurface,
               ),
             ),
             if (subtitle.isNotEmpty) ...[
@@ -77,10 +78,10 @@ class BangumiCard extends StatelessWidget {
                 subtitle,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   // 帧 21:19/4:31 副标规格 11/400。
                   fontSize: 11,
-                  color: AppTokens.textTertiary,
+                  color: cs.onSurface.withValues(alpha: 0.45),
                 ),
               ),
             ],
@@ -160,9 +161,8 @@ class _Cover extends StatelessWidget {
                     child: FractionallySizedBox(
                       widthFactor: clampedProgress,
                       child: ColoredBox(
-                        // AppPalette 字段是 final 非 const，const 上下文取不到；
-                        // 去 const 保留 token 引用（设计 token 单一来源铁律）。
-                        color: AppTokens.mint.primarySoft,
+                        // 进度填充 = 主色强调，跟随主题（亮=primary / 暗=primarySoft）。
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
                   ),
@@ -175,19 +175,20 @@ class _Cover extends StatelessWidget {
   }
 }
 
-/// 封面占位：浅灰紫底 + 描边图标（与卡片表面区分）。
+/// 封面占位：弱表面底 + 描边图标（与卡片表面区分）。
 class _CoverPlaceholder extends StatelessWidget {
   const _CoverPlaceholder();
 
   @override
   Widget build(BuildContext context) {
-    return const ColoredBox(
-      color: AppTokens.surfaceAlt,
+    final cs = Theme.of(context).colorScheme;
+    return ColoredBox(
+      color: cs.onSurface.withValues(alpha: 0.05),
       child: Center(
         child: Icon(
           Icons.image_outlined,
           size: 32,
-          color: AppTokens.textTertiary,
+          color: cs.onSurface.withValues(alpha: 0.45),
         ),
       ),
     );

@@ -22,7 +22,6 @@ class FollowsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final follows = ref.watch(followsListProvider);
     return Scaffold(
-      backgroundColor: AppTokens.defaultPalette.pageBg,
       appBar: AppBar(
         title: Text(FlutterI18n.translate(context, 'me.followsTitle')),
       ),
@@ -67,6 +66,7 @@ class _FollowItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final progress = _progressText(context);
     return InkWell(
       borderRadius: BorderRadius.circular(AppTokens.radiusCard),
@@ -81,10 +81,10 @@ class _FollowItem extends StatelessWidget {
               children: [
                 Text(
                   item.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: AppTokens.textPrimary,
+                    color: cs.onSurface,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -92,9 +92,9 @@ class _FollowItem extends StatelessWidget {
                 const SizedBox(height: AppTokens.space1),
                 Text(
                   progress,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: AppTokens.textSecondary,
+                    color: cs.onSurface.withValues(alpha: 0.65),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -103,9 +103,9 @@ class _FollowItem extends StatelessWidget {
                 Text(
                   '${FlutterI18n.translate(context, 'me.updatedAt')}'
                   ' ${formatMeDate(item.updatedAt)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
-                    color: AppTokens.textTertiary,
+                    color: cs.onSurface.withValues(alpha: 0.45),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -113,10 +113,10 @@ class _FollowItem extends StatelessWidget {
               ],
             ),
           ),
-          const Icon(
+          Icon(
             Icons.chevron_right,
             size: 18,
-            color: AppTokens.textTertiary,
+            color: cs.onSurface.withValues(alpha: 0.45),
           ),
         ],
       ),
@@ -156,18 +156,15 @@ class _Poster extends StatelessWidget {
     const height = width / AppTokens.coverRatioComic;
     final radius = BorderRadius.circular(AppTokens.space2);
     if (url.isEmpty) {
+      final cs = Theme.of(context).colorScheme;
       return Container(
         width: width,
         height: height,
         decoration: BoxDecoration(
-          color: AppTokens.defaultPalette.primaryContainer,
+          color: cs.primary.withValues(alpha: 0.15),
           borderRadius: radius,
         ),
-        child: Icon(
-          Icons.movie_outlined,
-          size: 24,
-          color: AppTokens.defaultPalette.primary,
-        ),
+        child: Icon(Icons.movie_outlined, size: 24, color: cs.primary),
       );
     }
     return ClipRRect(

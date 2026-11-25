@@ -60,13 +60,13 @@ class PlayerVideoArea extends ConsumerWidget {
             ),
             // 起播前：加载环（design spec 07 VideoArea 首帧前）。
             if (!state.started)
-              const Center(
+              Center(
                 child: SizedBox(
                   width: 48,
                   height: 48,
                   child: CircularProgressIndicator(
                     strokeWidth: 3,
-                    color: Color(0xFF6CE5B0),
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
               ),
