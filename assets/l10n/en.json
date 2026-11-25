@@ -150,12 +150,12 @@
     "aboutCheckUpdate": "Check for updates",
     "aboutUpToDate": "Already up to date",
     "aboutUpToDateToast": "Already up to date",
-    "aboutGithub": "Source repository",
+    "aboutGithub": "GitHub",
     "aboutFeedback": "Feedback",
     "aboutLicense": "Open-source licenses",
     "aboutShare": "Share app",
-    "aboutSlogan": "One app for all your anime",
-    "aboutCopyright": "© 2026 grain",
+    "aboutSlogan": "Growth is progress",
+    "aboutCopyright": "© 2026 HeHe Video",
     "tabFavorites": "Favorites",
     "tabHistory": "History",
     "tabDownloads": "Downloads",
@@ -185,7 +185,9 @@
     "radiusRound": "Round",
     "radiusSharp": "Sharp",
     "cacheTotal": "Total cache",
-    "cacheClearAll": "Clear all cache"
+    "cacheClearAll": "Clear all cache",
+    "licensesDesc": "Built with the following open source projects. Thanks to all contributors.",
+    "licensesFooter": "Full license texts are available in each project repository"
   },
   "player": {
     "next": "Next",

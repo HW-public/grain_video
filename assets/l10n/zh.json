@@ -150,12 +150,12 @@
     "aboutCheckUpdate": "检查更新",
     "aboutUpToDate": "已经是最新版本了",
     "aboutUpToDateToast": "已经是最新版本了",
-    "aboutGithub": "开源仓库",
-    "aboutFeedback": "意见反馈",
+    "aboutGithub": "GitHub 仓库",
+    "aboutFeedback": "问题反馈",
     "aboutLicense": "开源许可",
     "aboutShare": "分享应用",
-    "aboutSlogan": "追番，一个 App 就够了",
-    "aboutCopyright": "© 2026 grain",
+    "aboutSlogan": "生长即进度",
+    "aboutCopyright": "© 2026 禾禾影视",
     "tabFavorites": "收藏",
     "tabHistory": "历史",
     "tabDownloads": "下载",
@@ -185,7 +185,9 @@
     "radiusRound": "圆润",
     "radiusSharp": "方正",
     "cacheTotal": "缓存总量",
-    "cacheClearAll": "清理全部缓存"
+    "cacheClearAll": "清理全部缓存",
+    "licensesDesc": "本应用基于以下优秀的开源项目构建，感谢所有贡献者。",
+    "licensesFooter": "许可证全文详见各项目仓库"
   },
   "player": {
     "next": "下一集",

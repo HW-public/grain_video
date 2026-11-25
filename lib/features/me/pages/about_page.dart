@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
+import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -8,8 +9,10 @@ import 'dart:async';
 import '../../../core/theme/tokens.dart';
 import '../../../core/update/update_check.dart';
 import '../../../core/update/app_updater.dart';
+import '../routes.dart' show MeRoutes;
 import '../widgets/me_list_card.dart';
 import '../widgets/me_list_row.dart';
+import '../widgets/sprout_logo.dart';
 
 /// 关于页（spec 02）：品牌区 + 功能列表组 + 底部小字。
 ///
@@ -41,6 +44,7 @@ class AboutPage extends StatelessWidget {
               MeListRow(
                 icon: Icons.sync,
                 title: FlutterI18n.translate(context, 'me.aboutCheckUpdate'),
+                subtitle: FlutterI18n.translate(context, 'me.aboutUpToDate'),
                 onTap: () => checkAppUpdate(context),
               ),
               MeListRow(
@@ -70,10 +74,7 @@ class AboutPage extends StatelessWidget {
               MeListRow(
                 icon: Icons.description_outlined,
                 title: FlutterI18n.translate(context, 'me.aboutLicense'),
-                onTap: () => showLicensePage(
-                  context: context,
-                  applicationName: FlutterI18n.translate(context, 'appTitle'),
-                ),
+                onTap: () => context.push(MeRoutes.licenses),
               ),
               MeListRow(
                 icon: Icons.share_outlined,
@@ -110,7 +111,8 @@ class AboutPage extends StatelessWidget {
     );
   }
 
-  /// 品牌区：主色浅底托 logo 占位 + 应用名 + 版本号。
+  /// 品牌区（帧 131:96~131:139）：品牌浅绿托 #E4F1EC r24 + 小禾苗矢量，
+  /// 应用名 20/700 + 版本号 12 灰。
   Widget _buildBrand(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Column(
@@ -119,10 +121,11 @@ class AboutPage extends StatelessWidget {
           width: 88,
           height: 88,
           decoration: BoxDecoration(
-            color: cs.primary.withValues(alpha: 0.15),
+            // 品牌色托：两主题保持品牌浅绿（品牌识别，不随暗夜反转）。
+            color: const Color(0xFFE4F1EC),
             borderRadius: BorderRadius.circular(24),
           ),
-          child: Icon(Icons.eco_outlined, size: 40, color: cs.primary),
+          child: const Center(child: SproutLogo()),
         ),
         const SizedBox(height: AppTokens.space4),
         Text(
