@@ -14,6 +14,7 @@ abstract final class AppSettings {
   static const _themeModeKey = 'theme_mode';
   static const _fontScaleKey = 'font_scale_index';
   static const _radiusStyleKey = 'radius_style';
+  static const _onboardingDoneKey = 'onboarding_done';
 
   /// 预加载下一集（L1 预解析 + L2 播放列表预缓冲），默认开。
   static bool preloadNext = true;
@@ -23,6 +24,9 @@ abstract final class AppSettings {
   static ThemeMode themeMode = ThemeMode.light;
   static int fontScaleIndex = 1;
   static String radiusStyle = 'standard';
+
+  /// 首启标记：false = 首次启动，需走引导页。
+  static bool onboardingDone = false;
 
   /// 字号档位 → 全局缩放系数（builder 里包 MediaQuery textScaler）。
   static const fontScaleValues = [0.9, 1.0, 1.1, 1.2];
@@ -39,6 +43,7 @@ abstract final class AppSettings {
       };
       fontScaleIndex = prefs.getInt(_fontScaleKey) ?? fontScaleIndex;
       radiusStyle = prefs.getString(_radiusStyleKey) ?? radiusStyle;
+      onboardingDone = prefs.getBool(_onboardingDoneKey) ?? false;
     } on Object {
       // 无插件实现（测试环境）：保持默认。
     }
@@ -86,6 +91,16 @@ abstract final class AppSettings {
   static Future<void> setRadiusStyle(String value) async {
     radiusStyle = value;
     await _saveString(_radiusStyleKey, value);
+  }
+
+  static Future<void> setOnboardingDone() async {
+    onboardingDone = true;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_onboardingDoneKey, true);
+    } on Object {
+      // 持久化失败不阻塞进入。
+    }
   }
 }
 

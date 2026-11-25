@@ -4,7 +4,6 @@ import '../../core/routes.dart';
 import 'pages/about_page.dart';
 import 'pages/appearance_page.dart';
 import 'pages/cache_clear_page.dart';
-import 'pages/downloads_page.dart';
 import 'pages/favorites_page.dart';
 import 'pages/follows_page.dart';
 import 'pages/licenses_page.dart';
@@ -19,7 +18,7 @@ abstract final class MeRoutes {
   static const String page = AppRoutes.me;
   static const String history = '/me/history';
   static const String favorites = '/me/favorites';
-  static const String downloads = '/me/downloads';
+  static const String downloads = AppRoutes.downloads;
   static const String follows = '/me/follows';
   static const String settings = '/me/settings';
   static const String settingsAppearance = '/me/settings/appearance';
@@ -43,10 +42,6 @@ final List<RouteBase> meSubRoutes = [
   GoRoute(
     path: MeRoutes.favorites,
     builder: (context, state) => const FavoritesPage(),
-  ),
-  GoRoute(
-    path: MeRoutes.downloads,
-    builder: (context, state) => const DownloadsPage(),
   ),
   GoRoute(
     path: MeRoutes.follows,

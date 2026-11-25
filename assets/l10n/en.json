@@ -206,5 +206,35 @@
     "now": "Update now",
     "downloading": "Downloading…",
     "checkFailed": "Update check failed, retry later"
+  },
+  "onboarding": {
+    "skip": "Skip",
+    "start": "Get started",
+    "next": "Next",
+    "s2Title": "Search once, find all",
+    "s2Desc": "Aggregated results across anime, comics and novels",
+    "s3Title": "Infinitely extensible",
+    "s3Desc": "Install community extensions and shape your own experience",
+    "s4Title": "Never lose track",
+    "s4Desc": "Link AniList to sync watch progress to the cloud"
+  },
+  "downloads": {
+    "title": "Downloads",
+    "summarySize": "Downloads take up",
+    "summaryCount": "{count} items · {downloading} downloading",
+    "segAll": "All {count}",
+    "segActive": "Active {count}",
+    "segDone": "Done {count}",
+    "stateQueued": "Waiting…",
+    "statePaused": "Paused · tap to resume",
+    "stateFailed": "Failed · tap to retry",
+    "stateDone": "Downloaded · {size}",
+    "empty": "No downloads yet",
+    "pauseAll": "Pause all",
+    "startAll": "Start all",
+    "enqueue": "Download episode",
+    "enqueueFailed": "Failed to enqueue",
+    "removeTitle": "Delete download",
+    "removeHint": "The local file will also be removed."
   }
 }

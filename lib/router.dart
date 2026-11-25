@@ -2,9 +2,11 @@ import 'package:go_router/go_router.dart';
 
 import 'app_shell.dart';
 import 'features/detail/routes.dart';
+import 'features/downloads/routes.dart';
 import 'features/extensions/routes.dart';
 import 'features/home/routes.dart';
 import 'features/me/routes.dart';
+import 'features/onboarding/routes.dart';
 import 'features/player/routes.dart';
 import 'features/search/routes.dart';
 
@@ -30,6 +32,8 @@ GoRouter buildAppRouter({String? initialLocation}) => GoRouter(
     ...playerRoutes,
     ...extensionsRoutes,
     ...meSubRoutes,
+    ...downloadsRoutes,
+    ...onboardingRoutes,
   ],
 );
 

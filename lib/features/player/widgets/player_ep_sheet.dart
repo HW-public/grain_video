@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/services/download_gateway.dart';
 import '../../../core/settings/app_settings.dart';
 import '../../../core/theme/tokens.dart';
 import '../providers/player_providers.dart';
@@ -94,9 +95,33 @@ Future<void> showPlayerEpSheet(BuildContext context) {
                     fontWeight: current ? FontWeight.w700 : FontWeight.w500,
                   ),
                 ),
-                trailing: current
-                    ? Icon(Icons.check, color: AppTokens.defaultPalette.primary)
-                    : null,
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (current)
+                      Icon(
+                        Icons.check,
+                        color: AppTokens.defaultPalette.primary,
+                      ),
+                    // 下载入口：就地入队 + 图标变勾动画（不跳页）。
+                    // 当前集也显示（单集番剧否则永远看不到下载入口）。
+                    _EnqueueDownloadIcon(
+                      params: {
+                        'pkg': ProviderScope.containerOf(
+                          context,
+                        ).read(playerControllerProvider).args.src,
+                        'bangumi': ProviderScope.containerOf(
+                          context,
+                        ).read(playerControllerProvider).args.bangumi,
+                        'ep': episodes[i].url,
+                        'title': ProviderScope.containerOf(
+                          context,
+                        ).read(playerControllerProvider).args.title,
+                        'eptitle': episodes[i].title,
+                      },
+                    ),
+                  ],
+                ),
                 onTap: () {
                   Navigator.of(context).pop();
                   unawaited(
@@ -224,6 +249,89 @@ class _PreloadTile extends ConsumerWidget {
       activeColor: AppTokens.defaultPalette.primary,
       onChanged: (v) =>
           unawaited(ref.read(preloadNextProvider.notifier).set(v)),
+    );
+  }
+}
+
+/// 选集行内下载按钮：点按经 DownloadGateway 就地入队，
+/// 图标下载→对勾 morph（900ms）代表已进入下载队列；失败弹提示并还原。
+class _EnqueueDownloadIcon extends StatefulWidget {
+  const _EnqueueDownloadIcon({required this.params});
+
+  final Map<String, String> params;
+
+  @override
+  State<_EnqueueDownloadIcon> createState() => _EnqueueDownloadIconState();
+}
+
+class _EnqueueDownloadIconState extends State<_EnqueueDownloadIcon> {
+  var _done = false;
+  var _busy = false;
+
+  Future<void> _tap() async {
+    if (_busy || _done) return;
+    final enqueue = DownloadGateway.enqueue;
+    final messenger = ScaffoldMessenger.of(context);
+    final failedPrefix = FlutterI18n.translate(
+      context,
+      'downloads.enqueueFailed',
+    );
+    if (enqueue == null) {
+      messenger.showSnackBar(SnackBar(content: Text(failedPrefix)));
+      return;
+    }
+    setState(() => _busy = true);
+    try {
+      await enqueue(widget.params);
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _done = true;
+      });
+      // 图标变勾动画：勾停留 900ms 后还原为下载图标。
+      await Future<void>.delayed(const Duration(milliseconds: 900));
+      if (mounted) setState(() => _done = false);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _busy = false);
+      messenger.showSnackBar(SnackBar(content: Text('$failedPrefix: $e')));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _done
+        ? AppTokens.defaultPalette.primary
+        : AppTokens.textTertiary;
+    // 已入队（排队/下载中/暂停/完成）则隐藏入口，防重复入队；
+    // 下载状态变化经 DownloadGateway.version 触发重建。
+    return ValueListenableBuilder<int>(
+      valueListenable: DownloadGateway.version,
+      builder: (context, _, child) {
+        final enqueued =
+            DownloadGateway.isEnqueued?.call(
+              widget.params['pkg'] ?? '',
+              widget.params['ep'] ?? '',
+            ) ??
+            false;
+        if (enqueued) return const SizedBox.shrink();
+        return child!;
+      },
+      child: IconButton(
+        tooltip: FlutterI18n.translate(context, 'downloads.enqueue'),
+        icon: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 180),
+          transitionBuilder: (child, animation) =>
+              ScaleTransition(scale: animation, child: child),
+          child: Icon(
+            _done ? Icons.check : Icons.download_outlined,
+            key: ValueKey(_done),
+            size: 20,
+            color: color,
+          ),
+        ),
+        onPressed: _tap,
+      ),
     );
   }
 }

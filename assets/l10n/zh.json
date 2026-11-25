@@ -206,5 +206,35 @@
     "now": "立即更新",
     "downloading": "下载中…",
     "checkFailed": "检查更新失败，请稍后重试"
+  },
+  "onboarding": {
+    "skip": "跳过",
+    "start": "开始使用",
+    "next": "下一步",
+    "s2Title": "一搜即达",
+    "s2Desc": "聚合多源结果，番剧漫画小说一键搜到",
+    "s3Title": "无限扩展",
+    "s3Desc": "社区扩展即装即用，自定义你的观影体验",
+    "s4Title": "追番不丢",
+    "s4Desc": "绑定 AniList，观看进度云端同步"
+  },
+  "downloads": {
+    "title": "下载管理",
+    "summarySize": "下载占用",
+    "summaryCount": "共 {count} 项 · {downloading} 项下载中",
+    "segAll": "全部 {count}",
+    "segActive": "下载中 {count}",
+    "segDone": "已完成 {count}",
+    "stateQueued": "等待中…",
+    "statePaused": "已暂停 · 点击继续",
+    "stateFailed": "下载失败 · 点击重试",
+    "stateDone": "已下载 · {size}",
+    "empty": "暂无下载任务",
+    "pauseAll": "全部暂停",
+    "startAll": "开始全部",
+    "enqueue": "下载本集",
+    "enqueueFailed": "加入下载失败",
+    "removeTitle": "删除下载任务",
+    "removeHint": "将同时删除已下载的本地文件。"
   }
 }

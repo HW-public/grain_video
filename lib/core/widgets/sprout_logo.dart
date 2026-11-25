@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'svg_path_utils.dart';
+
 /// 小禾苗品牌矢量（Figma 131:139 导出路径自绘，避免引入 flutter_svg 依赖）。
 /// 四条路径共用对角绿渐变（顶 #45AB66 → 底 #248752），viewBox 72×60。
 class SproutLogo extends StatelessWidget {
@@ -34,56 +36,10 @@ class _SproutPainter extends CustomPainter {
     return _cached ??= () {
       final combined = Path();
       for (final d in _paths) {
-        combined.addPath(_parsePath(d), Offset.zero);
+        combined.addPath(parseSvgPath(d), Offset.zero);
       }
       return combined;
     }();
-  }
-
-  /// 极简 SVG path 解析（仅支持本矢量用到的 M/C/V/L/Z）。
-  static Path _parsePath(String d) {
-    final path = Path();
-    final tokens = RegExp(
-      '[MCVLZ]',
-    ).allMatches(d).map((m) => (m.group(0)!, m.start)).toList();
-    double x = 0, y = 0;
-    for (var i = 0; i < tokens.length; i++) {
-      final cmd = tokens[i].$1;
-      final start = tokens[i].$2 + 1;
-      final end = i + 1 < tokens.length ? tokens[i + 1].$2 : d.length;
-      final nums = RegExp(
-        r'-?\d*\.?\d+(?:e-?\d+)?',
-      ).allMatches(d.substring(start, end)).map((m) => m.group(0)!).toList();
-      switch (cmd) {
-        case 'M':
-          x = double.parse(nums[0]);
-          y = double.parse(nums[1]);
-          path.moveTo(x, y);
-        case 'C':
-          for (var j = 0; j + 5 < nums.length; j += 6) {
-            path.cubicTo(
-              double.parse(nums[j]),
-              double.parse(nums[j + 1]),
-              double.parse(nums[j + 2]),
-              double.parse(nums[j + 3]),
-              double.parse(nums[j + 4]),
-              double.parse(nums[j + 5]),
-            );
-            x = double.parse(nums[j + 4]);
-            y = double.parse(nums[j + 5]);
-          }
-        case 'V':
-          y = double.parse(nums[0]);
-          path.lineTo(x, y);
-        case 'L':
-          x = double.parse(nums[0]);
-          y = double.parse(nums[1]);
-          path.lineTo(x, y);
-        case 'Z':
-          path.close();
-      }
-    }
-    return path;
   }
 
   @override

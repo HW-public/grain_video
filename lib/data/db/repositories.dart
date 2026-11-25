@@ -265,3 +265,113 @@ final followsRepositoryProvider = Provider<FollowsRepository>(
 final searchHistoryRepositoryProvider = Provider<SearchHistoryRepository>(
   (ref) => SearchHistoryRepository(ref.watch(databaseProvider)),
 );
+
+/// 下载任务仓库。
+class DownloadsRepository {
+  DownloadsRepository(this._db);
+
+  final AppDatabase _db;
+
+  Future<Download?> findByEpisode(String sourcePackage, String episodeUrl) {
+    return (_db.select(_db.downloads)
+          ..where(
+            (t) =>
+                t.sourcePackage.equals(sourcePackage) &
+                t.episodeUrl.equals(episodeUrl),
+          ))
+        .getSingleOrNull();
+  }
+
+  Future<Download> insert({
+    required String sourcePackage,
+    required String bangumiUrl,
+    required String episodeUrl,
+    required String title,
+    String cover = '',
+    String episodeTitle = '',
+    String streamUrl = '',
+    String headersJson = '',
+  }) async {
+    final existing = await findByEpisode(sourcePackage, episodeUrl);
+    if (existing != null) return existing;
+    final id = await _db.into(_db.downloads).insert(
+      DownloadsCompanion.insert(
+        sourcePackage: sourcePackage,
+        bangumiUrl: bangumiUrl,
+        episodeUrl: episodeUrl,
+        title: title,
+        createdAt: DateTime.now(),
+        cover: Value(cover),
+        episodeTitle: Value(episodeTitle),
+        streamUrl: Value(streamUrl),
+        headersJson: Value(headersJson),
+      ),
+    );
+    return (await (_db.select(
+      _db.downloads,
+    )..where((t) => t.id.equals(id))).getSingle());
+  }
+
+  Future<List<Download>> list() {
+    return (_db.select(
+      _db.downloads,
+    )..orderBy([(t) => OrderingTerm.desc(t.createdAt)])).get();
+  }
+
+  Future<void> updateStatus(int id, String status) {
+    return (_db.update(_db.downloads)..where((t) => t.id.equals(id)))
+        .write(DownloadsCompanion(status: Value(status)));
+  }
+
+  Future<void> updateProgress({
+    required int id,
+    int? receivedBytes,
+    int? totalBytes,
+    int? doneSegments,
+    int? totalSegments,
+  }) {
+    return (_db.update(_db.downloads)..where((t) => t.id.equals(id))).write(
+      DownloadsCompanion(
+        receivedBytes: receivedBytes == null
+            ? const Value.absent()
+            : Value(receivedBytes),
+        totalBytes: totalBytes == null
+            ? const Value.absent()
+            : Value(totalBytes),
+        doneSegments: doneSegments == null
+            ? const Value.absent()
+            : Value(doneSegments),
+        totalSegments: totalSegments == null
+            ? const Value.absent()
+            : Value(totalSegments),
+      ),
+    );
+  }
+
+  Future<void> markDone(int id, String localPath) {
+    return (_db.update(_db.downloads)..where((t) => t.id.equals(id))).write(
+      DownloadsCompanion(
+        status: const Value('done'),
+        localPath: Value(localPath),
+      ),
+    );
+  }
+
+  Future<void> resetProgress(int id) {
+    return (_db.update(_db.downloads)..where((t) => t.id.equals(id))).write(
+      const DownloadsCompanion(
+        status: Value('queued'),
+        receivedBytes: Value(0),
+        doneSegments: Value(0),
+      ),
+    );
+  }
+
+  Future<void> remove(int id) {
+    return (_db.delete(_db.downloads)..where((t) => t.id.equals(id))).go();
+  }
+}
+
+final downloadsRepositoryProvider = Provider<DownloadsRepository>(
+  (ref) => DownloadsRepository(ref.watch(databaseProvider)),
+);

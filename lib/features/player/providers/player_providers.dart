@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
@@ -130,9 +131,32 @@ final preloadedStreamsProvider =
 /// （Windows 上重建 VideoController 会挂约 200 秒，见 spike-media-kit）。
 final playerProvider = Provider<Player>((ref) {
   final player = Player();
+  // 缓冲调优必须在首次 open 之前完成（demuxer 属性只在建流时生效）。
+  // 应用启动时 native 初始化快速完成，无起播竞态；失败静默（测试 stub）。
+  unawaited(_tuneBuffering(player));
   ref.onDispose(player.dispose);
   return player;
 });
+
+/// mpv 缓冲调优：默认 demuxer 前读偏保守，高码率源周期性欠载卡顿。
+/// 仅原生端生效（导出层 NativePlayer 是条件桩，dynamic 直达 + 超时兜底）。
+Future<void> _tuneBuffering(Player player) async {
+  try {
+    final native = player as dynamic;
+    const timeout = Duration(seconds: 2);
+    await native
+        .setProperty('demuxer-readahead-secs', '30')
+        .timeout(timeout, onTimeout: () {});
+    await native
+        .setProperty('demuxer-max-bytes', '157286400')
+        .timeout(timeout, onTimeout: () {});
+    await native
+        .setProperty('demuxer-max-back-bytes', '52428800')
+        .timeout(timeout, onTimeout: () {});
+  } on Object {
+    // 测试 stub / 非原生端：跳过调优。
+  }
+}
 
 /// 单例 [VideoController]（media_kit_video 2.0.1 无 dispose，随 Player 清理）。
 final videoControllerProvider = Provider<VideoController>((ref) {
@@ -174,6 +198,16 @@ class PlayerController extends Notifier<PlayerViewState> {
       return;
     }
     state = PlayerViewState(args: args, loading: true);
+    // 下载管理：本地已下载文件直放，不走路插件解析（无选集/不预载）。
+    if (File(args.ep).existsSync()) {
+      // media_kit/mpv 对本地文件要求 file:// URI（裸绝对路径在 Android
+      // 上报 Failed to recognize file format）；Windows 路径转 file:///C:/...
+      var localUrl = args.ep.replaceAll('\\', '/');
+      if (!localUrl.startsWith('/')) localUrl = '/$localUrl';
+      state = state.copyWith(loading: false);
+      await _open(StreamInfo(url: 'file://$localUrl'), resumeMs: 0);
+      return;
+    }
     try {
       final manager = ref.read(pluginManagerProvider.notifier);
       final entries = ref.read(pluginManagerProvider);
@@ -324,6 +358,16 @@ class PlayerController extends Notifier<PlayerViewState> {
   void toggle() {
     final player = ref.read(playerProvider);
     player.state.playing ? player.pause() : player.play();
+  }
+
+  /// 退出播放页：暂停单例 Player（常驻不销毁，再进快启）。
+  /// 测试环境 media_kit 未初始化等场景静默忽略。
+  void pauseOnExit() {
+    try {
+      unawaited(ref.read(playerProvider).pause());
+    } on Object {
+      // 无播放器实例（未起播/测试环境）：无需暂停。
+    }
   }
 
   Future<void> seekTo(Duration position) async {

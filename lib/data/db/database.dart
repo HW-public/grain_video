@@ -79,9 +79,48 @@ class SearchHistories extends Table {
   ];
 }
 
+/// 下载任务：按 (sourcePackage, episodeUrl) 唯一。
+/// status: queued/downloading/paused/done/failed；
+/// HLS 任务用 totalSegments/doneSegments 计段进度，直连文件用字节进度。
+class Downloads extends Table {
+  IntColumn get id => integer().autoIncrement()();
+
+  /// 插件包名 + 集地址（重试/去重键）。
+  TextColumn get sourcePackage => text()();
+  TextColumn get bangumiUrl => text()();
+  TextColumn get episodeUrl => text()();
+  TextColumn get title => text()();
+  TextColumn get cover => text().withDefault(const Constant(''))();
+  TextColumn get episodeTitle => text().withDefault(const Constant(''))();
+
+  /// callWatch 解析结果（streamUrl + headers JSON），queued 时先解析好。
+  TextColumn get streamUrl => text().withDefault(const Constant(''))();
+  TextColumn get headersJson => text().withDefault(const Constant(''))();
+
+  /// 本地文件路径（done 后可离线播放）。
+  TextColumn get localPath => text().withDefault(const Constant(''))();
+  TextColumn get status => text().withDefault(const Constant('queued'))();
+  IntColumn get totalBytes => integer().withDefault(const Constant(0))();
+  IntColumn get receivedBytes => integer().withDefault(const Constant(0))();
+  IntColumn get totalSegments => integer().withDefault(const Constant(0))();
+  IntColumn get doneSegments => integer().withDefault(const Constant(0))();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {sourcePackage, episodeUrl},
+  ];
+}
+
 /// 迁移约定：schemaVersion 从 1 开始，每次表结构变更 +1；
 /// 迁移写 onUpgrade，禁止 Destructive。
-@DriftDatabase(tables: [WatchHistories, Favorites, Follows, SearchHistories])
+@DriftDatabase(tables: [
+  WatchHistories,
+  Favorites,
+  Follows,
+  SearchHistories,
+  Downloads,
+])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(driftDatabase(name: 'grain_video'));
 
@@ -89,7 +128,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -98,6 +137,10 @@ class AppDatabase extends _$AppDatabase {
       // v1 → v2：新增搜索历史表。
       if (from < 2) {
         await m.createTable(searchHistories);
+      }
+      // v2 → v3：新增下载任务表。
+      if (from < 3) {
+        await m.createTable(downloads);
       }
     },
   );

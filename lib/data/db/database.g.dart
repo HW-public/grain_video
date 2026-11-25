@@ -1793,6 +1793,912 @@ class SearchHistoriesCompanion extends UpdateCompanion<SearchHistory> {
   }
 }
 
+class $DownloadsTable extends Downloads
+    with TableInfo<$DownloadsTable, Download> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DownloadsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _sourcePackageMeta = const VerificationMeta(
+    'sourcePackage',
+  );
+  @override
+  late final GeneratedColumn<String> sourcePackage = GeneratedColumn<String>(
+    'source_package',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bangumiUrlMeta = const VerificationMeta(
+    'bangumiUrl',
+  );
+  @override
+  late final GeneratedColumn<String> bangumiUrl = GeneratedColumn<String>(
+    'bangumi_url',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _episodeUrlMeta = const VerificationMeta(
+    'episodeUrl',
+  );
+  @override
+  late final GeneratedColumn<String> episodeUrl = GeneratedColumn<String>(
+    'episode_url',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _coverMeta = const VerificationMeta('cover');
+  @override
+  late final GeneratedColumn<String> cover = GeneratedColumn<String>(
+    'cover',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _episodeTitleMeta = const VerificationMeta(
+    'episodeTitle',
+  );
+  @override
+  late final GeneratedColumn<String> episodeTitle = GeneratedColumn<String>(
+    'episode_title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _streamUrlMeta = const VerificationMeta(
+    'streamUrl',
+  );
+  @override
+  late final GeneratedColumn<String> streamUrl = GeneratedColumn<String>(
+    'stream_url',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _headersJsonMeta = const VerificationMeta(
+    'headersJson',
+  );
+  @override
+  late final GeneratedColumn<String> headersJson = GeneratedColumn<String>(
+    'headers_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _localPathMeta = const VerificationMeta(
+    'localPath',
+  );
+  @override
+  late final GeneratedColumn<String> localPath = GeneratedColumn<String>(
+    'local_path',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('queued'),
+  );
+  static const VerificationMeta _totalBytesMeta = const VerificationMeta(
+    'totalBytes',
+  );
+  @override
+  late final GeneratedColumn<int> totalBytes = GeneratedColumn<int>(
+    'total_bytes',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _receivedBytesMeta = const VerificationMeta(
+    'receivedBytes',
+  );
+  @override
+  late final GeneratedColumn<int> receivedBytes = GeneratedColumn<int>(
+    'received_bytes',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _totalSegmentsMeta = const VerificationMeta(
+    'totalSegments',
+  );
+  @override
+  late final GeneratedColumn<int> totalSegments = GeneratedColumn<int>(
+    'total_segments',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _doneSegmentsMeta = const VerificationMeta(
+    'doneSegments',
+  );
+  @override
+  late final GeneratedColumn<int> doneSegments = GeneratedColumn<int>(
+    'done_segments',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    sourcePackage,
+    bangumiUrl,
+    episodeUrl,
+    title,
+    cover,
+    episodeTitle,
+    streamUrl,
+    headersJson,
+    localPath,
+    status,
+    totalBytes,
+    receivedBytes,
+    totalSegments,
+    doneSegments,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'downloads';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Download> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('source_package')) {
+      context.handle(
+        _sourcePackageMeta,
+        sourcePackage.isAcceptableOrUnknown(
+          data['source_package']!,
+          _sourcePackageMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_sourcePackageMeta);
+    }
+    if (data.containsKey('bangumi_url')) {
+      context.handle(
+        _bangumiUrlMeta,
+        bangumiUrl.isAcceptableOrUnknown(data['bangumi_url']!, _bangumiUrlMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bangumiUrlMeta);
+    }
+    if (data.containsKey('episode_url')) {
+      context.handle(
+        _episodeUrlMeta,
+        episodeUrl.isAcceptableOrUnknown(data['episode_url']!, _episodeUrlMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_episodeUrlMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('cover')) {
+      context.handle(
+        _coverMeta,
+        cover.isAcceptableOrUnknown(data['cover']!, _coverMeta),
+      );
+    }
+    if (data.containsKey('episode_title')) {
+      context.handle(
+        _episodeTitleMeta,
+        episodeTitle.isAcceptableOrUnknown(
+          data['episode_title']!,
+          _episodeTitleMeta,
+        ),
+      );
+    }
+    if (data.containsKey('stream_url')) {
+      context.handle(
+        _streamUrlMeta,
+        streamUrl.isAcceptableOrUnknown(data['stream_url']!, _streamUrlMeta),
+      );
+    }
+    if (data.containsKey('headers_json')) {
+      context.handle(
+        _headersJsonMeta,
+        headersJson.isAcceptableOrUnknown(
+          data['headers_json']!,
+          _headersJsonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('local_path')) {
+      context.handle(
+        _localPathMeta,
+        localPath.isAcceptableOrUnknown(data['local_path']!, _localPathMeta),
+      );
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('total_bytes')) {
+      context.handle(
+        _totalBytesMeta,
+        totalBytes.isAcceptableOrUnknown(data['total_bytes']!, _totalBytesMeta),
+      );
+    }
+    if (data.containsKey('received_bytes')) {
+      context.handle(
+        _receivedBytesMeta,
+        receivedBytes.isAcceptableOrUnknown(
+          data['received_bytes']!,
+          _receivedBytesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('total_segments')) {
+      context.handle(
+        _totalSegmentsMeta,
+        totalSegments.isAcceptableOrUnknown(
+          data['total_segments']!,
+          _totalSegmentsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('done_segments')) {
+      context.handle(
+        _doneSegmentsMeta,
+        doneSegments.isAcceptableOrUnknown(
+          data['done_segments']!,
+          _doneSegmentsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {sourcePackage, episodeUrl},
+  ];
+  @override
+  Download map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Download(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      sourcePackage: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_package'],
+      )!,
+      bangumiUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}bangumi_url'],
+      )!,
+      episodeUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}episode_url'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      cover: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cover'],
+      )!,
+      episodeTitle: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}episode_title'],
+      )!,
+      streamUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}stream_url'],
+      )!,
+      headersJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}headers_json'],
+      )!,
+      localPath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}local_path'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      totalBytes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}total_bytes'],
+      )!,
+      receivedBytes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}received_bytes'],
+      )!,
+      totalSegments: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}total_segments'],
+      )!,
+      doneSegments: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}done_segments'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $DownloadsTable createAlias(String alias) {
+    return $DownloadsTable(attachedDatabase, alias);
+  }
+}
+
+class Download extends DataClass implements Insertable<Download> {
+  final int id;
+
+  /// 插件包名 + 集地址（重试/去重键）。
+  final String sourcePackage;
+  final String bangumiUrl;
+  final String episodeUrl;
+  final String title;
+  final String cover;
+  final String episodeTitle;
+
+  /// callWatch 解析结果（streamUrl + headers JSON），queued 时先解析好。
+  final String streamUrl;
+  final String headersJson;
+
+  /// 本地文件路径（done 后可离线播放）。
+  final String localPath;
+  final String status;
+  final int totalBytes;
+  final int receivedBytes;
+  final int totalSegments;
+  final int doneSegments;
+  final DateTime createdAt;
+  const Download({
+    required this.id,
+    required this.sourcePackage,
+    required this.bangumiUrl,
+    required this.episodeUrl,
+    required this.title,
+    required this.cover,
+    required this.episodeTitle,
+    required this.streamUrl,
+    required this.headersJson,
+    required this.localPath,
+    required this.status,
+    required this.totalBytes,
+    required this.receivedBytes,
+    required this.totalSegments,
+    required this.doneSegments,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['source_package'] = Variable<String>(sourcePackage);
+    map['bangumi_url'] = Variable<String>(bangumiUrl);
+    map['episode_url'] = Variable<String>(episodeUrl);
+    map['title'] = Variable<String>(title);
+    map['cover'] = Variable<String>(cover);
+    map['episode_title'] = Variable<String>(episodeTitle);
+    map['stream_url'] = Variable<String>(streamUrl);
+    map['headers_json'] = Variable<String>(headersJson);
+    map['local_path'] = Variable<String>(localPath);
+    map['status'] = Variable<String>(status);
+    map['total_bytes'] = Variable<int>(totalBytes);
+    map['received_bytes'] = Variable<int>(receivedBytes);
+    map['total_segments'] = Variable<int>(totalSegments);
+    map['done_segments'] = Variable<int>(doneSegments);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  DownloadsCompanion toCompanion(bool nullToAbsent) {
+    return DownloadsCompanion(
+      id: Value(id),
+      sourcePackage: Value(sourcePackage),
+      bangumiUrl: Value(bangumiUrl),
+      episodeUrl: Value(episodeUrl),
+      title: Value(title),
+      cover: Value(cover),
+      episodeTitle: Value(episodeTitle),
+      streamUrl: Value(streamUrl),
+      headersJson: Value(headersJson),
+      localPath: Value(localPath),
+      status: Value(status),
+      totalBytes: Value(totalBytes),
+      receivedBytes: Value(receivedBytes),
+      totalSegments: Value(totalSegments),
+      doneSegments: Value(doneSegments),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory Download.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Download(
+      id: serializer.fromJson<int>(json['id']),
+      sourcePackage: serializer.fromJson<String>(json['sourcePackage']),
+      bangumiUrl: serializer.fromJson<String>(json['bangumiUrl']),
+      episodeUrl: serializer.fromJson<String>(json['episodeUrl']),
+      title: serializer.fromJson<String>(json['title']),
+      cover: serializer.fromJson<String>(json['cover']),
+      episodeTitle: serializer.fromJson<String>(json['episodeTitle']),
+      streamUrl: serializer.fromJson<String>(json['streamUrl']),
+      headersJson: serializer.fromJson<String>(json['headersJson']),
+      localPath: serializer.fromJson<String>(json['localPath']),
+      status: serializer.fromJson<String>(json['status']),
+      totalBytes: serializer.fromJson<int>(json['totalBytes']),
+      receivedBytes: serializer.fromJson<int>(json['receivedBytes']),
+      totalSegments: serializer.fromJson<int>(json['totalSegments']),
+      doneSegments: serializer.fromJson<int>(json['doneSegments']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'sourcePackage': serializer.toJson<String>(sourcePackage),
+      'bangumiUrl': serializer.toJson<String>(bangumiUrl),
+      'episodeUrl': serializer.toJson<String>(episodeUrl),
+      'title': serializer.toJson<String>(title),
+      'cover': serializer.toJson<String>(cover),
+      'episodeTitle': serializer.toJson<String>(episodeTitle),
+      'streamUrl': serializer.toJson<String>(streamUrl),
+      'headersJson': serializer.toJson<String>(headersJson),
+      'localPath': serializer.toJson<String>(localPath),
+      'status': serializer.toJson<String>(status),
+      'totalBytes': serializer.toJson<int>(totalBytes),
+      'receivedBytes': serializer.toJson<int>(receivedBytes),
+      'totalSegments': serializer.toJson<int>(totalSegments),
+      'doneSegments': serializer.toJson<int>(doneSegments),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  Download copyWith({
+    int? id,
+    String? sourcePackage,
+    String? bangumiUrl,
+    String? episodeUrl,
+    String? title,
+    String? cover,
+    String? episodeTitle,
+    String? streamUrl,
+    String? headersJson,
+    String? localPath,
+    String? status,
+    int? totalBytes,
+    int? receivedBytes,
+    int? totalSegments,
+    int? doneSegments,
+    DateTime? createdAt,
+  }) => Download(
+    id: id ?? this.id,
+    sourcePackage: sourcePackage ?? this.sourcePackage,
+    bangumiUrl: bangumiUrl ?? this.bangumiUrl,
+    episodeUrl: episodeUrl ?? this.episodeUrl,
+    title: title ?? this.title,
+    cover: cover ?? this.cover,
+    episodeTitle: episodeTitle ?? this.episodeTitle,
+    streamUrl: streamUrl ?? this.streamUrl,
+    headersJson: headersJson ?? this.headersJson,
+    localPath: localPath ?? this.localPath,
+    status: status ?? this.status,
+    totalBytes: totalBytes ?? this.totalBytes,
+    receivedBytes: receivedBytes ?? this.receivedBytes,
+    totalSegments: totalSegments ?? this.totalSegments,
+    doneSegments: doneSegments ?? this.doneSegments,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  Download copyWithCompanion(DownloadsCompanion data) {
+    return Download(
+      id: data.id.present ? data.id.value : this.id,
+      sourcePackage: data.sourcePackage.present
+          ? data.sourcePackage.value
+          : this.sourcePackage,
+      bangumiUrl: data.bangumiUrl.present
+          ? data.bangumiUrl.value
+          : this.bangumiUrl,
+      episodeUrl: data.episodeUrl.present
+          ? data.episodeUrl.value
+          : this.episodeUrl,
+      title: data.title.present ? data.title.value : this.title,
+      cover: data.cover.present ? data.cover.value : this.cover,
+      episodeTitle: data.episodeTitle.present
+          ? data.episodeTitle.value
+          : this.episodeTitle,
+      streamUrl: data.streamUrl.present ? data.streamUrl.value : this.streamUrl,
+      headersJson: data.headersJson.present
+          ? data.headersJson.value
+          : this.headersJson,
+      localPath: data.localPath.present ? data.localPath.value : this.localPath,
+      status: data.status.present ? data.status.value : this.status,
+      totalBytes: data.totalBytes.present
+          ? data.totalBytes.value
+          : this.totalBytes,
+      receivedBytes: data.receivedBytes.present
+          ? data.receivedBytes.value
+          : this.receivedBytes,
+      totalSegments: data.totalSegments.present
+          ? data.totalSegments.value
+          : this.totalSegments,
+      doneSegments: data.doneSegments.present
+          ? data.doneSegments.value
+          : this.doneSegments,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Download(')
+          ..write('id: $id, ')
+          ..write('sourcePackage: $sourcePackage, ')
+          ..write('bangumiUrl: $bangumiUrl, ')
+          ..write('episodeUrl: $episodeUrl, ')
+          ..write('title: $title, ')
+          ..write('cover: $cover, ')
+          ..write('episodeTitle: $episodeTitle, ')
+          ..write('streamUrl: $streamUrl, ')
+          ..write('headersJson: $headersJson, ')
+          ..write('localPath: $localPath, ')
+          ..write('status: $status, ')
+          ..write('totalBytes: $totalBytes, ')
+          ..write('receivedBytes: $receivedBytes, ')
+          ..write('totalSegments: $totalSegments, ')
+          ..write('doneSegments: $doneSegments, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    sourcePackage,
+    bangumiUrl,
+    episodeUrl,
+    title,
+    cover,
+    episodeTitle,
+    streamUrl,
+    headersJson,
+    localPath,
+    status,
+    totalBytes,
+    receivedBytes,
+    totalSegments,
+    doneSegments,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Download &&
+          other.id == this.id &&
+          other.sourcePackage == this.sourcePackage &&
+          other.bangumiUrl == this.bangumiUrl &&
+          other.episodeUrl == this.episodeUrl &&
+          other.title == this.title &&
+          other.cover == this.cover &&
+          other.episodeTitle == this.episodeTitle &&
+          other.streamUrl == this.streamUrl &&
+          other.headersJson == this.headersJson &&
+          other.localPath == this.localPath &&
+          other.status == this.status &&
+          other.totalBytes == this.totalBytes &&
+          other.receivedBytes == this.receivedBytes &&
+          other.totalSegments == this.totalSegments &&
+          other.doneSegments == this.doneSegments &&
+          other.createdAt == this.createdAt);
+}
+
+class DownloadsCompanion extends UpdateCompanion<Download> {
+  final Value<int> id;
+  final Value<String> sourcePackage;
+  final Value<String> bangumiUrl;
+  final Value<String> episodeUrl;
+  final Value<String> title;
+  final Value<String> cover;
+  final Value<String> episodeTitle;
+  final Value<String> streamUrl;
+  final Value<String> headersJson;
+  final Value<String> localPath;
+  final Value<String> status;
+  final Value<int> totalBytes;
+  final Value<int> receivedBytes;
+  final Value<int> totalSegments;
+  final Value<int> doneSegments;
+  final Value<DateTime> createdAt;
+  const DownloadsCompanion({
+    this.id = const Value.absent(),
+    this.sourcePackage = const Value.absent(),
+    this.bangumiUrl = const Value.absent(),
+    this.episodeUrl = const Value.absent(),
+    this.title = const Value.absent(),
+    this.cover = const Value.absent(),
+    this.episodeTitle = const Value.absent(),
+    this.streamUrl = const Value.absent(),
+    this.headersJson = const Value.absent(),
+    this.localPath = const Value.absent(),
+    this.status = const Value.absent(),
+    this.totalBytes = const Value.absent(),
+    this.receivedBytes = const Value.absent(),
+    this.totalSegments = const Value.absent(),
+    this.doneSegments = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  DownloadsCompanion.insert({
+    this.id = const Value.absent(),
+    required String sourcePackage,
+    required String bangumiUrl,
+    required String episodeUrl,
+    required String title,
+    this.cover = const Value.absent(),
+    this.episodeTitle = const Value.absent(),
+    this.streamUrl = const Value.absent(),
+    this.headersJson = const Value.absent(),
+    this.localPath = const Value.absent(),
+    this.status = const Value.absent(),
+    this.totalBytes = const Value.absent(),
+    this.receivedBytes = const Value.absent(),
+    this.totalSegments = const Value.absent(),
+    this.doneSegments = const Value.absent(),
+    required DateTime createdAt,
+  }) : sourcePackage = Value(sourcePackage),
+       bangumiUrl = Value(bangumiUrl),
+       episodeUrl = Value(episodeUrl),
+       title = Value(title),
+       createdAt = Value(createdAt);
+  static Insertable<Download> custom({
+    Expression<int>? id,
+    Expression<String>? sourcePackage,
+    Expression<String>? bangumiUrl,
+    Expression<String>? episodeUrl,
+    Expression<String>? title,
+    Expression<String>? cover,
+    Expression<String>? episodeTitle,
+    Expression<String>? streamUrl,
+    Expression<String>? headersJson,
+    Expression<String>? localPath,
+    Expression<String>? status,
+    Expression<int>? totalBytes,
+    Expression<int>? receivedBytes,
+    Expression<int>? totalSegments,
+    Expression<int>? doneSegments,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (sourcePackage != null) 'source_package': sourcePackage,
+      if (bangumiUrl != null) 'bangumi_url': bangumiUrl,
+      if (episodeUrl != null) 'episode_url': episodeUrl,
+      if (title != null) 'title': title,
+      if (cover != null) 'cover': cover,
+      if (episodeTitle != null) 'episode_title': episodeTitle,
+      if (streamUrl != null) 'stream_url': streamUrl,
+      if (headersJson != null) 'headers_json': headersJson,
+      if (localPath != null) 'local_path': localPath,
+      if (status != null) 'status': status,
+      if (totalBytes != null) 'total_bytes': totalBytes,
+      if (receivedBytes != null) 'received_bytes': receivedBytes,
+      if (totalSegments != null) 'total_segments': totalSegments,
+      if (doneSegments != null) 'done_segments': doneSegments,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  DownloadsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? sourcePackage,
+    Value<String>? bangumiUrl,
+    Value<String>? episodeUrl,
+    Value<String>? title,
+    Value<String>? cover,
+    Value<String>? episodeTitle,
+    Value<String>? streamUrl,
+    Value<String>? headersJson,
+    Value<String>? localPath,
+    Value<String>? status,
+    Value<int>? totalBytes,
+    Value<int>? receivedBytes,
+    Value<int>? totalSegments,
+    Value<int>? doneSegments,
+    Value<DateTime>? createdAt,
+  }) {
+    return DownloadsCompanion(
+      id: id ?? this.id,
+      sourcePackage: sourcePackage ?? this.sourcePackage,
+      bangumiUrl: bangumiUrl ?? this.bangumiUrl,
+      episodeUrl: episodeUrl ?? this.episodeUrl,
+      title: title ?? this.title,
+      cover: cover ?? this.cover,
+      episodeTitle: episodeTitle ?? this.episodeTitle,
+      streamUrl: streamUrl ?? this.streamUrl,
+      headersJson: headersJson ?? this.headersJson,
+      localPath: localPath ?? this.localPath,
+      status: status ?? this.status,
+      totalBytes: totalBytes ?? this.totalBytes,
+      receivedBytes: receivedBytes ?? this.receivedBytes,
+      totalSegments: totalSegments ?? this.totalSegments,
+      doneSegments: doneSegments ?? this.doneSegments,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (sourcePackage.present) {
+      map['source_package'] = Variable<String>(sourcePackage.value);
+    }
+    if (bangumiUrl.present) {
+      map['bangumi_url'] = Variable<String>(bangumiUrl.value);
+    }
+    if (episodeUrl.present) {
+      map['episode_url'] = Variable<String>(episodeUrl.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (cover.present) {
+      map['cover'] = Variable<String>(cover.value);
+    }
+    if (episodeTitle.present) {
+      map['episode_title'] = Variable<String>(episodeTitle.value);
+    }
+    if (streamUrl.present) {
+      map['stream_url'] = Variable<String>(streamUrl.value);
+    }
+    if (headersJson.present) {
+      map['headers_json'] = Variable<String>(headersJson.value);
+    }
+    if (localPath.present) {
+      map['local_path'] = Variable<String>(localPath.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (totalBytes.present) {
+      map['total_bytes'] = Variable<int>(totalBytes.value);
+    }
+    if (receivedBytes.present) {
+      map['received_bytes'] = Variable<int>(receivedBytes.value);
+    }
+    if (totalSegments.present) {
+      map['total_segments'] = Variable<int>(totalSegments.value);
+    }
+    if (doneSegments.present) {
+      map['done_segments'] = Variable<int>(doneSegments.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DownloadsCompanion(')
+          ..write('id: $id, ')
+          ..write('sourcePackage: $sourcePackage, ')
+          ..write('bangumiUrl: $bangumiUrl, ')
+          ..write('episodeUrl: $episodeUrl, ')
+          ..write('title: $title, ')
+          ..write('cover: $cover, ')
+          ..write('episodeTitle: $episodeTitle, ')
+          ..write('streamUrl: $streamUrl, ')
+          ..write('headersJson: $headersJson, ')
+          ..write('localPath: $localPath, ')
+          ..write('status: $status, ')
+          ..write('totalBytes: $totalBytes, ')
+          ..write('receivedBytes: $receivedBytes, ')
+          ..write('totalSegments: $totalSegments, ')
+          ..write('doneSegments: $doneSegments, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1802,6 +2708,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SearchHistoriesTable searchHistories = $SearchHistoriesTable(
     this,
   );
+  late final $DownloadsTable downloads = $DownloadsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1811,6 +2718,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     favorites,
     follows,
     searchHistories,
+    downloads,
   ];
 }
 
@@ -2741,6 +3649,421 @@ typedef $$SearchHistoriesTableProcessedTableManager =
       SearchHistory,
       PrefetchHooks Function()
     >;
+typedef $$DownloadsTableCreateCompanionBuilder =
+    DownloadsCompanion Function({
+      Value<int> id,
+      required String sourcePackage,
+      required String bangumiUrl,
+      required String episodeUrl,
+      required String title,
+      Value<String> cover,
+      Value<String> episodeTitle,
+      Value<String> streamUrl,
+      Value<String> headersJson,
+      Value<String> localPath,
+      Value<String> status,
+      Value<int> totalBytes,
+      Value<int> receivedBytes,
+      Value<int> totalSegments,
+      Value<int> doneSegments,
+      required DateTime createdAt,
+    });
+typedef $$DownloadsTableUpdateCompanionBuilder =
+    DownloadsCompanion Function({
+      Value<int> id,
+      Value<String> sourcePackage,
+      Value<String> bangumiUrl,
+      Value<String> episodeUrl,
+      Value<String> title,
+      Value<String> cover,
+      Value<String> episodeTitle,
+      Value<String> streamUrl,
+      Value<String> headersJson,
+      Value<String> localPath,
+      Value<String> status,
+      Value<int> totalBytes,
+      Value<int> receivedBytes,
+      Value<int> totalSegments,
+      Value<int> doneSegments,
+      Value<DateTime> createdAt,
+    });
+
+class $$DownloadsTableFilterComposer
+    extends Composer<_$AppDatabase, $DownloadsTable> {
+  $$DownloadsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourcePackage => $composableBuilder(
+    column: $table.sourcePackage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get bangumiUrl => $composableBuilder(
+    column: $table.bangumiUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get episodeUrl => $composableBuilder(
+    column: $table.episodeUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get cover => $composableBuilder(
+    column: $table.cover,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get episodeTitle => $composableBuilder(
+    column: $table.episodeTitle,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get streamUrl => $composableBuilder(
+    column: $table.streamUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get headersJson => $composableBuilder(
+    column: $table.headersJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get localPath => $composableBuilder(
+    column: $table.localPath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get totalBytes => $composableBuilder(
+    column: $table.totalBytes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get receivedBytes => $composableBuilder(
+    column: $table.receivedBytes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get totalSegments => $composableBuilder(
+    column: $table.totalSegments,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get doneSegments => $composableBuilder(
+    column: $table.doneSegments,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DownloadsTableOrderingComposer
+    extends Composer<_$AppDatabase, $DownloadsTable> {
+  $$DownloadsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourcePackage => $composableBuilder(
+    column: $table.sourcePackage,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get bangumiUrl => $composableBuilder(
+    column: $table.bangumiUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get episodeUrl => $composableBuilder(
+    column: $table.episodeUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get cover => $composableBuilder(
+    column: $table.cover,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get episodeTitle => $composableBuilder(
+    column: $table.episodeTitle,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get streamUrl => $composableBuilder(
+    column: $table.streamUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get headersJson => $composableBuilder(
+    column: $table.headersJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get localPath => $composableBuilder(
+    column: $table.localPath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get totalBytes => $composableBuilder(
+    column: $table.totalBytes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get receivedBytes => $composableBuilder(
+    column: $table.receivedBytes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get totalSegments => $composableBuilder(
+    column: $table.totalSegments,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get doneSegments => $composableBuilder(
+    column: $table.doneSegments,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DownloadsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DownloadsTable> {
+  $$DownloadsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get sourcePackage => $composableBuilder(
+    column: $table.sourcePackage,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get bangumiUrl => $composableBuilder(
+    column: $table.bangumiUrl,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get episodeUrl => $composableBuilder(
+    column: $table.episodeUrl,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get cover =>
+      $composableBuilder(column: $table.cover, builder: (column) => column);
+
+  GeneratedColumn<String> get episodeTitle => $composableBuilder(
+    column: $table.episodeTitle,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get streamUrl =>
+      $composableBuilder(column: $table.streamUrl, builder: (column) => column);
+
+  GeneratedColumn<String> get headersJson => $composableBuilder(
+    column: $table.headersJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get localPath =>
+      $composableBuilder(column: $table.localPath, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<int> get totalBytes => $composableBuilder(
+    column: $table.totalBytes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get receivedBytes => $composableBuilder(
+    column: $table.receivedBytes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get totalSegments => $composableBuilder(
+    column: $table.totalSegments,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get doneSegments => $composableBuilder(
+    column: $table.doneSegments,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$DownloadsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DownloadsTable,
+          Download,
+          $$DownloadsTableFilterComposer,
+          $$DownloadsTableOrderingComposer,
+          $$DownloadsTableAnnotationComposer,
+          $$DownloadsTableCreateCompanionBuilder,
+          $$DownloadsTableUpdateCompanionBuilder,
+          (Download, BaseReferences<_$AppDatabase, $DownloadsTable, Download>),
+          Download,
+          PrefetchHooks Function()
+        > {
+  $$DownloadsTableTableManager(_$AppDatabase db, $DownloadsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DownloadsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DownloadsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DownloadsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> sourcePackage = const Value.absent(),
+                Value<String> bangumiUrl = const Value.absent(),
+                Value<String> episodeUrl = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> cover = const Value.absent(),
+                Value<String> episodeTitle = const Value.absent(),
+                Value<String> streamUrl = const Value.absent(),
+                Value<String> headersJson = const Value.absent(),
+                Value<String> localPath = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<int> totalBytes = const Value.absent(),
+                Value<int> receivedBytes = const Value.absent(),
+                Value<int> totalSegments = const Value.absent(),
+                Value<int> doneSegments = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => DownloadsCompanion(
+                id: id,
+                sourcePackage: sourcePackage,
+                bangumiUrl: bangumiUrl,
+                episodeUrl: episodeUrl,
+                title: title,
+                cover: cover,
+                episodeTitle: episodeTitle,
+                streamUrl: streamUrl,
+                headersJson: headersJson,
+                localPath: localPath,
+                status: status,
+                totalBytes: totalBytes,
+                receivedBytes: receivedBytes,
+                totalSegments: totalSegments,
+                doneSegments: doneSegments,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String sourcePackage,
+                required String bangumiUrl,
+                required String episodeUrl,
+                required String title,
+                Value<String> cover = const Value.absent(),
+                Value<String> episodeTitle = const Value.absent(),
+                Value<String> streamUrl = const Value.absent(),
+                Value<String> headersJson = const Value.absent(),
+                Value<String> localPath = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<int> totalBytes = const Value.absent(),
+                Value<int> receivedBytes = const Value.absent(),
+                Value<int> totalSegments = const Value.absent(),
+                Value<int> doneSegments = const Value.absent(),
+                required DateTime createdAt,
+              }) => DownloadsCompanion.insert(
+                id: id,
+                sourcePackage: sourcePackage,
+                bangumiUrl: bangumiUrl,
+                episodeUrl: episodeUrl,
+                title: title,
+                cover: cover,
+                episodeTitle: episodeTitle,
+                streamUrl: streamUrl,
+                headersJson: headersJson,
+                localPath: localPath,
+                status: status,
+                totalBytes: totalBytes,
+                receivedBytes: receivedBytes,
+                totalSegments: totalSegments,
+                doneSegments: doneSegments,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DownloadsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DownloadsTable,
+      Download,
+      $$DownloadsTableFilterComposer,
+      $$DownloadsTableOrderingComposer,
+      $$DownloadsTableAnnotationComposer,
+      $$DownloadsTableCreateCompanionBuilder,
+      $$DownloadsTableUpdateCompanionBuilder,
+      (Download, BaseReferences<_$AppDatabase, $DownloadsTable, Download>),
+      Download,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2753,4 +4076,6 @@ class $AppDatabaseManager {
       $$FollowsTableTableManager(_db, _db.follows);
   $$SearchHistoriesTableTableManager get searchHistories =>
       $$SearchHistoriesTableTableManager(_db, _db.searchHistories);
+  $$DownloadsTableTableManager get downloads =>
+      $$DownloadsTableTableManager(_db, _db.downloads);
 }

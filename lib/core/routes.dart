@@ -7,6 +7,7 @@ abstract final class AppRoutes {
   static const home = '/';
   static const search = '/search';
   static const source = '/source';
+  static const downloads = '/downloads';
   static const detail = '/detail';
   static const player = '/player';
   static const me = '/me';

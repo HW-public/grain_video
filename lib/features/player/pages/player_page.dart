@@ -51,7 +51,8 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
   @override
   void dispose() {
     _progressTimer?.cancel();
-    // 退出落库（异步，不阻塞 dispose）。
+    // 退出播放页：先暂停单例 Player（否则返回后视频还在出声），再落库。
+    _controller?.pauseOnExit();
     unawaited(_controller?.saveProgress());
     unawaited(_restoreOrientations());
     super.dispose();

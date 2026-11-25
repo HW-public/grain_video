@@ -12,7 +12,7 @@ import '../../../core/update/app_updater.dart';
 import '../routes.dart' show MeRoutes;
 import '../widgets/me_list_card.dart';
 import '../widgets/me_list_row.dart';
-import '../widgets/sprout_logo.dart';
+import '../../../core/widgets/sprout_logo.dart';
 
 /// 关于页（spec 02）：品牌区 + 功能列表组 + 底部小字。
 ///

@@ -5,11 +5,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/settings/app_settings.dart';
 import 'core/theme/app_theme.dart';
+import 'features/downloads/providers/download_manager.dart';
+import 'features/player/providers/player_providers.dart';
 import 'router.dart';
 
 /// 应用根组件：外观设置（主题色板/显示模式/字号）从这里全局生效。
 class HeHeApp extends ConsumerWidget {
-  const HeHeApp({super.key});
+  const HeHeApp({super.key, this.initialLocation});
+
+  /// 首启引导：main 依 AppSettings.onboardingDone 决定是否指向 /onboarding。
+  final String? initialLocation;
 
   static final _i18nDelegate = FlutterI18nDelegate(
     translationLoader: FileTranslationLoader(
@@ -22,6 +27,11 @@ class HeHeApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final palette = ref.watch(paletteProvider);
+    // 常驻：提前实例化下载管理器，注册 DownloadGateway（播放器入队依赖）。
+    ref.watch(downloadManagerProvider);
+    // 常驻：应用启动即创建单例 Player——mpv 缓冲调优须在首次 open 前
+    // 完成（demuxer 属性只在建流时生效），提前创建消除与起播的竞态。
+    ref.watch(playerProvider);
     final mode = ref.watch(themeModeProvider);
     final fontIndex = ref
         .watch(fontScaleProvider)
@@ -42,7 +52,9 @@ class HeHeApp extends ConsumerWidget {
           child: child ?? const SizedBox.shrink(),
         );
       },
-      routerConfig: appRouter,
+      routerConfig: initialLocation == null
+          ? appRouter
+          : buildAppRouter(initialLocation: initialLocation),
       localizationsDelegates: [
         _i18nDelegate,
         GlobalMaterialLocalizations.delegate,
