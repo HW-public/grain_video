@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../services/proxy_service.dart';
 import '../theme/tokens.dart';
 
 /// 轻量设置持久化（shared_preferences）。
@@ -15,9 +16,20 @@ abstract final class AppSettings {
   static const _fontScaleKey = 'font_scale_index';
   static const _radiusStyleKey = 'radius_style';
   static const _onboardingDoneKey = 'onboarding_done';
+  static const _proxyEnabledKey = 'proxy_enabled';
+  static const _proxyModeKey = 'proxy_mode';
+  static const _proxyHostKey = 'proxy_host';
+  static const _proxyPortKey = 'proxy_port';
 
   /// 预加载下一集（L1 预解析 + L2 播放列表预缓冲），默认开。
   static bool preloadNext = true;
+
+  /// 网络代理：开关与类型分离（帧 27:212 有独立启用开关）。
+  /// mode: http / socks4 / socks5。
+  static bool proxyEnabled = false;
+  static String proxyMode = 'http';
+  static String proxyHost = '';
+  static int proxyPort = 0;
 
   /// 外观：主题色板名 / 显示模式 / 字号档位（0 小 ~ 3 特大，1=标准）/ 圆角风格。
   static String paletteName = AppTokens.defaultPalette.name;
@@ -44,6 +56,10 @@ abstract final class AppSettings {
       fontScaleIndex = prefs.getInt(_fontScaleKey) ?? fontScaleIndex;
       radiusStyle = prefs.getString(_radiusStyleKey) ?? radiusStyle;
       onboardingDone = prefs.getBool(_onboardingDoneKey) ?? false;
+      proxyEnabled = prefs.getBool(_proxyEnabledKey) ?? proxyEnabled;
+      proxyMode = prefs.getString(_proxyModeKey) ?? proxyMode;
+      proxyHost = prefs.getString(_proxyHostKey) ?? proxyHost;
+      proxyPort = prefs.getInt(_proxyPortKey) ?? proxyPort;
     } on Object {
       // 无插件实现（测试环境）：保持默认。
     }
@@ -102,6 +118,28 @@ abstract final class AppSettings {
       // 持久化失败不阻塞进入。
     }
   }
+
+  /// 保存代理配置（enabled=false 时保留 mode/host/port 填写值）。
+  static Future<void> setProxy({
+    required bool enabled,
+    required String mode,
+    required String host,
+    required int port,
+  }) async {
+    proxyEnabled = enabled;
+    proxyMode = mode;
+    proxyHost = host;
+    proxyPort = port;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_proxyEnabledKey, enabled);
+      await prefs.setString(_proxyModeKey, mode);
+      await prefs.setString(_proxyHostKey, host);
+      await prefs.setInt(_proxyPortKey, port);
+    } on Object {
+      // 持久化失败不阻塞。
+    }
+  }
 }
 
 /// 按名称取色板（外观设置持久化存名称，回退默认）。
@@ -130,6 +168,72 @@ class PreloadNext extends Notifier<bool> {
   Future<void> set(bool value) async {
     state = value;
     await AppSettings.setPreloadNext(value);
+  }
+}
+
+/// 网络代理配置（值对象：enabled/mode/host/port）。
+class ProxyConfig {
+  const ProxyConfig({
+    this.enabled = false,
+    this.mode = 'http',
+    this.host = '',
+    this.port = 0,
+  });
+
+  /// 启用开关（帧 27:212 独立开关，关闭时保留填写值）。
+  final bool enabled;
+
+  /// http / socks5（SOCKS4 底层网络栈不支持，设计稿已移除）。
+  final String mode;
+  final String host;
+  final int port;
+
+  bool get valid => host.isNotEmpty && port > 0;
+
+  /// 实际生效 = 开关开 + 地址完整。
+  bool get active => enabled && valid;
+
+  /// dio/mpv 通用的代理 URL（http://host:port 或 socks5://host:port）。
+  /// 未生效返回 null。
+  String? get url => active ? '$mode://$host:$port' : null;
+}
+
+/// 网络代理设置（state 镜像，UI 用；生效接线在 ProxyService / 播放器）。
+final proxyProvider = NotifierProvider<ProxySetting, ProxyConfig>(
+  ProxySetting.new,
+);
+
+class ProxySetting extends Notifier<ProxyConfig> {
+  @override
+  ProxyConfig build() {
+    Future<void>.microtask(() async {
+      await AppSettings.load();
+      state = _current();
+    });
+    return _current();
+  }
+
+  ProxyConfig _current() => ProxyConfig(
+    enabled: AppSettings.proxyEnabled,
+    mode: AppSettings.proxyMode,
+    host: AppSettings.proxyHost,
+    port: AppSettings.proxyPort,
+  );
+
+  Future<void> save({
+    required bool enabled,
+    required String mode,
+    required String host,
+    required int port,
+  }) async {
+    state = ProxyConfig(enabled: enabled, mode: mode, host: host, port: port);
+    ProxyService.update(enabled ? mode : 'direct', host, port);
+    await AppSettings.setProxy(
+      enabled: enabled,
+      mode: mode,
+      host: host,
+      port: port,
+    );
   }
 }
 

@@ -250,7 +250,10 @@ class _SettingsCard extends ConsumerWidget {
       _SettingsRowData(
         icon: Icons.public,
         labelKey: 'me.proxyTitle',
-        value: FlutterI18n.translate(context, 'me.proxyOff'),
+        // 生效中显示 host:port，否则「未开启」。
+        value: ref.watch(proxyProvider).active
+            ? '${ref.watch(proxyProvider).host}:${ref.watch(proxyProvider).port}'
+            : FlutterI18n.translate(context, 'me.proxyOff'),
         onTap: () => context.push(MeRoutes.settingsProxy),
       ),
       _SettingsRowData(

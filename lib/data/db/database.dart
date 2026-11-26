@@ -117,13 +117,9 @@ class Downloads extends Table {
 
 /// 迁移约定：schemaVersion 从 1 开始，每次表结构变更 +1；
 /// 迁移写 onUpgrade，禁止 Destructive。
-@DriftDatabase(tables: [
-  WatchHistories,
-  Favorites,
-  Follows,
-  SearchHistories,
-  Downloads,
-])
+@DriftDatabase(
+  tables: [WatchHistories, Favorites, Follows, SearchHistories, Downloads],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(driftDatabase(name: 'grain_video'));
 
@@ -141,13 +137,24 @@ class AppDatabase extends _$AppDatabase {
       if (from < 2) {
         await m.createTable(searchHistories);
       }
-      // v2 → v3：新增下载任务表。
+      // v2 → v3：新增下载任务表（createTable 按当前定义建，已含 errorMsg）。
       if (from < 3) {
         await m.createTable(downloads);
       }
       // v3 → v4：下载任务表加失败原因列。
-      if (from < 4) {
-        await m.addColumn(downloads, downloads.errorMsg);
+      // 用 PRAGMA 实测列是否存在而非纯版本区间判断：开发期装过
+      // 「表定义已含 errorMsg 但 schemaVersion 仍为 3」的构建时，
+      // 库里版本是 3 而列已存在，盲目 addColumn 会重复列崩溃。
+      if (from >= 3 && from < 4) {
+        final cols = await m.database
+            .customSelect('PRAGMA table_info(downloads)')
+            .get();
+        final hasErrorMsg = cols.any(
+          (row) => row.read<String>('name') == 'error_msg',
+        );
+        if (!hasErrorMsg) {
+          await m.addColumn(downloads, downloads.errorMsg);
+        }
       }
     },
   );

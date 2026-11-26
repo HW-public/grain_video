@@ -58,9 +58,8 @@ class _DownloadsPageState extends ConsumerState<DownloadsPage> {
     final cs = Theme.of(context).colorScheme;
     final downloading = items.where((d) => d.status == 'downloading').length;
     final done = items.where((d) => d.status == 'done').length;
-    final totalBytes = items
-        .where((d) => d.status == 'done')
-        .fold<int>(0, (sum, d) => sum + d.receivedBytes);
+    // 总量 = 全部任务的已下字节（含下载中的部分文件，均占磁盘）。
+    final totalBytes = items.fold<int>(0, (sum, d) => sum + d.receivedBytes);
 
     final visible = switch (_tab) {
       1 => items.where(
@@ -272,19 +271,44 @@ class _DownloadRow extends ConsumerWidget {
 
   final Download item;
 
+  /// 进度百分比：总长已知按字节；HLS 按分段；都未知为 0。
+  int get _pct {
+    if (item.totalBytes > 0) {
+      return (item.receivedBytes / item.totalBytes * 100).round();
+    }
+    if (item.totalSegments > 0) {
+      return (item.doneSegments / item.totalSegments * 100).round();
+    }
+    return 0;
+  }
+
+  /// 已下/总量成对格式化（同单位，总量在 MB 前）：128.5/794 MB。
+  /// 直连按 content-length；HLS 总长未知按分段均速估算；都无从估算只显示已下。
+  String get _bytesLine {
+    var total = item.totalBytes;
+    if (total <= 0 && item.totalSegments > 0 && item.doneSegments > 0) {
+      total = (item.receivedBytes / item.doneSegments * item.totalSegments)
+          .round();
+    }
+    if (total <= 0) return formatBytes(item.receivedBytes);
+    final r = item.receivedBytes;
+    if (total < 1024) return '$r/$total B';
+    if (total < 1024 * 1024) {
+      return '${(r / 1024).toStringAsFixed(1)}/${(total / 1024).toStringAsFixed(1)} KB';
+    }
+    return '${(r / 1048576).toStringAsFixed(1)}/${(total / 1048576).toStringAsFixed(1)} MB';
+  }
+
   String _statusLine(BuildContext context) {
     switch (item.status) {
       case 'queued':
         return FlutterI18n.translate(context, 'downloads.stateQueued');
       case 'downloading':
-        final pct = item.totalBytes > 0
-            ? (item.receivedBytes / item.totalBytes * 100).round()
-            : item.totalSegments > 0
-            ? (item.doneSegments / item.totalSegments * 100).round()
-            : 0;
-        return '$pct% · ${formatBytes(item.receivedBytes)}';
+        return '$_pct% · $_bytesLine';
       case 'paused':
-        return FlutterI18n.translate(context, 'downloads.statePaused');
+        // 暂停保留进度信息（置灰展示），「已暂停」缀在最后。
+        return '$_pct% · $_bytesLine · '
+            '${FlutterI18n.translate(context, 'downloads.statePaused')}';
       case 'failed':
         return item.errorMsg.isEmpty
             ? FlutterI18n.translate(context, 'downloads.stateFailed')
@@ -314,9 +338,19 @@ class _DownloadRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cs = Theme.of(context).colorScheme;
     final manager = ref.read(downloadManagerProvider.notifier);
+    // 半成品试播：起下即落 localPath，有路径且有字节即可播（ts 可播到断点）。
+    final canPlay = item.localPath.isNotEmpty && item.receivedBytes > 0;
 
     final (statusColor, trailing, onTap) = switch (item.status) {
-      'downloading' || 'queued' => (
+      'downloading' => (
+        cs.primary,
+        IconButton(
+          icon: Icon(Icons.pause, color: cs.primary),
+          onPressed: () => manager.pause(item.id),
+        ),
+        canPlay ? () => _playLocal(context) : null,
+      ),
+      'queued' => (
         cs.primary,
         IconButton(
           icon: Icon(Icons.pause, color: cs.primary),
@@ -332,7 +366,8 @@ class _DownloadRow extends ConsumerWidget {
           icon: Icon(Icons.play_arrow, color: cs.primary),
           onPressed: () => manager.retry(item.id),
         ),
-        () => manager.retry(item.id),
+        // 有半成品点行试播（续下走右侧 ▶ 钮）；没有则点行即续下。
+        canPlay ? () => _playLocal(context) : () => manager.retry(item.id),
       ),
       _ => (
         cs.onSurface.withValues(alpha: 0.65),
@@ -384,7 +419,9 @@ class _DownloadRow extends ConsumerWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  if (item.status == 'downloading') ...[
+                  // 下载中与已暂停都展示进度条；暂停态整体置灰（进度信息保留）。
+                  if (item.status == 'downloading' ||
+                      item.status == 'paused') ...[
                     const SizedBox(height: 6),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(2),
@@ -403,7 +440,11 @@ class _DownloadRow extends ConsumerWidget {
                             : null,
                         minHeight: 4,
                         backgroundColor: Theme.of(context).dividerColor,
-                        valueColor: AlwaysStoppedAnimation(cs.primary),
+                        valueColor: AlwaysStoppedAnimation(
+                          item.status == 'paused'
+                              ? cs.onSurface.withValues(alpha: 0.35)
+                              : cs.primary,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 4),

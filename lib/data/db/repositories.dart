@@ -273,12 +273,11 @@ class DownloadsRepository {
   final AppDatabase _db;
 
   Future<Download?> findByEpisode(String sourcePackage, String episodeUrl) {
-    return (_db.select(_db.downloads)
-          ..where(
-            (t) =>
-                t.sourcePackage.equals(sourcePackage) &
-                t.episodeUrl.equals(episodeUrl),
-          ))
+    return (_db.select(_db.downloads)..where(
+          (t) =>
+              t.sourcePackage.equals(sourcePackage) &
+              t.episodeUrl.equals(episodeUrl),
+        ))
         .getSingleOrNull();
   }
 
@@ -294,19 +293,21 @@ class DownloadsRepository {
   }) async {
     final existing = await findByEpisode(sourcePackage, episodeUrl);
     if (existing != null) return existing;
-    final id = await _db.into(_db.downloads).insert(
-      DownloadsCompanion.insert(
-        sourcePackage: sourcePackage,
-        bangumiUrl: bangumiUrl,
-        episodeUrl: episodeUrl,
-        title: title,
-        createdAt: DateTime.now(),
-        cover: Value(cover),
-        episodeTitle: Value(episodeTitle),
-        streamUrl: Value(streamUrl),
-        headersJson: Value(headersJson),
-      ),
-    );
+    final id = await _db
+        .into(_db.downloads)
+        .insert(
+          DownloadsCompanion.insert(
+            sourcePackage: sourcePackage,
+            bangumiUrl: bangumiUrl,
+            episodeUrl: episodeUrl,
+            title: title,
+            createdAt: DateTime.now(),
+            cover: Value(cover),
+            episodeTitle: Value(episodeTitle),
+            streamUrl: Value(streamUrl),
+            headersJson: Value(headersJson),
+          ),
+        );
     return (await (_db.select(
       _db.downloads,
     )..where((t) => t.id.equals(id))).getSingle());
@@ -349,6 +350,13 @@ class DownloadsRepository {
             ? const Value.absent()
             : Value(totalSegments),
       ),
+    );
+  }
+
+  /// 起下即写本地路径（半成品试播用；markDone 完成时仍会重写）。
+  Future<void> setLocalPath(int id, String localPath) {
+    return (_db.update(_db.downloads)..where((t) => t.id.equals(id))).write(
+      DownloadsCompanion(localPath: Value(localPath)),
     );
   }
 

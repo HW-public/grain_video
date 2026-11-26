@@ -196,6 +196,11 @@ class DownloadManager extends Notifier<List<Download>> {
         ext = dot >= 0 && dot < p.length - 1 ? p.substring(dot + 1) : 'mp4';
       }
       final file = File('${dir.path}/${row.id}.$ext');
+      // 起下即落本地路径：下载中/暂停/失败的半成品也能在下载管理里试播。
+      if (row.localPath != file.path) {
+        await _repo.setLocalPath(row.id, file.path);
+        _patch(row.id, localPath: file.path);
+      }
       final headers =
           (jsonDecode(row.headersJson.isEmpty ? '{}' : row.headersJson) as Map)
               .cast<String, String>();
@@ -379,6 +384,7 @@ class DownloadManager extends Notifier<List<Download>> {
 
     final sink = file.openWrite(mode: FileMode.writeOnlyAppend);
     var received = skip > 0 ? file.lengthSync() : 0;
+    var done = skip;
     try {
       if (mapInit != null && skip == 0) {
         final initBytes = (await _dio.get<List<int>>(
@@ -433,22 +439,25 @@ class DownloadManager extends Notifier<List<Download>> {
         }
         sink.add(bytes);
         received += bytes.length;
+        done = i + 1;
         await _throttledProgress(
           row.id,
-          doneSegments: i + 1,
+          doneSegments: done,
           receivedBytes: received,
         );
       }
       await sink.flush();
     } finally {
       await sink.close();
+      // 暂停/失败也要落精确分段数（不走节流）：续传按 doneSegments 跳段，
+      // 节流滞后会重复追加已写分段，拼出的 ts 时间戳回跳、时长只剩断点前。
+      await _repo.updateProgress(
+        id: row.id,
+        doneSegments: done,
+        receivedBytes: received,
+      );
+      _patch(row.id, doneSegments: done, receivedBytes: received);
     }
-    await _repo.updateProgress(
-      id: row.id,
-      doneSegments: segments.length,
-      receivedBytes: received,
-    );
-    _patch(row.id, doneSegments: segments.length, receivedBytes: received);
   }
 
   /// AES-128-CBC 解密（PKCS7 去填充）。

@@ -8,6 +8,7 @@ import 'package:media_kit/media_kit.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'app.dart';
+import 'core/services/proxy_service.dart';
 import 'core/settings/app_settings.dart';
 import 'core/widgets/splash_page.dart';
 import 'features/player/providers/player_providers.dart';
@@ -15,6 +16,8 @@ import 'features/player/providers/player_providers.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   MediaKit.ensureInitialized();
+  // 全局代理覆盖尽早安装（须在任何 HttpClient 创建之前）。
+  ProxyService.install();
 
   // 启动页先行（品牌露出），初始化完成后切换主应用；保底 900ms 防闪跳。
   final stopwatch = Stopwatch()..start();
@@ -38,6 +41,11 @@ Future<void> main() async {
   }
 
   await AppSettings.load();
+  ProxyService.update(
+    AppSettings.proxyEnabled ? AppSettings.proxyMode : 'direct',
+    AppSettings.proxyHost,
+    AppSettings.proxyPort,
+  );
 
   if (isDesktop) {
     // 窗口参数后台补齐，不阻塞启动页露出。

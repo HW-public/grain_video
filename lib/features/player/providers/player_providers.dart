@@ -330,7 +330,22 @@ class PlayerController extends Notifier<PlayerViewState> {
     _attachStreamListeners(player);
     _resumePosition = Duration(milliseconds: resumeMs);
     _seekApplied = resumeMs <= 0;
+    await _applyProxy(player);
     await player.open(Media(stream.url, httpHeaders: stream.headers));
+  }
+
+  /// mpv 是原生 ffmpeg 网络栈，不走 dart:io 全局代理，须单独下发
+  /// http-proxy 属性（每次 open 前同步当前设置；失败静默——测试 stub）。
+  Future<void> _applyProxy(Player player) async {
+    try {
+      final proxy = ref.read(proxyProvider);
+      final native = player as dynamic;
+      await native
+          .setProperty('http-proxy', proxy.url ?? '')
+          .timeout(const Duration(seconds: 2), onTimeout: () {});
+    } on Object {
+      // 测试 stub / 非原生端：跳过。
+    }
   }
 
   void _attachStreamListeners(Player player) {
