@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
 
 import '../theme/tokens.dart';
+import 'app_dialog.dart';
 
 /// 左滑露出式删除壳（Figma 27:210 / 233:1298 交互语义）：
 /// 拖动只把行内容向左推开，露出右侧红色「删除」按钮并停住；
@@ -59,23 +60,13 @@ class _SwipeDeleteTileState extends State<SwipeDeleteTile> {
   }
 
   Future<void> _confirmAndDelete() async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(FlutterI18n.translate(context, widget.confirmTitleKey)),
-        content: Text(FlutterI18n.translate(context, widget.confirmHintKey)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(FlutterI18n.translate(context, 'common.cancel')),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppTokens.danger),
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(FlutterI18n.translate(context, 'common.confirm')),
-          ),
-        ],
-      ),
+    final ok = await showAppConfirmDialog(
+      context,
+      title: FlutterI18n.translate(context, widget.confirmTitleKey),
+      message: FlutterI18n.translate(context, widget.confirmHintKey),
+      cancelLabel: FlutterI18n.translate(context, 'common.cancel'),
+      confirmLabel: FlutterI18n.translate(context, 'common.confirm'),
+      danger: true,
     );
     if (ok == true) await widget.onDelete();
     // 无论成败先把行收回（条目若被删除会随父级重建出树）。

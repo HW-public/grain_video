@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/routes.dart';
 import '../../../core/theme/tokens.dart';
+import '../../../core/widgets/app_dialog.dart';
 import '../../../core/widgets/app_tab_scope.dart';
 import '../../../core/widgets/async_view.dart';
 import '../../../core/widgets/bangumi_card.dart';
@@ -237,21 +238,12 @@ class _HistoryViewState extends ConsumerState<_HistoryView> {
   }
 
   Future<void> _confirmClearHistory(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(_t(context, 'search.clearHistory')),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(_t(context, 'common.cancel')),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(_t(context, 'common.confirm')),
-          ),
-        ],
-      ),
+    final confirmed = await showAppConfirmDialog(
+      context,
+      title: _t(context, 'search.clearHistory'),
+      cancelLabel: _t(context, 'common.cancel'),
+      confirmLabel: _t(context, 'common.confirm'),
+      danger: true,
     );
     if (confirmed == true) {
       ref.read(searchHistoryProvider.notifier).clear();

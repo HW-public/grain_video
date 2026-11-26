@@ -76,7 +76,8 @@ void main() {
     );
     await tester.tap(find.descendant(of: tile, matching: find.text('删除')));
     await tester.pumpAndSettle();
-    expect(find.byType(AlertDialog), findsOneWidget);
+    // 确认框为 app_dialog 的 Dialog 范式（帧 86:247），非 AlertDialog。
+    expect(find.byType(Dialog), findsOneWidget);
 
     // 确认后移除，列表与数据库同步。
     await tester.tap(find.text('确认'));

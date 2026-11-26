@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/routes.dart';
 import '../../../core/theme/tokens.dart';
+import '../../../core/widgets/app_dialog.dart';
 import '../../../core/widgets/async_view.dart';
 import '../../../extension/models.dart';
 import '../../../extension/plugin_manager.dart';
@@ -170,7 +171,18 @@ class _ActionBar extends ConsumerWidget {
               borderRadius: BorderRadius.circular(AppTokens.radiusButton),
             ),
           ),
-          onPressed: () => actions.toggleFavorite(args, detail),
+          onPressed: () {
+            actions.toggleFavorite(args, detail);
+            // 帧 86:247 底部 Toast 范式：深色胶囊轻提示。
+            showAppToast(
+              context,
+              FlutterI18n.translate(
+                context,
+                favorite ? 'detail.favoriteRemoved' : 'detail.favoriteAdded',
+              ),
+              icon: favorite ? Icons.star_border : Icons.check,
+            );
+          },
           icon: Icon(
             favorite ? Icons.star : Icons.star_border,
             size: 18,

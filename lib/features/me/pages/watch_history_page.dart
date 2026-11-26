@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/routes.dart';
 import '../../../core/theme/tokens.dart';
+import '../../../core/widgets/app_dialog.dart';
 import '../../../core/widgets/cached_image.dart';
 import '../../../core/widgets/async_view.dart';
 import '../../../core/widgets/swipe_delete_tile.dart';
@@ -158,36 +159,17 @@ class WatchHistoryPage extends ConsumerWidget {
     WidgetRef ref,
     int count,
   ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(
-          FlutterI18n.translate(dialogContext, 'me.clearHistoryTitle'),
-        ),
-        content: Text(
-          FlutterI18n.translate(
-            dialogContext,
-            'me.clearHistoryConfirm',
-            translationParams: {'count': '$count'},
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(FlutterI18n.translate(dialogContext, 'me.cancel')),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(
-              FlutterI18n.translate(dialogContext, 'me.clear'),
-              style: const TextStyle(
-                color: AppTokens.danger,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
+    final confirmed = await showAppConfirmDialog(
+      context,
+      title: FlutterI18n.translate(context, 'me.clearHistoryTitle'),
+      message: FlutterI18n.translate(
+        context,
+        'me.clearHistoryConfirm',
+        translationParams: {'count': '$count'},
       ),
+      cancelLabel: FlutterI18n.translate(context, 'me.cancel'),
+      confirmLabel: FlutterI18n.translate(context, 'me.clear'),
+      danger: true,
     );
     if (confirmed == true) {
       await ref.read(watchHistoryListProvider.notifier).clearAll();

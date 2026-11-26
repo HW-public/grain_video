@@ -79,6 +79,8 @@
     "play": "▶ Play",
     "favorite": "☆ Favorite",
     "favorited": "★ Favorited",
+    "favoriteAdded": "Added to favorites",
+    "favoriteRemoved": "Removed from favorites",
     "follow": "🔔 Follow",
     "followed": "Following",
     "episodes": "Episodes",

@@ -12,10 +12,8 @@ import 'package:grain_video/data/db/repositories.dart';
 import 'package:grain_video/features/me/pages/appearance_page.dart';
 import 'package:grain_video/features/me/pages/cache_clear_page.dart';
 import 'package:grain_video/features/me/pages/me_page.dart';
-import 'package:grain_video/features/me/pages/settings_page.dart';
 import 'package:grain_video/features/me/pages/watch_history_page.dart';
 import 'package:grain_video/features/me/routes.dart';
-import 'package:grain_video/features/me/widgets/me_list_row.dart';
 import 'package:grain_video/features/me/widgets/theme_preview_card.dart';
 import 'package:grain_video/router.dart';
 
@@ -151,14 +149,6 @@ void main() {
       ),
       findsNWidgets(2), // 图片缓存 + 安装包缓存 两行各一个清理按钮
     );
-  });
-
-  testWidgets('settings shell renders three sub-page entries', (tester) async {
-    await tester.pumpWidget(_buildApp(initialLocation: MeRoutes.settings));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(SettingsPage), findsOneWidget);
-    expect(find.byType(MeListRow), findsNWidgets(3));
   });
 
   testWidgets('appearance page shows three theme cards with mint selected', (

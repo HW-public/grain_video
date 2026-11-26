@@ -10,7 +10,8 @@ import '../../../core/theme/tokens.dart';
 import '../providers/player_providers.dart';
 
 /// 亮底弹层骨架（选集/倍速共用）：surface 底 + 深色文字，选中=主色。
-/// 设计稿「播放设置」弹层范式（帧 86:225）。
+/// 设计稿「播放设置」弹层范式（帧 86:225）：顶部拖拽把手 + 居中标题，
+/// 无关闭钮（下滑/点遮罩关闭）。
 Future<T?> showPlayerSheet<T>(
   BuildContext context, {
   required String title,
@@ -25,29 +26,34 @@ Future<T?> showPlayerSheet<T>(
     builder: (sheetContext) {
       return SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 8, 16),
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: AppTokens.textPrimary,
-                      ),
-                    ),
+              // 拖拽把手（帧顶部小横条）。
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppTokens.divider,
+                    borderRadius: BorderRadius.circular(2),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: AppTokens.textPrimary),
-                    onPressed: () => Navigator.of(sheetContext).pop(),
-                  ),
-                ],
+                ),
               ),
+              const SizedBox(height: 12),
+              Center(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppTokens.textPrimary,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
               Flexible(child: child),
             ],
           ),
@@ -136,9 +142,10 @@ Future<void> showPlayerEpSheet(BuildContext context) {
   );
 }
 
-/// 倍速弹层：「播放设置」内 chips 单选（设计稿帧范式），点击立即生效并关闭。
+/// 倍速弹层：「播放设置」内 chips 单选（帧 86:225：五档均分一行，
+/// 选中=实心主色底+深字），点击立即生效并关闭。
 Future<void> showPlayerSpeedSheet(BuildContext context) {
-  const speeds = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
+  const speeds = [0.5, 1.0, 1.25, 1.5, 2.0];
   final current = ProviderScope.containerOf(
     context,
   ).read(playerControllerProvider).rate;
@@ -162,23 +169,25 @@ Future<void> showPlayerSpeedSheet(BuildContext context) {
           ),
         ),
         const SizedBox(height: 10),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
+        Row(
           children: [
-            for (final speed in speeds)
-              _SpeedChip(
-                label: '${speed}x',
-                selected: speed == current,
-                onTap: () {
-                  Navigator.of(context).pop();
-                  unawaited(
-                    ProviderScope.containerOf(
-                      context,
-                    ).read(playerControllerProvider.notifier).setRate(speed),
-                  );
-                },
+            for (var i = 0; i < speeds.length; i++) ...[
+              if (i > 0) const SizedBox(width: 8),
+              Expanded(
+                child: _SpeedChip(
+                  label: '${speeds[i]}x',
+                  selected: speeds[i] == current,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    unawaited(
+                      ProviderScope.containerOf(context)
+                          .read(playerControllerProvider.notifier)
+                          .setRate(speeds[i]),
+                    );
+                  },
+                ),
               ),
+            ],
           ],
         ),
       ],
@@ -203,10 +212,12 @@ class _SpeedChip extends StatelessWidget {
       borderRadius: BorderRadius.circular(AppTokens.radiusChip),
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        alignment: Alignment.center,
         decoration: BoxDecoration(
+          // 帧 86:225：选中=实心主色底，未选=浅灰底。
           color: selected
-              ? AppTokens.defaultPalette.primaryContainer
+              ? AppTokens.defaultPalette.primary
               : AppTokens.surfaceAlt,
           borderRadius: BorderRadius.circular(AppTokens.radiusChip),
         ),
@@ -215,9 +226,7 @@ class _SpeedChip extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-            color: selected
-                ? AppTokens.defaultPalette.primary
-                : AppTokens.textSecondary,
+            color: selected ? AppTokens.textPrimary : AppTokens.textSecondary,
           ),
         ),
       ),

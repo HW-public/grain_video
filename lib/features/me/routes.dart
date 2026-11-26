@@ -9,7 +9,6 @@ import 'pages/follows_page.dart';
 import 'pages/licenses_page.dart';
 import 'pages/me_page.dart';
 import 'pages/network_proxy_page.dart';
-import 'pages/settings_page.dart';
 import 'pages/watch_history_page.dart';
 
 /// 「我的」feature 路由：一级页挂在 /me 子路径下，由 lib/router.dart 聚合。
@@ -20,7 +19,6 @@ abstract final class MeRoutes {
   static const String favorites = '/me/favorites';
   static const String downloads = AppRoutes.downloads;
   static const String follows = '/me/follows';
-  static const String settings = '/me/settings';
   static const String settingsAppearance = '/me/settings/appearance';
   static const String settingsProxy = '/me/settings/proxy';
   static const String settingsCache = '/me/settings/cache';
@@ -46,10 +44,6 @@ final List<RouteBase> meSubRoutes = [
   GoRoute(
     path: MeRoutes.follows,
     builder: (context, state) => const FollowsPage(),
-  ),
-  GoRoute(
-    path: MeRoutes.settings,
-    builder: (context, state) => const SettingsPage(),
   ),
   GoRoute(
     path: MeRoutes.settingsAppearance,
