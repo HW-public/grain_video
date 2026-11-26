@@ -5,9 +5,10 @@ import '../theme/tokens.dart';
 import 'app_release.dart';
 import 'app_updater.dart';
 
-/// 更新弹窗：版本信息 + release notes + 下载进度 + 安装。
+/// 更新弹窗（帧 142:128）：居中标题 + 主色版本号 + 圆点更新日志 +
+/// 稍后（描边）/ 立即更新（实心）双按钮 + 下载进度。
 ///
-/// 强制更新（release.force）时隐藏「以后再说」且禁止点外部关闭。
+/// 强制更新（release.force）时隐藏「稍后」且禁止点外部关闭。
 class AppUpdateDialog extends StatefulWidget {
   const AppUpdateDialog({super.key, required this.release});
 
@@ -28,87 +29,169 @@ class AppUpdateDialog extends StatefulWidget {
 
 class _AppUpdateDialogState extends State<AppUpdateDialog> {
   double? _progress;
-  String _currentVersion = '';
 
-  @override
-  void initState() {
-    super.initState();
-    // 当前版本异步补读（弹窗先弹出版本对比占位）。
-    AppUpdater.currentVersion().then((v) {
-      if (mounted) setState(() => _currentVersion = v);
-    });
-  }
+  /// release notes 按行拆条（去掉行首 - / · / * 前缀，统一圆点呈现）。
+  List<String> get _noteLines => widget.release.notes
+      .split('\n')
+      .map((l) => l.trim().replaceFirst(RegExp('^[-·*•]\\s*'), ''))
+      .where((l) => l.isNotEmpty)
+      .toList();
 
   @override
   Widget build(BuildContext context) {
     final release = widget.release;
     final downloading = _progress != null;
+    final cs = Theme.of(context).colorScheme;
     return PopScope(
       canPop: !release.force,
-      child: AlertDialog(
-        title: Text(FlutterI18n.translate(context, 'update.newVersion')),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              FlutterI18n.translate(
-                context,
-                'update.versionLine',
-                translationParams: {
-                  'current': _currentVersion.isEmpty ? '…' : _currentVersion,
-                  'latest': release.version,
-                },
+      child: Dialog(
+        backgroundColor: cs.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTokens.radiusCard),
+        ),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 标题 + 版本号（帧：居中，版本号主色）。
+              Text(
+                FlutterI18n.translate(context, 'update.newVersion'),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: cs.onSurface,
+                ),
               ),
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppTokens.textPrimary,
+              const SizedBox(height: 4),
+              Text(
+                'v${release.version}',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: cs.primary,
+                ),
               ),
-            ),
-            if (release.notes.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Flexible(
-                child: SingleChildScrollView(
-                  child: Text(
-                    release.notes,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppTokens.textSecondary,
+              if (_noteLines.isNotEmpty) ...[
+                const SizedBox(height: 14),
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (final line in _noteLines)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 6),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '· ',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: cs.onSurface.withValues(alpha: 0.65),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    line,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: cs.onSurface.withValues(
+                                        alpha: 0.65,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 ),
-              ),
-            ],
-            if (downloading) ...[
-              const SizedBox(height: 12),
-              LinearProgressIndicator(value: _progress),
-              const SizedBox(height: 4),
-              Text(
-                '${((_progress ?? 0) * 100).toStringAsFixed(0)}%',
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: AppTokens.textTertiary,
+              ],
+              if (downloading) ...[
+                const SizedBox(height: 12),
+                LinearProgressIndicator(value: _progress),
+                const SizedBox(height: 4),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    '${((_progress ?? 0) * 100).toStringAsFixed(0)}%',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: cs.onSurface.withValues(alpha: 0.45),
+                    ),
+                  ),
                 ),
+              ],
+              const SizedBox(height: 16),
+              // 按钮行（帧：稍后=描边，立即更新=实心主色，等高 44）。
+              Row(
+                children: [
+                  if (!release.force)
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: cs.onSurface,
+                          minimumSize: const Size.fromHeight(44),
+                          side: BorderSide(
+                            color: Theme.of(context).dividerColor,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              AppTokens.radiusButton,
+                            ),
+                          ),
+                        ),
+                        onPressed: downloading
+                            ? null
+                            : () => Navigator.of(context).pop(),
+                        child: Text(
+                          FlutterI18n.translate(context, 'update.later'),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (!release.force) const SizedBox(width: 12),
+                  Expanded(
+                    flex: release.force ? 1 : 1,
+                    child: FilledButton(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: cs.primary,
+                        foregroundColor: cs.onPrimary,
+                        minimumSize: const Size.fromHeight(44),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            AppTokens.radiusButton,
+                          ),
+                        ),
+                      ),
+                      onPressed: downloading ? null : _downloadAndInstall,
+                      child: Text(
+                        downloading
+                            ? FlutterI18n.translate(
+                                context,
+                                'update.downloading',
+                              )
+                            : FlutterI18n.translate(context, 'update.now'),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
-          ],
-        ),
-        actions: [
-          if (!release.force)
-            TextButton(
-              onPressed: downloading ? null : () => Navigator.of(context).pop(),
-              child: Text(FlutterI18n.translate(context, 'update.later')),
-            ),
-          FilledButton(
-            onPressed: downloading ? null : _downloadAndInstall,
-            child: Text(
-              downloading
-                  ? FlutterI18n.translate(context, 'update.downloading')
-                  : FlutterI18n.translate(context, 'update.now'),
-            ),
           ),
-        ],
+        ),
       ),
     );
   }

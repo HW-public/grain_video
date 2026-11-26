@@ -5,6 +5,7 @@ import 'pages/about_page.dart';
 import 'pages/appearance_page.dart';
 import 'pages/cache_clear_page.dart';
 import 'pages/favorites_page.dart';
+import 'pages/feedback_page.dart';
 import 'pages/follows_page.dart';
 import 'pages/licenses_page.dart';
 import 'pages/me_page.dart';
@@ -23,6 +24,7 @@ abstract final class MeRoutes {
   static const String settingsProxy = '/me/settings/proxy';
   static const String settingsCache = '/me/settings/cache';
   static const String about = '/me/about';
+  static const String feedback = '/me/feedback';
   static const String licenses = '/me/licenses';
 }
 
@@ -58,6 +60,10 @@ final List<RouteBase> meSubRoutes = [
     builder: (context, state) => const CacheClearPage(),
   ),
   GoRoute(path: MeRoutes.about, builder: (context, state) => const AboutPage()),
+  GoRoute(
+    path: MeRoutes.feedback,
+    builder: (context, state) => const FeedbackPage(),
+  ),
   GoRoute(
     path: MeRoutes.licenses,
     builder: (context, state) => const LicensesPage(),

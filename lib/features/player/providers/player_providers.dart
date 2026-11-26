@@ -52,6 +52,9 @@ class PlayerViewState {
     /// 真实起播（position > 0 && duration > 0 的首个 tick）。
     this.started = false,
     this.rate = 1.0,
+
+    /// 横屏锁屏（帧 21:21 控制条「锁屏」）：锁定后手势与控制层全部关闭。
+    this.locked = false,
   });
 
   final PlayerArgs args;
@@ -67,6 +70,7 @@ class PlayerViewState {
   final String cover;
   final bool started;
   final double rate;
+  final bool locked;
 
   bool get hasError => error != null;
   bool get isReady => !loading && error == null && args.isValid;
@@ -81,6 +85,7 @@ class PlayerViewState {
     String? cover,
     bool? started,
     double? rate,
+    bool? locked,
   }) {
     return PlayerViewState(
       args: args ?? this.args,
@@ -92,6 +97,7 @@ class PlayerViewState {
       cover: cover ?? this.cover,
       started: started ?? this.started,
       rate: rate ?? this.rate,
+      locked: locked ?? this.locked,
     );
   }
 
@@ -398,6 +404,9 @@ class PlayerController extends Notifier<PlayerViewState> {
     state = state.copyWith(rate: rate);
     await ref.read(playerProvider).setRate(rate);
   }
+
+  /// 横屏锁屏切换（帧 21:21 控制条「锁屏」）。
+  void toggleLock() => state = state.copyWith(locked: !state.locked);
 
   /// 下一集（无下一集时为空操作）。
   Future<void> nextEpisode() async {

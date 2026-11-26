@@ -7,7 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/tokens.dart';
 import '../providers/player_providers.dart';
-import '../widgets/player_controls.dart';
 import '../widgets/player_video_area.dart';
 
 /// 播放页：竖屏（视频区 + 标题/剧集信息 body）⇄ 横屏（全屏沉浸）。
@@ -152,6 +151,8 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
               onToggleControls: () =>
                   setState(() => _controlsVisible = !_controlsVisible),
               onFullscreen: _enterImmersive,
+              // 竖屏顶栏返回（帧 21:18 左上 ‹）。
+              onBack: () => Navigator.of(context).maybePop(),
             ),
           ),
           Expanded(
@@ -216,8 +217,6 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  _BodyControls(onFullscreen: _enterImmersive),
-                  const SizedBox(height: 8),
                   if (state.episodes.isNotEmpty) ...[
                     Text(
                       FlutterI18n.translate(context, 'player.episodes'),
@@ -287,41 +286,6 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
           onBack: () => unawaited(_exitImmersive()),
         ),
       ),
-    );
-  }
-}
-
-/// 竖屏 body 内的进度条 + 控制行（亮底样式）。
-class _BodyControls extends ConsumerWidget {
-  const _BodyControls({required this.onFullscreen});
-
-  final Future<void> Function() onFullscreen;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final player = ref.watch(playerProvider);
-    final controller = ref.read(playerControllerProvider.notifier);
-
-    return StreamBuilder(
-      stream: player.stream.position,
-      builder: (context, _) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            PlayerSeekBar(
-              dark: false,
-              position: player.state.position,
-              duration: player.state.duration,
-              onSeek: (d) => unawaited(controller.seekTo(d)),
-            ),
-            PlayerCtrlRow(
-              dark: false,
-              playing: player.state.playing,
-              onFullscreen: () => unawaited(onFullscreen()),
-            ),
-          ],
-        );
-      },
     );
   }
 }

@@ -62,14 +62,8 @@ class AboutPage extends StatelessWidget {
               MeListRow(
                 icon: Icons.feedback_outlined,
                 title: FlutterI18n.translate(context, 'me.aboutFeedback'),
-                onTap: () => unawaited(
-                  launchUrl(
-                    Uri.parse(
-                      'https://github.com/HW-public/grain_video/issues',
-                    ),
-                    mode: LaunchMode.externalApplication,
-                  ),
-                ),
+                // 帧 142:99：应用内反馈表单（提交跳 GitHub 预填 issue）。
+                onTap: () => context.push(MeRoutes.feedback),
               ),
               MeListRow(
                 icon: Icons.description_outlined,

@@ -200,6 +200,10 @@
     "next": "Next",
     "episodes": "Episodes",
     "speed": "Speed",
+    "lock": "Lock",
+    "hintLeft": "Double-tap −10s\nHold 0.5x slow",
+    "hintCenter": "Double-tap play/pause",
+    "hintRight": "Double-tap +10s\nHold 2.0x speed",
     "settings": "Playback settings",
     "synopsis": "Synopsis",
     "emptyEpisodes": "No episodes",
@@ -243,5 +247,20 @@
     "enqueueFailed": "Failed to enqueue",
     "removeTitle": "Delete download",
     "removeHint": "The local file will also be removed."
+  },
+  "feedback": {
+    "title": "Feedback",
+    "typeLabel": "Feedback type",
+    "typeBug": "Bug report",
+    "typeFeature": "Feature request",
+    "typeUi": "UI issue",
+    "typeOther": "Other",
+    "descLabel": "Description",
+    "descHint": "Describe the problem or suggestion (at least 10 characters)…",
+    "contactLabel": "Contact (optional)",
+    "contactHint": "QQ / Email / Phone",
+    "privacy": "We promise not to share your personal information",
+    "submit": "Submit feedback",
+    "tooShort": "Description must be at least 10 characters"
   }
 }
