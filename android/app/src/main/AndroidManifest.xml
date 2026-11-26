@@ -2,7 +2,7 @@
     <!-- App 自升级：允许调起系统安装器 -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <application
-        android:label="grain_video"
+        android:label="禾禾影视"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

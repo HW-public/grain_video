@@ -11,6 +11,8 @@ import 'app.dart';
 import 'core/services/proxy_service.dart';
 import 'core/settings/app_settings.dart';
 import 'core/widgets/splash_page.dart';
+import 'extension/plugin_manager.dart';
+import 'features/home/providers/home_providers.dart';
 import 'features/player/providers/player_providers.dart';
 
 Future<void> main() async {
@@ -46,6 +48,23 @@ Future<void> main() async {
     AppSettings.proxyHost,
     AppSettings.proxyPort,
   );
+
+  // 启动页真加载（用户拍板 2026-11-26，主流 App 同款）：插件装载 +
+  // 首页首屏数据预取（合并流 + hero 轮播的历史/追更），进首页即见内容；
+  // 上限 3s，弱网不卡启动页。单项失败静默（首页自走错误态）。
+  Future<void> quiet(Future<Object?> f) =>
+      f.then((_) {}, onError: (Object _) {});
+  final preload = Future.wait([
+    quiet(
+      container
+          .read(pluginManagerProvider.notifier)
+          .load()
+          .then((_) => container.read(mergedLatestProvider.future)),
+    ),
+    quiet(container.read(recentWatchProvider.future)),
+    quiet(container.read(followsProvider.future)),
+  ]);
+  await Future.any([preload, Future<void>.delayed(const Duration(seconds: 3))]);
 
   if (isDesktop) {
     // 窗口参数后台补齐，不阻塞启动页露出。
