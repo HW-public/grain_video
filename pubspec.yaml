@@ -20,6 +20,7 @@ dependencies:
   drift: ">=2.29.0 <2.30.0" # 本地数据库（SQLite ORM）
   drift_flutter: 0.2.7 # drift 平台连接（含 sqlite3 原生库）
   dio: ^5.11.1 # HTTP 客户端
+  encrypt: ^5.0.3 # HLS AES-128 分段解密（纯 Dart）
   cookie_jar: ^4.0.9 # Cookie 持久化（源站会话）
   media_kit: ^1.2.6 # 播放器内核（libmpv）
   media_kit_video: ^2.0.1 # 播放器 UI 组件

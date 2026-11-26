@@ -100,6 +100,9 @@ class Downloads extends Table {
   /// 本地文件路径（done 后可离线播放）。
   TextColumn get localPath => text().withDefault(const Constant(''))();
   TextColumn get status => text().withDefault(const Constant('queued'))();
+
+  /// 最近一次失败原因（成功/进行中为空）。
+  TextColumn get errorMsg => text().withDefault(const Constant(''))();
   IntColumn get totalBytes => integer().withDefault(const Constant(0))();
   IntColumn get receivedBytes => integer().withDefault(const Constant(0))();
   IntColumn get totalSegments => integer().withDefault(const Constant(0))();
@@ -128,7 +131,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -141,6 +144,10 @@ class AppDatabase extends _$AppDatabase {
       // v2 → v3：新增下载任务表。
       if (from < 3) {
         await m.createTable(downloads);
+      }
+      // v3 → v4：下载任务表加失败原因列。
+      if (from < 4) {
+        await m.addColumn(downloads, downloads.errorMsg);
       }
     },
   );

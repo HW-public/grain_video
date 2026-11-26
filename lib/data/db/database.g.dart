@@ -1922,6 +1922,18 @@ class $DownloadsTable extends Downloads
     requiredDuringInsert: false,
     defaultValue: const Constant('queued'),
   );
+  static const VerificationMeta _errorMsgMeta = const VerificationMeta(
+    'errorMsg',
+  );
+  @override
+  late final GeneratedColumn<String> errorMsg = GeneratedColumn<String>(
+    'error_msg',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
   static const VerificationMeta _totalBytesMeta = const VerificationMeta(
     'totalBytes',
   );
@@ -1994,6 +2006,7 @@ class $DownloadsTable extends Downloads
     headersJson,
     localPath,
     status,
+    errorMsg,
     totalBytes,
     receivedBytes,
     totalSegments,
@@ -2090,6 +2103,12 @@ class $DownloadsTable extends Downloads
       context.handle(
         _statusMeta,
         status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('error_msg')) {
+      context.handle(
+        _errorMsgMeta,
+        errorMsg.isAcceptableOrUnknown(data['error_msg']!, _errorMsgMeta),
       );
     }
     if (data.containsKey('total_bytes')) {
@@ -2190,6 +2209,10 @@ class $DownloadsTable extends Downloads
         DriftSqlType.string,
         data['${effectivePrefix}status'],
       )!,
+      errorMsg: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}error_msg'],
+      )!,
       totalBytes: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}total_bytes'],
@@ -2237,6 +2260,9 @@ class Download extends DataClass implements Insertable<Download> {
   /// 本地文件路径（done 后可离线播放）。
   final String localPath;
   final String status;
+
+  /// 最近一次失败原因（成功/进行中为空）。
+  final String errorMsg;
   final int totalBytes;
   final int receivedBytes;
   final int totalSegments;
@@ -2254,6 +2280,7 @@ class Download extends DataClass implements Insertable<Download> {
     required this.headersJson,
     required this.localPath,
     required this.status,
+    required this.errorMsg,
     required this.totalBytes,
     required this.receivedBytes,
     required this.totalSegments,
@@ -2274,6 +2301,7 @@ class Download extends DataClass implements Insertable<Download> {
     map['headers_json'] = Variable<String>(headersJson);
     map['local_path'] = Variable<String>(localPath);
     map['status'] = Variable<String>(status);
+    map['error_msg'] = Variable<String>(errorMsg);
     map['total_bytes'] = Variable<int>(totalBytes);
     map['received_bytes'] = Variable<int>(receivedBytes);
     map['total_segments'] = Variable<int>(totalSegments);
@@ -2295,6 +2323,7 @@ class Download extends DataClass implements Insertable<Download> {
       headersJson: Value(headersJson),
       localPath: Value(localPath),
       status: Value(status),
+      errorMsg: Value(errorMsg),
       totalBytes: Value(totalBytes),
       receivedBytes: Value(receivedBytes),
       totalSegments: Value(totalSegments),
@@ -2320,6 +2349,7 @@ class Download extends DataClass implements Insertable<Download> {
       headersJson: serializer.fromJson<String>(json['headersJson']),
       localPath: serializer.fromJson<String>(json['localPath']),
       status: serializer.fromJson<String>(json['status']),
+      errorMsg: serializer.fromJson<String>(json['errorMsg']),
       totalBytes: serializer.fromJson<int>(json['totalBytes']),
       receivedBytes: serializer.fromJson<int>(json['receivedBytes']),
       totalSegments: serializer.fromJson<int>(json['totalSegments']),
@@ -2342,6 +2372,7 @@ class Download extends DataClass implements Insertable<Download> {
       'headersJson': serializer.toJson<String>(headersJson),
       'localPath': serializer.toJson<String>(localPath),
       'status': serializer.toJson<String>(status),
+      'errorMsg': serializer.toJson<String>(errorMsg),
       'totalBytes': serializer.toJson<int>(totalBytes),
       'receivedBytes': serializer.toJson<int>(receivedBytes),
       'totalSegments': serializer.toJson<int>(totalSegments),
@@ -2362,6 +2393,7 @@ class Download extends DataClass implements Insertable<Download> {
     String? headersJson,
     String? localPath,
     String? status,
+    String? errorMsg,
     int? totalBytes,
     int? receivedBytes,
     int? totalSegments,
@@ -2379,6 +2411,7 @@ class Download extends DataClass implements Insertable<Download> {
     headersJson: headersJson ?? this.headersJson,
     localPath: localPath ?? this.localPath,
     status: status ?? this.status,
+    errorMsg: errorMsg ?? this.errorMsg,
     totalBytes: totalBytes ?? this.totalBytes,
     receivedBytes: receivedBytes ?? this.receivedBytes,
     totalSegments: totalSegments ?? this.totalSegments,
@@ -2408,6 +2441,7 @@ class Download extends DataClass implements Insertable<Download> {
           : this.headersJson,
       localPath: data.localPath.present ? data.localPath.value : this.localPath,
       status: data.status.present ? data.status.value : this.status,
+      errorMsg: data.errorMsg.present ? data.errorMsg.value : this.errorMsg,
       totalBytes: data.totalBytes.present
           ? data.totalBytes.value
           : this.totalBytes,
@@ -2438,6 +2472,7 @@ class Download extends DataClass implements Insertable<Download> {
           ..write('headersJson: $headersJson, ')
           ..write('localPath: $localPath, ')
           ..write('status: $status, ')
+          ..write('errorMsg: $errorMsg, ')
           ..write('totalBytes: $totalBytes, ')
           ..write('receivedBytes: $receivedBytes, ')
           ..write('totalSegments: $totalSegments, ')
@@ -2460,6 +2495,7 @@ class Download extends DataClass implements Insertable<Download> {
     headersJson,
     localPath,
     status,
+    errorMsg,
     totalBytes,
     receivedBytes,
     totalSegments,
@@ -2481,6 +2517,7 @@ class Download extends DataClass implements Insertable<Download> {
           other.headersJson == this.headersJson &&
           other.localPath == this.localPath &&
           other.status == this.status &&
+          other.errorMsg == this.errorMsg &&
           other.totalBytes == this.totalBytes &&
           other.receivedBytes == this.receivedBytes &&
           other.totalSegments == this.totalSegments &&
@@ -2500,6 +2537,7 @@ class DownloadsCompanion extends UpdateCompanion<Download> {
   final Value<String> headersJson;
   final Value<String> localPath;
   final Value<String> status;
+  final Value<String> errorMsg;
   final Value<int> totalBytes;
   final Value<int> receivedBytes;
   final Value<int> totalSegments;
@@ -2517,6 +2555,7 @@ class DownloadsCompanion extends UpdateCompanion<Download> {
     this.headersJson = const Value.absent(),
     this.localPath = const Value.absent(),
     this.status = const Value.absent(),
+    this.errorMsg = const Value.absent(),
     this.totalBytes = const Value.absent(),
     this.receivedBytes = const Value.absent(),
     this.totalSegments = const Value.absent(),
@@ -2535,6 +2574,7 @@ class DownloadsCompanion extends UpdateCompanion<Download> {
     this.headersJson = const Value.absent(),
     this.localPath = const Value.absent(),
     this.status = const Value.absent(),
+    this.errorMsg = const Value.absent(),
     this.totalBytes = const Value.absent(),
     this.receivedBytes = const Value.absent(),
     this.totalSegments = const Value.absent(),
@@ -2557,6 +2597,7 @@ class DownloadsCompanion extends UpdateCompanion<Download> {
     Expression<String>? headersJson,
     Expression<String>? localPath,
     Expression<String>? status,
+    Expression<String>? errorMsg,
     Expression<int>? totalBytes,
     Expression<int>? receivedBytes,
     Expression<int>? totalSegments,
@@ -2575,6 +2616,7 @@ class DownloadsCompanion extends UpdateCompanion<Download> {
       if (headersJson != null) 'headers_json': headersJson,
       if (localPath != null) 'local_path': localPath,
       if (status != null) 'status': status,
+      if (errorMsg != null) 'error_msg': errorMsg,
       if (totalBytes != null) 'total_bytes': totalBytes,
       if (receivedBytes != null) 'received_bytes': receivedBytes,
       if (totalSegments != null) 'total_segments': totalSegments,
@@ -2595,6 +2637,7 @@ class DownloadsCompanion extends UpdateCompanion<Download> {
     Value<String>? headersJson,
     Value<String>? localPath,
     Value<String>? status,
+    Value<String>? errorMsg,
     Value<int>? totalBytes,
     Value<int>? receivedBytes,
     Value<int>? totalSegments,
@@ -2613,6 +2656,7 @@ class DownloadsCompanion extends UpdateCompanion<Download> {
       headersJson: headersJson ?? this.headersJson,
       localPath: localPath ?? this.localPath,
       status: status ?? this.status,
+      errorMsg: errorMsg ?? this.errorMsg,
       totalBytes: totalBytes ?? this.totalBytes,
       receivedBytes: receivedBytes ?? this.receivedBytes,
       totalSegments: totalSegments ?? this.totalSegments,
@@ -2657,6 +2701,9 @@ class DownloadsCompanion extends UpdateCompanion<Download> {
     if (status.present) {
       map['status'] = Variable<String>(status.value);
     }
+    if (errorMsg.present) {
+      map['error_msg'] = Variable<String>(errorMsg.value);
+    }
     if (totalBytes.present) {
       map['total_bytes'] = Variable<int>(totalBytes.value);
     }
@@ -2689,6 +2736,7 @@ class DownloadsCompanion extends UpdateCompanion<Download> {
           ..write('headersJson: $headersJson, ')
           ..write('localPath: $localPath, ')
           ..write('status: $status, ')
+          ..write('errorMsg: $errorMsg, ')
           ..write('totalBytes: $totalBytes, ')
           ..write('receivedBytes: $receivedBytes, ')
           ..write('totalSegments: $totalSegments, ')
@@ -3662,6 +3710,7 @@ typedef $$DownloadsTableCreateCompanionBuilder =
       Value<String> headersJson,
       Value<String> localPath,
       Value<String> status,
+      Value<String> errorMsg,
       Value<int> totalBytes,
       Value<int> receivedBytes,
       Value<int> totalSegments,
@@ -3681,6 +3730,7 @@ typedef $$DownloadsTableUpdateCompanionBuilder =
       Value<String> headersJson,
       Value<String> localPath,
       Value<String> status,
+      Value<String> errorMsg,
       Value<int> totalBytes,
       Value<int> receivedBytes,
       Value<int> totalSegments,
@@ -3749,6 +3799,11 @@ class $$DownloadsTableFilterComposer
 
   ColumnFilters<String> get status => $composableBuilder(
     column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get errorMsg => $composableBuilder(
+    column: $table.errorMsg,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3842,6 +3897,11 @@ class $$DownloadsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get errorMsg => $composableBuilder(
+    column: $table.errorMsg,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get totalBytes => $composableBuilder(
     column: $table.totalBytes,
     builder: (column) => ColumnOrderings(column),
@@ -3920,6 +3980,9 @@ class $$DownloadsTableAnnotationComposer
   GeneratedColumn<String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
 
+  GeneratedColumn<String> get errorMsg =>
+      $composableBuilder(column: $table.errorMsg, builder: (column) => column);
+
   GeneratedColumn<int> get totalBytes => $composableBuilder(
     column: $table.totalBytes,
     builder: (column) => column,
@@ -3983,6 +4046,7 @@ class $$DownloadsTableTableManager
                 Value<String> headersJson = const Value.absent(),
                 Value<String> localPath = const Value.absent(),
                 Value<String> status = const Value.absent(),
+                Value<String> errorMsg = const Value.absent(),
                 Value<int> totalBytes = const Value.absent(),
                 Value<int> receivedBytes = const Value.absent(),
                 Value<int> totalSegments = const Value.absent(),
@@ -4000,6 +4064,7 @@ class $$DownloadsTableTableManager
                 headersJson: headersJson,
                 localPath: localPath,
                 status: status,
+                errorMsg: errorMsg,
                 totalBytes: totalBytes,
                 receivedBytes: receivedBytes,
                 totalSegments: totalSegments,
@@ -4019,6 +4084,7 @@ class $$DownloadsTableTableManager
                 Value<String> headersJson = const Value.absent(),
                 Value<String> localPath = const Value.absent(),
                 Value<String> status = const Value.absent(),
+                Value<String> errorMsg = const Value.absent(),
                 Value<int> totalBytes = const Value.absent(),
                 Value<int> receivedBytes = const Value.absent(),
                 Value<int> totalSegments = const Value.absent(),
@@ -4036,6 +4102,7 @@ class $$DownloadsTableTableManager
                 headersJson: headersJson,
                 localPath: localPath,
                 status: status,
+                errorMsg: errorMsg,
                 totalBytes: totalBytes,
                 receivedBytes: receivedBytes,
                 totalSegments: totalSegments,

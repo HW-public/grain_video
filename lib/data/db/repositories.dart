@@ -318,9 +318,13 @@ class DownloadsRepository {
     )..orderBy([(t) => OrderingTerm.desc(t.createdAt)])).get();
   }
 
-  Future<void> updateStatus(int id, String status) {
-    return (_db.update(_db.downloads)..where((t) => t.id.equals(id)))
-        .write(DownloadsCompanion(status: Value(status)));
+  Future<void> updateStatus(int id, String status, {String? errorMsg}) {
+    return (_db.update(_db.downloads)..where((t) => t.id.equals(id))).write(
+      DownloadsCompanion(
+        status: Value(status),
+        errorMsg: errorMsg == null ? const Value.absent() : Value(errorMsg),
+      ),
+    );
   }
 
   Future<void> updateProgress({

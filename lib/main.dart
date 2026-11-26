@@ -10,13 +10,22 @@ import 'package:window_manager/window_manager.dart';
 import 'app.dart';
 import 'core/settings/app_settings.dart';
 import 'core/widgets/splash_page.dart';
+import 'features/player/providers/player_providers.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  MediaKit.ensureInitialized();
 
   // 启动页先行（品牌露出），初始化完成后切换主应用；保底 900ms 防闪跳。
   final stopwatch = Stopwatch()..start();
-  runApp(const ProviderScope(child: SplashPage()));
+  // 共享容器：splash 与主应用同一 ProviderScope，状态不丢；
+  // 启动即创建单例 Player——mpv 缓冲调优须在首次 open 前完成
+  // （demuxer 属性只在建流时生效），提前创建消除与起播的竞态。
+  final container = ProviderContainer();
+  container.read(playerProvider); // 同步触发创建 + 后台调优
+  runApp(
+    UncontrolledProviderScope(container: container, child: const SplashPage()),
+  );
 
   final isDesktop =
       !kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS);
@@ -28,7 +37,6 @@ Future<void> main() async {
     unawaited(windowManager.focus());
   }
 
-  MediaKit.ensureInitialized();
   await AppSettings.load();
 
   if (isDesktop) {
@@ -47,7 +55,8 @@ Future<void> main() async {
     await Future<void>.delayed(Duration(milliseconds: 900 - elapsed));
   }
   runApp(
-    ProviderScope(
+    UncontrolledProviderScope(
+      container: container,
       // 首次启动先进引导页，完成引导后写标记，之后冷启动直达首页。
       child: HeHeApp(
         initialLocation: AppSettings.onboardingDone ? null : '/onboarding',

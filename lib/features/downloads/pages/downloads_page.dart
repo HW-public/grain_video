@@ -286,7 +286,10 @@ class _DownloadRow extends ConsumerWidget {
       case 'paused':
         return FlutterI18n.translate(context, 'downloads.statePaused');
       case 'failed':
-        return FlutterI18n.translate(context, 'downloads.stateFailed');
+        return item.errorMsg.isEmpty
+            ? FlutterI18n.translate(context, 'downloads.stateFailed')
+            // ignore: lines_longer_than_80_chars
+            : '${FlutterI18n.translate(context, 'downloads.stateFailed')} (${item.errorMsg})';
       default:
         return FlutterI18n.translate(
           context,
