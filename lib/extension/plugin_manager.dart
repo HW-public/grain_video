@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:grain_engine/grain_engine.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../core/services/app_logger.dart' hide LogEntry;
 import 'models.dart';
 
 export 'package:grain_engine/grain_engine.dart' show LogEntry;
@@ -73,8 +74,9 @@ class PluginManager extends Notifier<List<PluginEntry>> {
     for (final f in files) {
       try {
         entries.add(await PluginEntry.load(f.path));
-      } on Object {
-        // 坏插件跳过：装载期不因单个文件拖垮全部。
+      } on Object catch (e) {
+        // L2：坏插件跳过，不拖垮全部，留痕。
+        AppLogger.w('plugin', 'load failed: ${f.path}', e);
       }
     }
     _sync(entries);

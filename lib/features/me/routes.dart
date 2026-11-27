@@ -8,6 +8,7 @@ import 'pages/favorites_page.dart';
 import 'pages/feedback_page.dart';
 import 'pages/follows_page.dart';
 import 'pages/licenses_page.dart';
+import 'pages/logs_page.dart';
 import 'pages/me_page.dart';
 import 'pages/network_proxy_page.dart';
 import 'pages/watch_history_page.dart';
@@ -26,6 +27,7 @@ abstract final class MeRoutes {
   static const String about = '/me/about';
   static const String feedback = '/me/feedback';
   static const String licenses = '/me/licenses';
+  static const String logs = '/me/logs';
 }
 
 /// 一级「我的」页（壳内分支，挂底部导航）。
@@ -68,4 +70,5 @@ final List<RouteBase> meSubRoutes = [
     path: MeRoutes.licenses,
     builder: (context, state) => const LicensesPage(),
   ),
+  GoRoute(path: MeRoutes.logs, builder: (context, state) => const LogsPage()),
 ];

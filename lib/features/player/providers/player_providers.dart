@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
+import '../../../core/services/app_logger.dart';
 import '../../../core/settings/app_settings.dart';
 import '../../../data/db/repositories.dart';
 import '../../../extension/models.dart';
@@ -265,6 +266,7 @@ class PlayerController extends Notifier<PlayerViewState> {
       // L1/L2：后台预载下一集（不阻塞起播）。
       unawaited(_preloadNext(entry));
     } on Object catch (e) {
+      AppLogger.e('player', 'load failed', e);
       state = state.copyWith(loading: false, error: e);
     }
   }
@@ -300,6 +302,7 @@ class PlayerController extends Notifier<PlayerViewState> {
       await _open(stream, resumeMs: 0);
       unawaited(_preloadNext(entry));
     } on Object catch (e) {
+      AppLogger.e('player', 'switch episode failed', e);
       state = state.copyWith(loading: false, error: e);
     }
   }
@@ -324,8 +327,9 @@ class PlayerController extends Notifier<PlayerViewState> {
       await ref
           .read(playerProvider)
           .add(Media(stream.url, httpHeaders: stream.headers));
-    } on Object {
-      // 预载失败不影响当前播放。
+    } on Object catch (e) {
+      // L2：预载失败不影响当前播放，留痕。
+      AppLogger.w('player', 'preload next failed', e);
     }
   }
 

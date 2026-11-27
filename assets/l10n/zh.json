@@ -160,6 +160,7 @@
     "aboutGithub": "GitHub 仓库",
     "aboutFeedback": "问题反馈",
     "aboutLicense": "开源许可",
+    "aboutLogs": "运行日志",
     "aboutShare": "分享应用",
     "aboutSlogan": "生长即进度",
     "aboutCopyright": "© 2026 禾禾影视",
@@ -268,5 +269,16 @@
     "pluginMissing": "扩展未安装，请先到扩展仓库安装",
     "sourceBad": "该源暂时不可用，建议换个源试试",
     "unknown": "出错了，请稍后重试"
+  },
+  "logs": {
+    "title": "运行日志",
+    "levelAll": "全部",
+    "levelInfo": "信息",
+    "levelWarn": "警告",
+    "levelError": "错误",
+    "tagAll": "全部",
+    "empty": "暂无日志",
+    "clear": "清空",
+    "export": "导出分享"
   }
 }

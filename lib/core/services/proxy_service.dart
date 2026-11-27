@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'app_logger.dart';
+
 /// 全局代理接线：dart:io HttpOverrides 单点生效。
 ///
 /// dio（默认 IOHttpClientAdapter）、图片缓存 HttpClient、grain_engine
@@ -31,6 +33,7 @@ abstract final class ProxyService {
   /// 更新代理（启动加载后 / 设置页保存时调用）。
   static void update(String mode, String host, int port) {
     _directive = directiveFor(mode, host, port);
+    AppLogger.i('proxy', 'proxy -> $_directive');
   }
 }
 

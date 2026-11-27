@@ -4,10 +4,10 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../../../core/services/app_logger.dart';
 import '../../../data/db/database.dart';
 import '../../../core/services/download_gateway.dart';
 import '../../../data/db/repositories.dart';
@@ -46,7 +46,7 @@ class DownloadManager extends Notifier<List<Download>> {
   }
 
   Future<void> _fail(int id, String message) async {
-    debugPrint('[download] #$id failed: $message');
+    AppLogger.e('download', '#$id failed: $message');
     await _repo.updateStatus(id, 'failed', errorMsg: message);
     _patch(id, status: 'failed', errorMsg: message);
   }
@@ -154,7 +154,7 @@ class DownloadManager extends Notifier<List<Download>> {
     );
     state = [row, ...state];
     DownloadGateway.version.value++;
-    debugPrint('[download] #${row.id} enqueued: ${row.streamUrl}');
+    AppLogger.i('download', '#${row.id} enqueued: ${row.streamUrl}');
     unawaited(_start(row));
   }
 
@@ -204,8 +204,9 @@ class DownloadManager extends Notifier<List<Download>> {
       final headers =
           (jsonDecode(row.headersJson.isEmpty ? '{}' : row.headersJson) as Map)
               .cast<String, String>();
-      debugPrint(
-        "[download] #${row.id} start (${isHls ? 'hls' : 'file'})-> ${file.path}",
+      AppLogger.i(
+        'download',
+        '#${row.id} start (${isHls ? 'hls' : 'file'})-> ${file.path}',
       );
       if (isHls) {
         await _downloadHls(row, file, headers, token);
@@ -215,11 +216,11 @@ class DownloadManager extends Notifier<List<Download>> {
       if (!token.isCancelled) {
         await _repo.markDone(row.id, file.path);
         _patch(row.id, status: 'done', localPath: file.path);
-        debugPrint('[download] #${row.id} done: ${file.lengthSync()} bytes');
+        AppLogger.i('download', '#${row.id} done: ${file.lengthSync()} bytes');
       }
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) {
-        debugPrint('[download] #${row.id} paused');
+        AppLogger.i('download', '#${row.id} paused');
         await _repo.updateStatus(row.id, 'paused');
         _patch(row.id, status: 'paused');
       } else {
@@ -319,7 +320,7 @@ class DownloadManager extends Notifier<List<Download>> {
     // 清单解析走纯函数引擎（hls_engine.dart，表驱动单测覆盖）。
     final plan = parseMediaPlaylist(playlist, base);
     final segments = plan.segments;
-    debugPrint('[download] #${row.id} hls: ${segments.length} segments');
+    AppLogger.d('download', '#${row.id} hls: ${segments.length} segments');
     // 断点续传：文件在则跳过已下分段追加，文件丢则整下。
     var skip = row.doneSegments;
     if (!file.existsSync()) skip = 0;

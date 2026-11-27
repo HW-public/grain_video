@@ -1,4 +1,6 @@
 import 'package:drift/drift.dart';
+
+import '../../core/services/app_logger.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 
 part 'database.g.dart';
@@ -145,6 +147,9 @@ class AppDatabase extends _$AppDatabase {
       // 用 PRAGMA 实测列是否存在而非纯版本区间判断：开发期装过
       // 「表定义已含 errorMsg 但 schemaVersion 仍为 3」的构建时，
       // 库里版本是 3 而列已存在，盲目 addColumn 会重复列崩溃。
+      if (from < 4) {
+        AppLogger.i('db', 'migration v$from -> v$to');
+      }
       if (from >= 3 && from < 4) {
         final cols = await m.database
             .customSelect('PRAGMA table_info(downloads)')

@@ -71,6 +71,11 @@ class AboutPage extends StatelessWidget {
                 onTap: () => context.push(MeRoutes.licenses),
               ),
               MeListRow(
+                icon: Icons.receipt_long_outlined,
+                title: FlutterI18n.translate(context, 'me.aboutLogs'),
+                onTap: () => context.push(MeRoutes.logs),
+              ),
+              MeListRow(
                 icon: Icons.share_outlined,
                 title: FlutterI18n.translate(context, 'me.aboutShare'),
                 onTap: () => unawaited(

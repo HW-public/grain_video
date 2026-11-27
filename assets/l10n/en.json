@@ -160,6 +160,7 @@
     "aboutGithub": "GitHub",
     "aboutFeedback": "Feedback",
     "aboutLicense": "Open-source licenses",
+    "aboutLogs": "Runtime logs",
     "aboutShare": "Share app",
     "aboutSlogan": "Growth is progress",
     "aboutCopyright": "© 2026 HeHe Video",
@@ -268,5 +269,16 @@
     "pluginMissing": "Extension not installed. Install it from the repo first",
     "sourceBad": "This source is unavailable right now. Try another source",
     "unknown": "Something went wrong. Please try again later"
+  },
+  "logs": {
+    "title": "Runtime logs",
+    "levelAll": "All",
+    "levelInfo": "Info",
+    "levelWarn": "Warn",
+    "levelError": "Error",
+    "tagAll": "All",
+    "empty": "No logs yet",
+    "clear": "Clear",
+    "export": "Export"
   }
 }
