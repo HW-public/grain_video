@@ -429,8 +429,17 @@ class DownloadManager extends Notifier<List<Download>> {
     return null;
   }
 
+  /// 暂停：运行中任务取消 token（dio 抛 cancel 走 paused）；
+  /// 并发闸排队中/热重启残留的任务没有 token，直接落 paused——
+  /// 闸内轮询发现状态非活跃会自行退出，不会开下（真机抓包：点暂停无效）。
   void pause(int id) {
-    _tokens[id]?.cancel();
+    final token = _tokens[id];
+    if (token != null) {
+      token.cancel();
+      return;
+    }
+    unawaited(_repo.updateStatus(id, 'paused'));
+    _patch(id, status: 'paused');
   }
 
   Future<void> resume(int id) async {

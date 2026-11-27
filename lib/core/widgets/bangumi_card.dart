@@ -43,6 +43,21 @@ class BangumiCard extends StatelessWidget {
   /// 角标底 `rgba(22,36,31,.72)`（设计稿角标底 #16241F 72%）。
   static const Color badgeBackground = Color(0xB816241F);
 
+  /// 定高网格的卡高预算（搜索网格 mainAxisExtent 用）——与 build 内部
+  /// 布局严格同源：封面 + 间距6 + 标题行18 + （副标间距2 + 副标行15）。
+  /// 文字行高已在 build 内用 height 钉死；但文本排版会把行高**向上取整**
+  /// 到整数像素（实测 21.6→22），预算同步 ceil 才恒 ≥ 实际内容。
+  static double gridHeight(
+    double width,
+    TextScaler scaler, {
+    bool hasSubtitle = true,
+  }) {
+    return width / AppTokens.coverRatioVideo +
+        (AppTokens.space1 + 2) +
+        scaler.scale(18).ceilToDouble() +
+        (hasSubtitle ? 2 + scaler.scale(15).ceilToDouble() : 0);
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -70,6 +85,9 @@ class BangumiCard extends StatelessWidget {
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: cs.onSurface,
+                // 行高钉死 18px（×textScaler）：CJK 字体自然行高比 Roboto 大，
+                // 不定高会让网格卡高预算在不同字体/字号下溢出（真机抓包 4px）。
+                height: 18 / 13,
               ),
             ),
             if (subtitle.isNotEmpty) ...[
@@ -79,9 +97,10 @@ class BangumiCard extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  // 帧 21:19/4:31 副标规格 11/400。
+                  // 帧 21:19/4:31 副标规格 11/400；行高钉死 15px（同标题理由）。
                   fontSize: 11,
                   color: cs.onSurface.withValues(alpha: 0.45),
+                  height: 15 / 11,
                 ),
               ),
             ],

@@ -403,16 +403,13 @@ class _ResultView extends ConsumerWidget {
                         final cardWidth =
                             (constraints.maxWidth - padding * 2 - columnGap) /
                             2;
-                        // 卡高 = 16:9 封面 + 卡→标题6 + 标题18 + 2 + 副标15。
-                        // 文字行高随系统/应用字号缩放，预算同步乘 textScaler，
-                        // 否则大字号下 Column 溢出（真机抓包修复）。
+                        // 卡高预算与卡片布局单源（BangumiCard.gridHeight）：
+                        // 行高已钉死，任何字体/字号下内容精确等于预算。
                         final scaler = MediaQuery.textScalerOf(context);
-                        final cardHeight =
-                            cardWidth / AppTokens.coverRatioVideo +
-                            6 +
-                            scaler.scale(18.0) +
-                            2 +
-                            scaler.scale(15.0);
+                        final cardHeight = BangumiCard.gridHeight(
+                          cardWidth,
+                          scaler,
+                        );
                         return GridView.builder(
                           padding: const EdgeInsets.fromLTRB(
                             padding,
