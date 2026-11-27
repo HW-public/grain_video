@@ -165,25 +165,42 @@ AppPalette paletteByName(String name) {
   return AppTokens.defaultPalette;
 }
 
+/// 设置项 Notifier 基类（A3 单源化）：快照初值 + microtask 补读
+/// （覆盖 splash 先于 load 完成的窗口）+ set 持久化，一处收敛。
+/// 新增设置项只需：AppSettings 加 key/字段/load/setter + 6 行子类。
+abstract class SettingNotifier<T> extends Notifier<T> {
+  /// 从 AppSettings 静态快照读当前值。
+  T snapshot();
+
+  /// 持久化到 shared_preferences（静态字段由 AppSettings setter 同步）。
+  Future<void> persist(T value);
+
+  @override
+  T build() {
+    Future<void>.microtask(() async {
+      await AppSettings.load();
+      state = snapshot();
+    });
+    return snapshot();
+  }
+
+  Future<void> set(T value) async {
+    state = value;
+    await persist(value);
+  }
+}
+
 /// 播放器「预加载下一集」开关（state 镜像，UI 用）。
 final preloadNextProvider = NotifierProvider<PreloadNext, bool>(
   PreloadNext.new,
 );
 
-class PreloadNext extends Notifier<bool> {
+class PreloadNext extends SettingNotifier<bool> {
   @override
-  bool build() {
-    Future<void>.microtask(() async {
-      await AppSettings.load();
-      state = AppSettings.preloadNext;
-    });
-    return AppSettings.preloadNext;
-  }
+  bool snapshot() => AppSettings.preloadNext;
 
-  Future<void> set(bool value) async {
-    state = value;
-    await AppSettings.setPreloadNext(value);
-  }
+  @override
+  Future<void> persist(bool value) => AppSettings.setPreloadNext(value);
 }
 
 /// 网络代理配置（值对象：enabled/mode/host/port）。
@@ -257,20 +274,16 @@ final paletteProvider = NotifierProvider<PaletteSetting, AppPalette>(
   PaletteSetting.new,
 );
 
-class PaletteSetting extends Notifier<AppPalette> {
+class PaletteSetting extends SettingNotifier<AppPalette> {
   @override
-  AppPalette build() {
-    Future<void>.microtask(() async {
-      await AppSettings.load();
-      state = paletteByName(AppSettings.paletteName);
-    });
-    return paletteByName(AppSettings.paletteName);
-  }
+  AppPalette snapshot() => paletteByName(AppSettings.paletteName);
 
-  Future<void> select(AppPalette palette) async {
-    state = palette;
-    await AppSettings.setPaletteName(palette.name);
-  }
+  @override
+  Future<void> persist(AppPalette value) =>
+      AppSettings.setPaletteName(value.name);
+
+  /// 兼容旧调用名（select == set）。
+  Future<void> select(AppPalette value) => set(value);
 }
 
 /// 外观-显示模式（亮色/暗色/跟随系统）。
@@ -278,20 +291,15 @@ final themeModeProvider = NotifierProvider<ThemeModeSetting, ThemeMode>(
   ThemeModeSetting.new,
 );
 
-class ThemeModeSetting extends Notifier<ThemeMode> {
+class ThemeModeSetting extends SettingNotifier<ThemeMode> {
   @override
-  ThemeMode build() {
-    Future<void>.microtask(() async {
-      await AppSettings.load();
-      state = AppSettings.themeMode;
-    });
-    return AppSettings.themeMode;
-  }
+  ThemeMode snapshot() => AppSettings.themeMode;
 
-  Future<void> select(ThemeMode mode) async {
-    state = mode;
-    await AppSettings.setThemeMode(mode);
-  }
+  @override
+  Future<void> persist(ThemeMode value) => AppSettings.setThemeMode(value);
+
+  /// 兼容旧调用名（select == set）。
+  Future<void> select(ThemeMode value) => set(value);
 }
 
 /// 外观-字号档位（0 小 ~ 3 特大）。
@@ -299,20 +307,15 @@ final fontScaleProvider = NotifierProvider<FontScaleSetting, int>(
   FontScaleSetting.new,
 );
 
-class FontScaleSetting extends Notifier<int> {
+class FontScaleSetting extends SettingNotifier<int> {
   @override
-  int build() {
-    Future<void>.microtask(() async {
-      await AppSettings.load();
-      state = AppSettings.fontScaleIndex;
-    });
-    return AppSettings.fontScaleIndex;
-  }
+  int snapshot() => AppSettings.fontScaleIndex;
 
-  Future<void> select(int index) async {
-    state = index;
-    await AppSettings.setFontScaleIndex(index);
-  }
+  @override
+  Future<void> persist(int value) => AppSettings.setFontScaleIndex(value);
+
+  /// 兼容旧调用名（select == set）。
+  Future<void> select(int value) => set(value);
 }
 
 /// 外观-圆角风格（standard/round/sharp；当前仅持久化，
@@ -321,18 +324,13 @@ final radiusStyleProvider = NotifierProvider<RadiusStyleSetting, String>(
   RadiusStyleSetting.new,
 );
 
-class RadiusStyleSetting extends Notifier<String> {
+class RadiusStyleSetting extends SettingNotifier<String> {
   @override
-  String build() {
-    Future<void>.microtask(() async {
-      await AppSettings.load();
-      state = AppSettings.radiusStyle;
-    });
-    return AppSettings.radiusStyle;
-  }
+  String snapshot() => AppSettings.radiusStyle;
 
-  Future<void> select(String style) async {
-    state = style;
-    await AppSettings.setRadiusStyle(style);
-  }
+  @override
+  Future<void> persist(String value) => AppSettings.setRadiusStyle(value);
+
+  /// 兼容旧调用名（select == set）。
+  Future<void> select(String value) => set(value);
 }
