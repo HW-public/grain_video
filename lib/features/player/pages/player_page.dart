@@ -7,7 +7,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/tokens.dart';
 import '../../../core/exceptions/error_text.dart';
+import '../../../core/settings/app_settings.dart';
 import '../providers/player_providers.dart';
+import '../widgets/gesture_hint_overlay.dart';
 import '../widgets/player_video_area.dart';
 
 /// 播放页：竖屏（视频区 + 标题/剧集信息 body）⇄ 横屏（全屏沉浸）。
@@ -27,6 +29,9 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
   bool _immersive = false;
   bool _controlsVisible = false;
   Timer? _progressTimer;
+
+  /// 首次进播放页的手势浮层（D4）：true = 待展示。
+  late bool _showGestureHint = !AppSettings.gestureHintShown;
 
   /// build() 期缓存 notifier，dispose 里禁用 ref（riverpod 3 规则）。
   PlayerController? _controller;
@@ -127,7 +132,19 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
     }
     if (state.hasError) return _PlayerErrorView(error: state.error!);
 
-    return _immersive ? _buildLandscape(state) : _buildPortrait(state);
+    final page = _immersive ? _buildLandscape(state) : _buildPortrait(state);
+    if (!_showGestureHint) return page;
+    return Stack(
+      children: [
+        page,
+        GestureHintOverlay(
+          onDismiss: () {
+            setState(() => _showGestureHint = false);
+            unawaited(AppSettings.setGestureHintShown());
+          },
+        ),
+      ],
+    );
   }
 
   /// 竖屏：顶部 16:9 视频区（darkBg 留黑，点击浮现控制层）

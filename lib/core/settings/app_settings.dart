@@ -16,6 +16,7 @@ abstract final class AppSettings {
   static const _fontScaleKey = 'font_scale_index';
   static const _radiusStyleKey = 'radius_style';
   static const _onboardingDoneKey = 'onboarding_done';
+  static const _gestureHintShownKey = 'gesture_hint_shown';
   static const _proxyEnabledKey = 'proxy_enabled';
   static const _proxyModeKey = 'proxy_mode';
   static const _proxyHostKey = 'proxy_host';
@@ -40,6 +41,9 @@ abstract final class AppSettings {
   /// 首启标记：false = 首次启动，需走引导页。
   static bool onboardingDone = false;
 
+  /// 播放器手势浮层：false = 未展示过（首次进播放页弹一次）。
+  static bool gestureHintShown = false;
+
   /// 字号档位 → 全局缩放系数（builder 里包 MediaQuery textScaler）。
   static const fontScaleValues = [0.9, 1.0, 1.1, 1.2];
 
@@ -56,6 +60,7 @@ abstract final class AppSettings {
       fontScaleIndex = prefs.getInt(_fontScaleKey) ?? fontScaleIndex;
       radiusStyle = prefs.getString(_radiusStyleKey) ?? radiusStyle;
       onboardingDone = prefs.getBool(_onboardingDoneKey) ?? false;
+      gestureHintShown = prefs.getBool(_gestureHintShownKey) ?? false;
       proxyEnabled = prefs.getBool(_proxyEnabledKey) ?? proxyEnabled;
       proxyMode = prefs.getString(_proxyModeKey) ?? proxyMode;
       proxyHost = prefs.getString(_proxyHostKey) ?? proxyHost;
@@ -116,6 +121,16 @@ abstract final class AppSettings {
       await prefs.setBool(_onboardingDoneKey, true);
     } on Object {
       // 持久化失败不阻塞进入。
+    }
+  }
+
+  static Future<void> setGestureHintShown() async {
+    gestureHintShown = true;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_gestureHintShownKey, true);
+    } on Object {
+      // 持久化失败不阻塞。
     }
   }
 

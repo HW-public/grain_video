@@ -209,7 +209,10 @@
     "synopsis": "Synopsis",
     "emptyEpisodes": "No episodes",
     "preloadNext": "Preload next episode",
-    "preloadNextDesc": "Resolve and buffer the next episode in advance"
+    "preloadNextDesc": "Resolve and buffer the next episode in advance",
+    "gestureTitle": "Gestures",
+    "hintSeekVolume": "Swipe horizontally to seek · left side vertically for brightness · right for volume",
+    "hintDismiss": "Tap anywhere to start"
   },
   "update": {
     "newVersion": "New version available",

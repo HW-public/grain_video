@@ -209,7 +209,10 @@
     "synopsis": "简介",
     "emptyEpisodes": "暂无剧集",
     "preloadNext": "预加载下一集",
-    "preloadNextDesc": "提前解析并缓冲下一集，切换更快"
+    "preloadNextDesc": "提前解析并缓冲下一集，切换更快",
+    "gestureTitle": "手势操作",
+    "hintSeekVolume": "左右滑 进度 · 左侧上下滑 亮度 · 右侧上下滑 音量",
+    "hintDismiss": "点击任意处开始"
   },
   "update": {
     "newVersion": "发现新版本",
