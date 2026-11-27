@@ -7,6 +7,7 @@ import '../../../core/cache/app_image_cache.dart';
 import '../../../data/db/database.dart';
 import '../../../core/routes.dart';
 import '../../../core/theme/tokens.dart';
+import '../../../core/utils/error_text.dart';
 import '../../../core/widgets/async_view.dart';
 import '../../../core/widgets/cached_image.dart';
 import '../../../core/widgets/swipe_delete_tile.dart';
@@ -310,10 +311,11 @@ class _DownloadRow extends ConsumerWidget {
         return '$_pct% · $_bytesLine · '
             '${FlutterI18n.translate(context, 'downloads.statePaused')}';
       case 'failed':
+        // 错误文案分层（D5）：友好建议上界面，原始错误留在日志/数据库。
         return item.errorMsg.isEmpty
             ? FlutterI18n.translate(context, 'downloads.stateFailed')
-            // ignore: lines_longer_than_80_chars
-            : '${FlutterI18n.translate(context, 'downloads.stateFailed')} (${item.errorMsg})';
+            : '${FlutterI18n.translate(context, 'downloads.stateFailed')} · '
+                  '${friendlyError(context, item.errorMsg)}';
       default:
         return FlutterI18n.translate(
           context,

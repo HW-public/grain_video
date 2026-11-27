@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../utils/error_text.dart';
 
 /// 异步三态统一渲染：加载 / 错误（可重试）/ 数据。
 ///
@@ -28,6 +31,7 @@ class AsyncView<T> extends StatelessWidget {
       data: (data) => builder(context, data),
       loading: () =>
           loading ?? const Center(child: CircularProgressIndicator()),
+      // 错误文案分层（D5）：友好主文案 + 技术细节小字折叠。
       error: (error, _) => Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -35,14 +39,33 @@ class AsyncView<T> extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
+                friendlyError(context, error),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
                 error.toString(),
                 textAlign: TextAlign.center,
-                maxLines: 6,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.45),
+                ),
               ),
               if (onRetry != null) ...[
                 const SizedBox(height: 12),
-                FilledButton.tonal(onPressed: onRetry, child: const Text('重试')),
+                FilledButton.tonal(
+                  onPressed: onRetry,
+                  child: Text(FlutterI18n.translate(context, 'common.retry')),
+                ),
               ],
             ],
           ),

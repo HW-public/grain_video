@@ -262,5 +262,11 @@
     "privacy": "We promise not to share your personal information",
     "submit": "Submit feedback",
     "tooShort": "Description must be at least 10 characters"
+  },
+  "error": {
+    "network": "Network error. Check your connection and retry",
+    "pluginMissing": "Extension not installed. Install it from the repo first",
+    "sourceBad": "This source is unavailable right now. Try another source",
+    "unknown": "Something went wrong. Please try again later"
   }
 }

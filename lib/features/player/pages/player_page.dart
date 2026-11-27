@@ -6,6 +6,7 @@ import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/tokens.dart';
+import '../../../core/utils/error_text.dart';
 import '../providers/player_providers.dart';
 import '../widgets/player_video_area.dart';
 
@@ -371,12 +372,26 @@ class _PlayerErrorView extends ConsumerWidget {
                 color: cs.onSurface.withValues(alpha: 0.65),
               ),
               const SizedBox(height: 12),
+              // 错误文案分层（D5）：友好主文案 + 技术细节小字。
+              Text(
+                friendlyError(context, error),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: cs.onSurface,
+                ),
+              ),
+              const SizedBox(height: 4),
               Text(
                 error.toString(),
                 textAlign: TextAlign.center,
-                maxLines: 6,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: cs.onSurface.withValues(alpha: 0.65)),
+                style: TextStyle(
+                  fontSize: 11,
+                  color: cs.onSurface.withValues(alpha: 0.45),
+                ),
               ),
               const SizedBox(height: 12),
               FilledButton.tonal(

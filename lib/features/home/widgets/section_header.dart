@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_i18n/flutter_i18n.dart';
 
 import '../../../core/theme/tokens.dart';
+import '../../../core/utils/error_text.dart';
 
 /// 分区标题行（设计稿 4:31）：左主文字标题，右侧可选操作。
 /// 字号字重为用户拍板（2026-11-20）：14/500，帧原值 16/700 偏大偏粗。
@@ -62,7 +64,7 @@ class SectionEmpty extends StatelessWidget {
   }
 }
 
-/// 分区错误态：错误信息 + 重试。
+/// 分区错误态：友好文案（D5 分层）+ 重试。
 class SectionError extends StatelessWidget {
   const SectionError({super.key, required this.error, this.onRetry});
 
@@ -78,13 +80,16 @@ class SectionError extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              error.toString(),
+              friendlyError(context, error),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(fontSize: 12, color: AppTokens.danger),
             ),
             if (onRetry != null)
-              TextButton(onPressed: onRetry, child: const Text('重试')),
+              TextButton(
+                onPressed: onRetry,
+                child: Text(FlutterI18n.translate(context, 'common.retry')),
+              ),
           ],
         ),
       ),
