@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
 
+import '../services/app_logger.dart';
 import 'app_updater.dart';
 import 'update_dialog.dart';
 
@@ -23,7 +24,9 @@ Future<void> checkAppUpdate(BuildContext context, {bool silent = false}) async {
       return;
     }
     if (context.mounted) await AppUpdateDialog.show(context, release);
-  } on Object {
+  } on Object catch (e) {
+    // L2：静默检查失败仅留痕；手动检查才给用户反馈。
+    AppLogger.w('update', 'check update failed', e);
     if (!silent) feedback('update.checkFailed');
   }
 }

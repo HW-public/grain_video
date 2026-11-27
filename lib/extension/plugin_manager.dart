@@ -36,8 +36,9 @@ class PluginManager extends Notifier<List<PluginEntry>> {
     Future<void>.microtask(() async {
       try {
         await load();
-      } on Object {
-        // 保持空表，扩展页手动刷新可重试。
+      } on Object catch (e) {
+        // L2：保持空表，扩展页手动刷新可重试，留痕。
+        AppLogger.w('plugin', 'startup load failed', e);
       }
     });
     return const [];
