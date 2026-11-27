@@ -62,19 +62,6 @@ class SectionEmpty extends StatelessWidget {
   }
 }
 
-/// 分区加载态：横向卡片高度的占位进度条。
-class SectionLoading extends StatelessWidget {
-  const SectionLoading({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const SizedBox(
-      height: 130,
-      child: Center(child: CircularProgressIndicator()),
-    );
-  }
-}
-
 /// 分区错误态：错误信息 + 重试。
 class SectionError extends StatelessWidget {
   const SectionError({super.key, required this.error, this.onRetry});

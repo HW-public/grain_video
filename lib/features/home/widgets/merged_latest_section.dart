@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/routes.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/widgets/bangumi_card.dart';
+import '../../../core/widgets/skeleton.dart';
 import '../providers/home_providers.dart';
 import 'section_header.dart';
 
@@ -85,7 +86,8 @@ class MergedLatestSection extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SectionHeader(title: title),
-          const SectionLoading(),
+          // 骨架屏占位（帧 86:213 范式），与数据态网格同形。
+          const SkeletonBangumiGrid(),
         ],
       ),
       error: (error, _) => Column(

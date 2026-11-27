@@ -7,6 +7,7 @@ import '../../../core/routes.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/widgets/app_dialog.dart';
 import '../../../core/widgets/async_view.dart';
+import '../../../core/widgets/skeleton.dart';
 import '../../../extension/models.dart';
 import '../../../extension/plugin_manager.dart';
 import '../providers/detail_providers.dart';
@@ -47,11 +48,100 @@ class DetailPage extends ConsumerWidget {
       body: AsyncView<BangumiDetail>(
         value: async,
         onRetry: () => actions.retry(args),
+        // 骨架屏占位（帧 86:213 范式）：头部色块+海报+选集网格同形。
+        loading: const _DetailSkeleton(),
         builder: (context, detail) => _DetailBody(
           args: args,
           entry: ref.watch(detailEntryProvider(args)),
           detail: detail,
         ),
+      ),
+    );
+  }
+}
+
+/// 详情页加载骨架：与 _DetailBody 布局同形（头部色块+海报探出+按钮行+选集网格）。
+class _DetailSkeleton extends StatelessWidget {
+  const _DetailSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return SkeletonPulse(
+      child: ListView(
+        physics: const NeverScrollableScrollPhysics(),
+        padding: EdgeInsets.zero,
+        children: [
+          // 头部：品牌色块 183h + 海报 104×156 探出。
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                height: 183,
+                decoration: BoxDecoration(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.07),
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(24),
+                  ),
+                ),
+              ),
+              const Positioned(
+                left: 16,
+                top: 130,
+                child: SkeletonBox(width: 104, height: 156),
+              ),
+              Positioned(
+                left: 132,
+                top: 140,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    SkeletonBox(width: 150, height: 18, radius: 4),
+                    SizedBox(height: 8),
+                    SkeletonBox(width: 100, height: 13, radius: 4),
+                    SizedBox(height: 6),
+                    SkeletonBox(width: 120, height: 13, radius: 4),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 60),
+          // 按钮行 42h。
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Expanded(child: SkeletonBox(height: 42)),
+                SizedBox(width: 8),
+                SkeletonBox(width: 72, height: 42),
+                SizedBox(width: 8),
+                SkeletonBox(width: 72, height: 42),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          // 选集网格：4 列 47h × 2 行。
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              children: [
+                for (var r = 0; r < 2; r++) ...[
+                  if (r > 0) const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      for (var c = 0; c < 4; c++) ...[
+                        if (c > 0) const SizedBox(width: 8),
+                        const Expanded(child: SkeletonBox(height: 47)),
+                      ],
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

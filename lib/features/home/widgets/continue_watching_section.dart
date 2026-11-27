@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/routes.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/widgets/cached_image.dart';
+import '../../../core/widgets/skeleton.dart';
 import '../../../data/db/database.dart';
 import '../providers/home_providers.dart';
 import 'section_header.dart';
@@ -75,7 +76,13 @@ class _ContinueWatchingSectionState
           ],
         );
       },
-      loading: () => const SectionLoading(),
+      // 骨架屏占位（帧 86:213 范式）：与 hero 大卡同形。
+      loading: () => const SkeletonPulse(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: AppTokens.space4),
+          child: SkeletonBox(height: _cardHeight, radius: 24),
+        ),
+      ),
       error: (error, _) => SectionError(
         error: error,
         onRetry: () => ref.invalidate(recentWatchProvider),
