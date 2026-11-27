@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:encrypt/encrypt.dart' as enc;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:grain_video/core/exceptions/app_exception.dart';
 import 'package:grain_video/features/downloads/providers/hls_engine.dart';
 
 void main() {
@@ -25,7 +26,7 @@ void main() {
 
     test('master 无变体抛错', () {
       const broken = '#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1\n';
-      expect(() => masterVariantOf(broken), throwsStateError);
+      expect(() => masterVariantOf(broken), throwsA(isA<SourceException>()));
     });
   });
 
@@ -87,13 +88,16 @@ void main() {
           '#EXTM3U\n'
           '#EXT-X-KEY:METHOD=SAMPLE-AES,URI="skd://x"\n'
           '#EXTINF:2.0,\ns1.ts\n';
-      expect(() => parseMediaPlaylist(media, base), throwsStateError);
+      expect(
+        () => parseMediaPlaylist(media, base),
+        throwsA(isA<SourceException>()),
+      );
     });
 
     test('空清单抛错', () {
       expect(
         () => parseMediaPlaylist('#EXTM3U\n#EXTINF:2.0,\n', base),
-        throwsStateError,
+        throwsA(isA<SourceException>()),
       );
     });
 

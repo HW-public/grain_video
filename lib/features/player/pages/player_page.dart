@@ -6,7 +6,7 @@ import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/tokens.dart';
-import '../../../core/utils/error_text.dart';
+import '../../../core/exceptions/error_text.dart';
 import '../providers/player_providers.dart';
 import '../widgets/player_video_area.dart';
 

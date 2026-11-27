@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../utils/error_text.dart';
+import '../exceptions/error_text.dart';
 
 /// 异步三态统一渲染：加载 / 错误（可重试）/ 数据。
 ///

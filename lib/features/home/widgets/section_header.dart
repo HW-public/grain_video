@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
 
 import '../../../core/theme/tokens.dart';
-import '../../../core/utils/error_text.dart';
+import '../../../core/exceptions/error_text.dart';
 
 /// 分区标题行（设计稿 4:31）：左主文字标题，右侧可选操作。
 /// 字号字重为用户拍板（2026-11-20）：14/500，帧原值 16/700 偏大偏粗。

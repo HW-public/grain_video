@@ -7,6 +7,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../../../core/exceptions/app_exception.dart';
 import '../../../core/services/app_logger.dart';
 import '../../../data/db/database.dart';
 import '../../../core/services/download_gateway.dart';
@@ -137,11 +138,13 @@ class DownloadManager extends Notifier<List<Download>> {
     final entry = entries
         .where((e) => e.info.package == sourcePackage)
         .firstOrNull;
-    if (entry == null) throw StateError('plugin not installed');
+    if (entry == null) throw const PluginException('plugin not installed');
     final stream = await ref
         .read(pluginManagerProvider.notifier)
         .callWatch(entry, episodeUrl);
-    if (stream == null) throw StateError('plugin returned no stream');
+    if (stream == null) {
+      throw const SourceException('plugin returned no stream');
+    }
     final row = await _repo.insert(
       sourcePackage: sourcePackage,
       bangumiUrl: bangumiUrl,

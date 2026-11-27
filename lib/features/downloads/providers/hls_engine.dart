@@ -2,6 +2,8 @@ import 'dart:typed_data';
 
 import 'package:encrypt/encrypt.dart';
 
+import '../../../core/exceptions/app_exception.dart';
+
 /// HLS 下载引擎的纯函数部分（A1 拆分：与调度/IO 解耦，表驱动单测覆盖）。
 ///
 /// 覆盖：master 变体选择、媒体清单有序解析（#EXT-X-KEY 状态机）、
@@ -31,7 +33,7 @@ String? masterVariantOf(String playlist) {
   final variant = RegExp(r'^(?!#).+$', multiLine: true).firstMatch(playlist);
   final uri = variant?.group(0)?.trim();
   if (uri == null || uri.isEmpty) {
-    throw StateError('empty master playlist');
+    throw const SourceException('empty master playlist');
   }
   return uri;
 }
@@ -61,7 +63,7 @@ HlsMediaPlan parseMediaPlaylist(String playlist, Uri base) {
         curKeyUri = base.resolve(uri).toString();
         curIv = ivHex != null ? hexToBytes(ivHex) : null;
       } else {
-        throw StateError('unsupported key method: $method');
+        throw SourceException('unsupported key method: $method');
       }
     } else if (line.isNotEmpty && !line.startsWith('#')) {
       segments.add(
@@ -73,7 +75,7 @@ HlsMediaPlan parseMediaPlaylist(String playlist, Uri base) {
       );
     }
   }
-  if (segments.isEmpty) throw StateError('empty media playlist');
+  if (segments.isEmpty) throw const SourceException('empty media playlist');
   return HlsMediaPlan(segments: segments, mapInitUri: mapInitUriOf(playlist));
 }
 

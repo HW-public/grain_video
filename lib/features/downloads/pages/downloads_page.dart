@@ -7,7 +7,7 @@ import '../../../core/cache/app_image_cache.dart';
 import '../../../data/db/database.dart';
 import '../../../core/routes.dart';
 import '../../../core/theme/tokens.dart';
-import '../../../core/utils/error_text.dart';
+import '../../../core/exceptions/error_text.dart';
 import '../../../core/widgets/async_view.dart';
 import '../../../core/widgets/cached_image.dart';
 import '../../../core/widgets/swipe_delete_tile.dart';

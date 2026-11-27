@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
+import '../../../core/exceptions/app_exception.dart';
 import '../../../core/services/app_logger.dart';
 import '../../../core/settings/app_settings.dart';
 import '../../../data/db/repositories.dart';
@@ -222,11 +223,11 @@ class PlayerController extends Notifier<PlayerViewState> {
           .where((e) => e.info.package == args.src)
           .firstOrNull;
       if (entry == null) {
-        throw StateError('plugin not installed: ${args.src}');
+        throw PluginException('plugin not installed: ${args.src}');
       }
       final stream = await manager.callWatch(entry, args.ep);
       if (stream == null) {
-        throw StateError('plugin returned no stream');
+        throw const SourceException('plugin returned no stream');
       }
 
       var episodes = const <Episode>[];
@@ -289,14 +290,14 @@ class PlayerController extends Notifier<PlayerViewState> {
           .where((e) => e.info.package == args.src)
           .firstOrNull;
       if (entry == null) {
-        throw StateError('plugin not installed: ${args.src}');
+        throw PluginException('plugin not installed: ${args.src}');
       }
       // 预载命中：跳过 callWatch 解析等待。
       final stream =
           ref.read(preloadedStreamsProvider.notifier).take(args.ep) ??
           await manager.callWatch(entry, args.ep);
       if (stream == null) {
-        throw StateError('plugin returned no stream');
+        throw const SourceException('plugin returned no stream');
       }
       state = state.copyWith(loading: false);
       await _open(stream, resumeMs: 0);
