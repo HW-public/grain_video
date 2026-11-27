@@ -4,7 +4,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
-import 'package:encrypt/encrypt.dart';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
@@ -13,6 +12,7 @@ import '../../../data/db/database.dart';
 import '../../../core/services/download_gateway.dart';
 import '../../../data/db/repositories.dart';
 import '../../../extension/plugin_manager.dart';
+import 'hls_engine.dart';
 
 /// 下载引擎（riverpod 3 Notifier）：队列 + HLS 分段/直连文件双模式 +
 /// 暂停/续下/重试/删除 + 全部暂停/开始。文件存应用文档 downloads/。
@@ -316,35 +316,9 @@ class DownloadManager extends Notifier<List<Download>> {
       )).data!;
     }
     final base = Uri.parse(playlistUrl);
-    final segments = <_HlsSegment>[];
-    String? curKeyUri;
-    Uint8List? curIv;
-    for (final raw in playlist.split('\n')) {
-      final line = raw.trim();
-      if (line.startsWith('#EXT-X-KEY')) {
-        final method = RegExp(r'METHOD=([^,]+)').firstMatch(line)?.group(1);
-        final uri = RegExp(r'URI="([^"]*)"').firstMatch(line)?.group(1);
-        final ivHex = RegExp(r'IV=0x([0-9a-fA-F]+)').firstMatch(line)?.group(1);
-        if (method == 'NONE' || uri == null) {
-          curKeyUri = null;
-          curIv = null;
-        } else if (method == 'AES-128') {
-          curKeyUri = base.resolve(uri).toString();
-          curIv = ivHex != null ? _hexToBytes(ivHex) : null;
-        } else {
-          throw StateError('unsupported key method: $method');
-        }
-      } else if (line.isNotEmpty && !line.startsWith('#')) {
-        segments.add(
-          _HlsSegment(
-            url: base.resolve(line).toString(),
-            keyUri: curKeyUri,
-            iv: curIv,
-          ),
-        );
-      }
-    }
-    if (segments.isEmpty) throw StateError('empty media playlist');
+    // 清单解析走纯函数引擎（hls_engine.dart，表驱动单测覆盖）。
+    final plan = parseMediaPlaylist(playlist, base);
+    final segments = plan.segments;
     debugPrint('[download] #${row.id} hls: ${segments.length} segments');
     // 断点续传：文件在则跳过已下分段追加，文件丢则整下。
     var skip = row.doneSegments;
@@ -378,9 +352,7 @@ class DownloadManager extends Notifier<List<Download>> {
     }
 
     // fMP4：EXT-X-MAP init 段必须前置。
-    final mapInit = RegExp(
-      r'#EXT-X-MAP:URI="([^"]+)"',
-    ).firstMatch(playlist)?.group(1);
+    final mapInit = plan.mapInitUri;
 
     final sink = file.openWrite(mode: FileMode.writeOnlyAppend);
     var received = skip > 0 ? file.lengthSync() : 0;
@@ -413,29 +385,18 @@ class DownloadManager extends Notifier<List<Download>> {
         if (segments[i].keyUri != null) {
           final key = await keyOf(segments[i].keyUri!);
           // IV 缺省 = 分段序号 16 字节大端（HLS 规范）。
-          final iv = segments[i].iv ?? _seqIv(i);
-          bytes = _decryptAes128(bytes, key, iv);
-        } else {
+          final iv = segments[i].iv ?? seqIv(i);
+          bytes = decryptAes128(bytes, key, iv);
+        } else if (i == 0 && !looksLikeMediaSegment(bytes)) {
           final head = bytes[0];
-          final boxType = bytes.length > 8
-              ? String.fromCharCodes(bytes.sublist(4, 8))
-              : '';
-          final looksTs = head == 0x47;
-          final looksMp4 =
-              boxType == 'ftyp' ||
-              boxType == 'styp' ||
-              boxType == 'moof' ||
-              boxType == 'mdat';
-          if (!looksTs && !looksMp4 && i == 0) {
-            final hex = bytes
-                .take(32)
-                .map((b) => b.toRadixString(16).padLeft(2, '0'))
-                .join(' ');
-            throw StateError(
-              'segment #1 not ts/mp4 (head 0x${head.toRadixString(16)}): '
-              'hex[$hex] url[${segments[i].url}]',
-            );
-          }
+          final hex = bytes
+              .take(32)
+              .map((b) => b.toRadixString(16).padLeft(2, '0'))
+              .join(' ');
+          throw StateError(
+            'segment #1 not ts/mp4 (head 0x${head.toRadixString(16)}): '
+            'hex[$hex] url[${segments[i].url}]',
+          );
         }
         sink.add(bytes);
         received += bytes.length;
@@ -458,34 +419,6 @@ class DownloadManager extends Notifier<List<Download>> {
       );
       _patch(row.id, doneSegments: done, receivedBytes: received);
     }
-  }
-
-  /// AES-128-CBC 解密（PKCS7 去填充）。
-  List<int> _decryptAes128(List<int> data, Uint8List key, Uint8List iv) {
-    final encrypter = Encrypter(
-      AES(Key(Uint8List.fromList(key)), mode: AESMode.cbc),
-    );
-    return encrypter.decryptBytes(
-      Encrypted(Uint8List.fromList(data)),
-      iv: IV(iv),
-    );
-  }
-
-  Uint8List _seqIv(int sequence) {
-    final iv = Uint8List(16);
-    final hex = sequence.toRadixString(16).padLeft(32, '0');
-    for (var i = 0; i < 16; i++) {
-      iv[i] = int.parse(hex.substring(i * 2, i * 2 + 2), radix: 16);
-    }
-    return iv;
-  }
-
-  Uint8List _hexToBytes(String hex) {
-    final bytes = Uint8List(hex.length ~/ 2);
-    for (var i = 0; i < bytes.length; i++) {
-      bytes[i] = int.parse(hex.substring(i * 2, i * 2 + 2), radix: 16);
-    }
-    return bytes;
   }
 
   Future<Download?> _byId(int id) async {
@@ -551,12 +484,3 @@ class DownloadManager extends Notifier<List<Download>> {
 
 final downloadManagerProvider =
     NotifierProvider<DownloadManager, List<Download>>(DownloadManager.new);
-
-/// HLS 分段的解析态：URL + 生效密钥（null=明文段）。
-class _HlsSegment {
-  const _HlsSegment({required this.url, this.keyUri, this.iv});
-
-  final String url;
-  final String? keyUri;
-  final Uint8List? iv;
-}
