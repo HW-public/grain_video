@@ -49,10 +49,12 @@ jobs:
 
       - run: flutter pub get
 
-      - run: flutter build apk --release
+      # split-per-abi：每个 ABI 一个包（用户下载量近减半）；
+      # 升级器按设备 ABI 挑资产（AppRelease.pickApkAsset）。
+      - run: flutter build apk --release --split-per-abi
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: build/app/outputs/flutter-apk/app-release.apk
+          files: build/app/outputs/flutter-apk/app-*-release.apk
           generate_release_notes: true

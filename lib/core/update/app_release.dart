@@ -1,3 +1,5 @@
+import 'dart:ffi' show Abi;
+
 /// GitHub Release 解析与版本比较。
 class AppRelease {
   const AppRelease({
@@ -27,14 +29,14 @@ class AppRelease {
   static AppRelease? fromGitHubJson(Map<String, dynamic> json) {
     final tag = (json['tag_name'] as String? ?? '').trim();
     final assets = (json['assets'] as List? ?? const []);
-    String? apkUrl;
+    // 收集全部 APK 资产（split-per-abi 后每个 ABI 一个），按设备 ABI 挑。
+    final apkAssets = <String, String>{};
     for (final a in assets) {
       final name = (a['name'] as String? ?? '').toLowerCase();
-      if (name.endsWith('.apk')) {
-        apkUrl = a['browser_download_url'] as String?;
-        break;
-      }
+      final url = a['browser_download_url'] as String?;
+      if (name.endsWith('.apk') && url != null) apkAssets[name] = url;
     }
+    final apkUrl = pickApkAsset(apkAssets);
     if (tag.isEmpty || apkUrl == null) return null;
     var body = (json['body'] as String? ?? '').trim();
     var force = false;
@@ -43,6 +45,31 @@ class AppRelease {
       body = body.substring('[force]'.length).trimLeft();
     }
     return AppRelease(tagName: tag, notes: body, apkUrl: apkUrl, force: force);
+  }
+
+  /// 当前设备 ABI 对应的 Android abi 名（dart:ffi，零插件依赖）。
+  static String? deviceAbiTag() => switch (Abi.current()) {
+    Abi.androidArm64 => 'arm64-v8a',
+    Abi.androidArm => 'armeabi-v7a',
+    Abi.androidX64 => 'x86_64',
+    Abi.androidIA32 => 'x86',
+    _ => null,
+  };
+
+  /// 从 APK 资产表挑当前设备的包：ABI 精确匹配 → arm64 兜底 → 任意。
+  /// [abiTag] 测试注入用，缺省取设备 ABI。
+  static String? pickApkAsset(Map<String, String> apks, {String? abiTag}) {
+    if (apks.isEmpty) return null;
+    final tag = abiTag ?? deviceAbiTag();
+    if (tag != null) {
+      for (final e in apks.entries) {
+        if (e.key.contains('-$tag-')) return e.value;
+      }
+    }
+    for (final e in apks.entries) {
+      if (e.key.contains('-arm64-v8a-')) return e.value;
+    }
+    return apks.values.first;
   }
 }
 
